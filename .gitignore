@@ -1,0 +1,16 @@
+# Xcode
+*.xcuserdata/
+*.xcuserstate
+*.xcschememanagement.plist
+DerivedData/
+build/
+*.log
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
+
+# CocoaPods
+Pods/
+
+
