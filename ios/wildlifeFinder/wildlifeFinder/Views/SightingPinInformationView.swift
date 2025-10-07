@@ -29,7 +29,6 @@ struct sighting_entry {
     var priv_setting: privacy = ._public
     var caption =  "Whoa.. I didn't expect to see a flamingo here! I was just on my way to class when I found this... "
 }
-//let entry = sighting_entry()
 
 //TODO: confirm w backend: description alr ends with learn more link
 
@@ -39,6 +38,7 @@ struct SightingPinInformationView: View {
     @Binding var fromHVA: Bool
     @Binding var entry: sighting_entry
     
+    @State var showSoundAlert = false
     
     func routeButtonText() -> String {
         if fromHVA {
@@ -49,9 +49,7 @@ struct SightingPinInformationView: View {
     }
     
     @ViewBuilder
-    func ImageUnwrap() -> some View {
-        // If image and sound both available, display sound button in top trailing corner
-        //if no sound avbl, gray button out
+    func MediaUnwrap() -> some View {
         if let img = entry.image_url {
             Image(img)
                 .resizable()
@@ -60,19 +58,20 @@ struct SightingPinInformationView: View {
                     size * 0.93
                     }
         } else {
-            EmptyView()
-            //TODO: confirm that image is required
+            Rectangle()
+                .frame(maxWidth: .infinity, maxHeight: 100)
+                .opacity(0)
         }
     }
     
     @ViewBuilder
     func MediaView() -> some View {
- 
         ZStack(alignment: .bottom){
-            ZStack(alignment:.topTrailing){
-                ImageUnwrap()
+            ZStack(alignment: entry.image_url != nil ? .topTrailing: .top){
+                MediaUnwrap()
                 Button {
-                    
+                    showSoundAlert = true
+                    //TODO: if sound, display sound
                 } label: {
                     ZStack{
                         Image(systemName: "play.square.fill")
@@ -84,8 +83,14 @@ struct SightingPinInformationView: View {
                         Rectangle()
                             .frame(width: 40, height: 40)
                             .padding(5)
+                            .foregroundColor(.black)
                             .opacity(entry.sound_url != nil ? 0 : 0.8)
                     }
+                }
+                .alert(isPresented: $showSoundAlert){
+                    Alert(
+                        title: entry.sound_url != nil ?  Text("Playing sound...") : Text("No sound available")
+                    )
                 }
             }
             Text(entry.caption)
@@ -94,11 +99,7 @@ struct SightingPinInformationView: View {
                 .padding(5)
                 .background(.black.opacity(0.6))
                 .frame(maxWidth: .infinity)
-            
         }
-        
-        
-        
     }
     
     var body: some View {
