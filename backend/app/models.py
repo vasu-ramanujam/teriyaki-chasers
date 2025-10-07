@@ -8,7 +8,7 @@ class Species(Base):
     __tablename__ = "species"
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    common_name = Column(String, nullable=False)
+    common_name = Column(String, nullable=True)
     scientific_name = Column(String, nullable=False)
     habitat = Column(Text, nullable=True)
     diet = Column(Text, nullable=True)
