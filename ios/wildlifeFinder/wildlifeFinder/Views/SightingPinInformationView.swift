@@ -120,6 +120,7 @@ struct SightingPinInformationView: View {
             
             HStack{
                 Text("Posted by: \(entry.username)")
+                //TODO: if anonymous setting
                 Spacer()
                 Text("\(entry.date_posted.formatted(date: .numeric, time: .shortened))")
             }
