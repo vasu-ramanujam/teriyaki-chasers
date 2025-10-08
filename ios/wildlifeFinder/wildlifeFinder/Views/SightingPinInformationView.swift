@@ -35,8 +35,11 @@ struct sighting_entry {
 
 struct SightingPinInformationView: View {
     // TODO: insert state, binding, etc variables
+    
+    //information from SMVM
     @Binding var fromHVA: Bool
     @Binding var entry: sighting_entry
+    // -
     
     @State var showSoundAlert = false
     
@@ -89,7 +92,9 @@ struct SightingPinInformationView: View {
                 }
                 .alert(isPresented: $showSoundAlert){
                     Alert(
-                        title: entry.sound_url != nil ?  Text("Playing sound...") : Text("No sound available")
+                        title: entry.sound_url != nil ?  Text("Playing sound...") : Text("No sound available"),
+                        
+                        message: Text("Sound available only in MVP")
                     )
                 }
             }
@@ -148,8 +153,6 @@ struct SightingPinInformationView: View {
         .padding()
     }
 }
-
-
 
 #Preview {
     struct Preview: View{
