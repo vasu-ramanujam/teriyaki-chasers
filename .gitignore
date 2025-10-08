@@ -1,5 +1,5 @@
 # Xcode
-*.xcuserdata/
+xcuserdata/
 *.xcuserstate
 *.xcschememanagement.plist
 DerivedData/
@@ -13,4 +13,5 @@ Package.resolved
 # CocoaPods
 Pods/
 
-
+# OS System Files
+.DS_Store
