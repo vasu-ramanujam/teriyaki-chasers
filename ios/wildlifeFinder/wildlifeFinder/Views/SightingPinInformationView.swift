@@ -5,6 +5,11 @@
 //  Created by Alvin Jiang on 10/6/25.
 //
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
 // view called from Sighting Map
 
 // also called from high volume sighting > See more info > click on one of the sightings that make it up
@@ -137,7 +142,11 @@ struct SightingPinInformationView: View {
                 //TODO: depending on fromHVA flag
             }
             .padding([.top])
+<<<<<<< Updated upstream
             .buttonStyle(.borderedProminent)
+=======
+            .buttonStyle(OrangeButtonStyle())
+>>>>>>> Stashed changes
             .font(.headline)
 
             Spacer()
@@ -147,6 +156,10 @@ struct SightingPinInformationView: View {
                     //TODO: return to prv call (sighting map OR HVA info)
                 }
                 .padding([.leading])
+<<<<<<< Updated upstream
+=======
+                .buttonStyle(GreenButtonStyle())
+>>>>>>> Stashed changes
                 Spacer()
             }
             
@@ -165,3 +178,7 @@ struct SightingPinInformationView: View {
     }
     return Preview()
 }
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
