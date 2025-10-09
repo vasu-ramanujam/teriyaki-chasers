@@ -110,7 +110,7 @@ struct SightingPinInformationView: View {
     var body: some View {
         VStack{
             HStack{
-                Image(systemName: "mappin") // TODO: change to loc pin?
+                Image(systemName: "mappin")
                     .font(.title)
                 Text(entry.species)
                     .font(.title)
