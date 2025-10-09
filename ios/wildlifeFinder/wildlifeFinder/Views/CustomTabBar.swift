@@ -53,10 +53,10 @@ struct BottomTabBarView: View {
                 TabBarButton(systemImageName: "point.bottomleft.forward.to.arrow.triangle.scurvepath.fill", title: "Route") { selectedTab = 1 }
 
                 Circle()
-                .fill(Color(red: 36/255, green: 86/255, blue: 61/255))
+                .fill(ui_green)
                 .stroke(.white, lineWidth: 1)
                 .frame(height: 90)
-                .offset(y: -60)
+                .offset(y: -50)
                 .overlay(alignment: .top) {
                     Button {
                         selectedTab = 2
@@ -68,7 +68,7 @@ struct BottomTabBarView: View {
                                 .padding()
                         }
                     }
-                        .offset(y: -50)
+                        .offset(y: -40)
                 }
                 
                 TabBarButton(systemImageName: "magnifyingglass", title: "Search") { selectedTab = 3 }
@@ -76,6 +76,6 @@ struct BottomTabBarView: View {
 
             }
         }
-        .frame(height: 120)
+        .frame(height: 90)
     }
 }

@@ -11,10 +11,15 @@ struct ContentView: View {
     
     @State private var selectedTab = 0
     
+    //to delete
+    @State var fromHVA = false
+    @State var entry = sighting_entry()
+    
     var body: some View {
         TabView(selection: $selectedTab) {
             Tab(value: 0) {
                 // SightingMapView()
+                SightingPinInformationView(fromHVA: $fromHVA, entry: $entry)
             }
             
             Tab(value: 1) {
@@ -34,7 +39,7 @@ struct ContentView: View {
             }
         }
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-        .overlay(alignment: .bottom){
+        .safeAreaInset(edge: .bottom){
             BottomTabBarView(selectedTab: $selectedTab)
         }.ignoresSafeArea()
     }
