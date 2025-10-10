@@ -25,7 +25,6 @@ def init_database():
         # Add sample species
         sample_species = [
             Species(
-                id=uuid.uuid4(),
                 common_name="Great Horned Owl",
                 scientific_name="Bubo virginianus",
                 habitat="Forests, deserts, and urban areas",
@@ -33,7 +32,6 @@ def init_database():
                 behavior="Nocturnal hunter with excellent hearing"
             ),
             Species(
-                id=uuid.uuid4(),
                 common_name="American Robin",
                 scientific_name="Turdus migratorius",
                 habitat="Gardens, parks, and woodlands",
@@ -41,7 +39,6 @@ def init_database():
                 behavior="Active during day, known for early morning singing"
             ),
             Species(
-                id=uuid.uuid4(),
                 common_name="Red-tailed Hawk",
                 scientific_name="Buteo jamaicensis",
                 habitat="Open country, woodlands, and urban areas",
@@ -49,7 +46,6 @@ def init_database():
                 behavior="Soaring hunter with distinctive red tail"
             ),
             Species(
-                id=uuid.uuid4(),
                 common_name="White-tailed Deer",
                 scientific_name="Odocoileus virginianus",
                 habitat="Forests, fields, and suburban areas",
@@ -57,7 +53,6 @@ def init_database():
                 behavior="Most active at dawn and dusk"
             ),
             Species(
-                id=uuid.uuid4(),
                 common_name="Eastern Gray Squirrel",
                 scientific_name="Sciurus carolinensis",
                 habitat="Urban parks and woodlands",

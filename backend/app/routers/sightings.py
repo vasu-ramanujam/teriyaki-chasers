@@ -1,57 +1,60 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_
-from geoalchemy2 import functions as geo_func
 from typing import List, Optional
 from datetime import datetime
 import uuid
 import os
 from app.database import get_db
-from app.models import Sighting, Species
-from app.schemas import Sighting, SightingList, SightingCreate
+from app.models import Sighting as SightingModel, Species
+from app.schemas import Sighting, SightingList, SightingCreate, SightingFilter
 
 router = APIRouter()
 
-@router.get("/", response_model=SightingList)
+@router.post("/", response_model=SightingList)
 async def get_sightings(
-    bbox: str = Query(..., description="Bounding box: west,south,east,north"),
-    since: Optional[str] = Query(None, description="ISO8601 timestamp"),
-    species_id: Optional[str] = Query(None, description="Species ID filter"),
+    filter_data: SightingFilter,
     db: Session = Depends(get_db)
 ):
-    """Get sightings within bounding box with optional filters"""
+    """Get sightings filtered by area, species, and time range"""
     try:
-        # Parse bbox
-        west, south, east, north = map(float, bbox.split(','))
+        # Parse area (assuming it's a bounding box format: west,south,east,north)
+        west, south, east, north = map(float, filter_data.area.split(','))
         
-        # Create bounding box geometry
-        bbox_geom = geo_func.ST_MakeEnvelope(west, south, east, north, 4326)
-        
-        # Base query
-        query = db.query(Sighting).filter(
-            geo_func.ST_Intersects(Sighting.geom, bbox_geom)
+        # Base query - filter by lat/lon bounding box
+        query = db.query(SightingModel).filter(
+            and_(
+                SightingModel.lat >= south,
+                SightingModel.lat <= north,
+                SightingModel.lon >= west,
+                SightingModel.lon <= east
+            )
         )
         
         # Apply filters
-        if since:
-            since_dt = datetime.fromisoformat(since.replace('Z', '+00:00'))
-            query = query.filter(Sighting.taken_at >= since_dt)
+        if filter_data.start_time:
+            start_dt = datetime.fromisoformat(filter_data.start_time.replace('Z', '+00:00'))
+            query = query.filter(SightingModel.taken_at >= start_dt)
         
-        if species_id:
-            query = query.filter(Sighting.species_id == species_id)
+        if filter_data.end_time:
+            end_dt = datetime.fromisoformat(filter_data.end_time.replace('Z', '+00:00'))
+            query = query.filter(SightingModel.taken_at <= end_dt)
+        
+        if filter_data.species_id:
+            query = query.filter(SightingModel.species_id == filter_data.species_id)
         
         # Order by most recent
-        query = query.order_by(Sighting.taken_at.desc()).limit(100)
+        query = query.order_by(SightingModel.taken_at.desc()).limit(100)
         
         sightings = query.all()
         return SightingList(items=sightings)
         
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid bbox format: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Invalid filter format: {str(e)}")
 
-@router.post("/", response_model=Sighting)
+@router.post("/create", response_model=Sighting)
 async def create_sighting(
-    species_id: str = Form(...),
+    species_id: int = Form(...),
     lat: float = Form(...),
     lon: float = Form(...),
     is_private: bool = Form(False),
@@ -73,9 +76,10 @@ async def create_sighting(
             buffer.write(content)
         
         # Create sighting
-        sighting = Sighting(
+        sighting = SightingModel(
             species_id=species_id,
-            geom=f"POINT({lon} {lat})",
+            lat=lat,
+            lon=lon,
             taken_at=datetime.utcnow(),
             is_private=is_private,
             media_url=file_path

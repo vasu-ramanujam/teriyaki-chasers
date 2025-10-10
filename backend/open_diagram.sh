@@ -35,3 +35,6 @@ echo "3. Paste into the editor"
 echo "4. Download as PNG"
 echo "5. Convert PNG to JPG"
 
+
+
+

@@ -7,7 +7,7 @@ from datetime import datetime
 class Species(Base):
     __tablename__ = "species"
     
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(Integer, primary_key=True, autoincrement=True)
     common_name = Column(String, nullable=False)
     scientific_name = Column(String, nullable=False)
     habitat = Column(Text, nullable=True)
@@ -23,7 +23,7 @@ class Sighting(Base):
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String, nullable=True)  # NULL for anonymous
-    species_id = Column(String, ForeignKey("species.id"), nullable=False)
+    species_id = Column(Integer, ForeignKey("species.id"), nullable=False)
     lat = Column(Float, nullable=False)  # Latitude
     lon = Column(Float, nullable=False)  # Longitude
     taken_at = Column(DateTime, nullable=False, default=datetime.utcnow)

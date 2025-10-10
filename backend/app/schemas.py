@@ -11,7 +11,7 @@ class SpeciesCreate(SpeciesBase):
     pass
 
 class Species(SpeciesBase):
-    id: str
+    id: int
     habitat: Optional[str] = None
     diet: Optional[str] = None
     behavior: Optional[str] = None
@@ -25,7 +25,7 @@ class SpeciesSearch(BaseModel):
 
 # Sighting schemas
 class SightingBase(BaseModel):
-    species_id: str
+    species_id: int
     lat: float
     lon: float
     taken_at: datetime
@@ -45,6 +45,12 @@ class Sighting(SightingBase):
 
 class SightingList(BaseModel):
     items: List[Sighting]
+
+class SightingFilter(BaseModel):
+    area: str
+    species_id: Optional[int] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
 
 # Route schemas
 class RoutePoint(BaseModel):
