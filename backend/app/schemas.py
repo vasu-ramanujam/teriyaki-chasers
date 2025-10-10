@@ -38,10 +38,16 @@ class Sighting(SightingBase):
     id: str
     user_id: Optional[str] = None
     media_thumb_url: Optional[str] = None
+    notes: Optional[str] = None
     created_at: datetime
     
     class Config:
         from_attributes = True
+
+class SightingUpdate(BaseModel):
+    location: Optional[str] = None  # Format: "lat,lon"
+    time: Optional[str] = None      # ISO8601 datetime string
+    notes: Optional[str] = None
 
 class SightingList(BaseModel):
     items: List[Sighting]
