@@ -4,6 +4,7 @@ import MapKit
 struct SightingMapView: View {
     @StateObject private var vm = SightingMapViewModel()
     @State private var showRouteSheet = false
+    @State private var cameraPosition: MapCameraPosition = .automatic
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -77,7 +78,7 @@ struct SightingMapView: View {
     }
 
     private var mapLayer: some View {
-        Map(position: .region($vm.mapRegion)) {
+        Map(position: $cameraPosition) {
             if vm.showSightings {
                 ForEach(vm.filteredSightings) { s in
                     Annotation("\(s.species.emoji) \(s.species.name)", coordinate: s.coordinate) {
@@ -123,6 +124,7 @@ struct SightingMapView: View {
             }
         }
         .ignoresSafeArea()
+        .onAppear { cameraPosition = .region(vm.mapRegion) }
     }
 }
 
