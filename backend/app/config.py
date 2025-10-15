@@ -7,6 +7,11 @@ class Settings(BaseSettings):
     directions_provider: str = "mapbox"
     api_base_url: str = "http://127.0.0.1:8000"
     
+    # AI/ML API Keys (optional for development)
+    openai_api_key: Optional[str] = None
+    inaturalist_api_key: Optional[str] = None
+    birdweather_api_key: Optional[str] = None
+    
     class Config:
         env_file = ".env"
 

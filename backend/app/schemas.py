@@ -10,21 +10,22 @@ class SpeciesBase(BaseModel):
 class SpeciesCreate(SpeciesBase):
     pass
 
-class SpeciesDetails(BaseModel):
-    species: str  # scientific name
-    english_name: Optional[str] = None  # common name
-    description: Optional[str]
-    other_sources: List[str]
-
+class Species(SpeciesBase):
+    id: int
+    habitat: Optional[str] = None
+    diet: Optional[str] = None
+    behavior: Optional[str] = None
+    created_at: datetime
+    
     class Config:
         from_attributes = True
 
 class SpeciesSearch(BaseModel):
-    items: List[SpeciesDetails]
+    items: List[Species]
 
 # Sighting schemas
 class SightingBase(BaseModel):
-    species_id: str
+    species_id: int
     lat: float
     lon: float
     taken_at: datetime
@@ -44,6 +45,12 @@ class Sighting(SightingBase):
 
 class SightingList(BaseModel):
     items: List[Sighting]
+
+class SightingFilter(BaseModel):
+    area: str
+    species_id: Optional[int] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
 
 # Route schemas
 class RoutePoint(BaseModel):
@@ -96,3 +103,4 @@ class IdentificationResult(BaseModel):
 class ErrorResponse(BaseModel):
     error: str
     code: str
+

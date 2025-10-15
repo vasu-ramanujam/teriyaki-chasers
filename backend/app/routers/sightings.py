@@ -5,55 +5,43 @@ from typing import List, Optional
 from datetime import datetime
 import uuid
 import os
-
-# Only import geo functions if not in testing mode
-TESTING = os.getenv("TESTING", "0") == "1"
-if not TESTING:
-    from geoalchemy2 import functions as geo_func
-
 from app.database import get_db
 from app.models import Sighting as SightingModel, Species
-from app.schemas import Sighting as SightingSchema, SightingList, SightingCreate, SightingUpdate
+from app.schemas import Sighting, SightingList, SightingCreate, SightingFilter
 
 router = APIRouter()
 
-@router.get("/", response_model=SightingList)
+@router.post("/", response_model=SightingList)
 async def get_sightings(
-    bbox: str = Query(..., description="Bounding box: west,south,east,north"),
-    since: Optional[str] = Query(None, description="ISO8601 timestamp"),
-    species_id: Optional[str] = Query(None, description="Species ID filter"),
+    filter_data: SightingFilter,
     db: Session = Depends(get_db)
 ):
-    """Get sightings within bounding box with optional filters"""
+    """Get sightings filtered by area, species, and time range"""
     try:
-        # Parse bbox
-        west, south, east, north = map(float, bbox.split(','))
+        # Parse area (assuming it's a bounding box format: west,south,east,north)
+        west, south, east, north = map(float, filter_data.area.split(','))
         
-        # Query based on environment
-        if TESTING:
-            # Use simple lat/lon bounding box for testing (SQLite)
-            query = db.query(SightingModel).filter(
-                and_(
-                    SightingModel.lat >= south,
-                    SightingModel.lat <= north,
-                    SightingModel.lon >= west,
-                    SightingModel.lon <= east
-                )
+        # Base query - filter by lat/lon bounding box
+        query = db.query(SightingModel).filter(
+            and_(
+                SightingModel.lat >= south,
+                SightingModel.lat <= north,
+                SightingModel.lon >= west,
+                SightingModel.lon <= east
             )
-        else:
-            # Use PostGIS spatial queries for production (PostgreSQL)
-            bbox_geom = geo_func.ST_MakeEnvelope(west, south, east, north, 4326)
-            query = db.query(SightingModel).filter(
-                geo_func.ST_Intersects(SightingModel.geom, bbox_geom)
-            )
+        )
         
         # Apply filters
-        if since:
-            since_dt = datetime.fromisoformat(since.replace('Z', '+00:00'))
-            query = query.filter(SightingModel.taken_at >= since_dt)
+        if filter_data.start_time:
+            start_dt = datetime.fromisoformat(filter_data.start_time.replace('Z', '+00:00'))
+            query = query.filter(SightingModel.taken_at >= start_dt)
         
-        if species_id:
-            query = query.filter(SightingModel.species_id == species_id)
+        if filter_data.end_time:
+            end_dt = datetime.fromisoformat(filter_data.end_time.replace('Z', '+00:00'))
+            query = query.filter(SightingModel.taken_at <= end_dt)
+        
+        if filter_data.species_id:
+            query = query.filter(SightingModel.species_id == filter_data.species_id)
         
         # Order by most recent
         query = query.order_by(SightingModel.taken_at.desc()).limit(100)
@@ -62,11 +50,11 @@ async def get_sightings(
         return SightingList(items=sightings)
         
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid bbox format: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Invalid filter format: {str(e)}")
 
-@router.post("/", response_model=SightingSchema)
+@router.post("/create", response_model=Sighting)
 async def create_sighting(
-    species_id: str = Form(...),
+    species_id: int = Form(...),
     lat: float = Form(...),
     lon: float = Form(...),
     is_private: bool = Form(False),
@@ -88,20 +76,14 @@ async def create_sighting(
             buffer.write(content)
         
         # Create sighting
-        sighting_data = {
-            "species_id": species_id,
-            "lat": lat,
-            "lon": lon,
-            "taken_at": datetime.utcnow(),
-            "is_private": is_private,
-            "media_url": file_path
-        }
-        
-        # Add geometry only in production
-        if not TESTING:
-            sighting_data["geom"] = f"POINT({lon} {lat})"
-        
-        sighting = SightingModel(**sighting_data)
+        sighting = SightingModel(
+            species_id=species_id,
+            lat=lat,
+            lon=lon,
+            taken_at=datetime.utcnow(),
+            is_private=is_private,
+            media_url=file_path
+        )
         
         db.add(sighting)
         db.commit()
@@ -109,58 +91,6 @@ async def create_sighting(
         
         return sighting
         
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.patch("/{id}", response_model=SightingSchema)
-async def update_sighting(
-    id: str,
-    sighting_update: SightingUpdate,
-    db: Session = Depends(get_db)
-):
-    """Update a sighting (author only)"""
-    try:
-        # Find the sighting
-        sighting = db.query(SightingModel).filter(SightingModel.id == id).first()
-        if not sighting:
-            raise HTTPException(status_code=404, detail="Sighting not found")
-        
-        # TODO: Add authentication check to ensure only the author can edit
-        # For now, we'll allow any user to edit any sighting
-        # if current_user.id != sighting.user_id:
-        #     raise HTTPException(status_code=403, detail="Not authorized to edit this sighting")
-        
-        # Update fields if provided
-        if sighting_update.location is not None:
-            try:
-                # Parse location format "lat,lon"
-                lat_str, lon_str = sighting_update.location.split(',')
-                lat = float(lat_str.strip())
-                lon = float(lon_str.strip())
-                sighting.lat = lat
-                sighting.lon = lon
-            except (ValueError, AttributeError):
-                raise HTTPException(status_code=400, detail="Invalid location format. Expected 'lat,lon'")
-        
-        if sighting_update.time is not None:
-            try:
-                # Parse ISO8601 datetime string
-                sighting.taken_at = datetime.fromisoformat(sighting_update.time.replace('Z', '+00:00'))
-            except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid time format. Expected ISO8601 format")
-        
-        if sighting_update.notes is not None:
-            sighting.notes = sighting_update.notes
-        
-        db.commit()
-        db.refresh(sighting)
-        
-        return sighting
-        
-    except HTTPException:
-        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
