@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-@main
+//@main
 struct wildlifeFinderApp: App {
     var body: some Scene {
         WindowGroup {

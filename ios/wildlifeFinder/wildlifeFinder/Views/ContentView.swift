@@ -14,7 +14,7 @@ struct ContentView: View {
             // added temp UI icons. tbd: figure out how to make the + pop out like in the UI mockups
             TabView{
                 VStack{
-                    //SightingMapView()
+                    SightingMapView()
                 }
                 .tabItem {
                     Image(systemName: "map")
