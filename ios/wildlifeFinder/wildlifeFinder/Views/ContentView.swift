@@ -1,59 +1,38 @@
-//
-//  ContentView.swift
-//  wildlifeFinder
-//
-//  Created by Alvin Jiang on 10/6/25.
-//
-
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            
-            // added temp UI icons. tbd: figure out how to make the + pop out like in the UI mockups
-            TabView{
-                VStack{
-                    SightingMapView()
-                }
+        TabView {
+            NavigationStack { SightingMapView() }
                 .tabItem {
                     Image(systemName: "map")
                     Text("Sighting Map")
                 }
-                
-                VStack{
-                    //wherever route mapmode/armode is
-                }
-                .tabItem{
+
+            NavigationStack { RouteStackView(waypoints: []) }
+                .tabItem {
                     Image(systemName: "point.bottomleft.forward.to.arrow.triangle.scurvepath.fill")
                     Text("Current Route")
                 }
-                VStack{
-                    // sight a wildlife
-                }
-                .tabItem{
+
+            NavigationStack { Text("Post Sighting (stub)") }
+                .tabItem {
                     Image(systemName: "plus")
-                        .font(.system(size: 25))
+                    Text("Add")
                 }
-                
-                VStack{
-                    // Animal Search view
-                }
-                .tabItem{
+
+            NavigationStack { Text("Animal Search (stub)") }
+                .tabItem {
                     Image(systemName: "magnifyingglass")
                     Text("Animal Search")
                 }
-                VStack{
-                    // User Dashboard view
-                }
-                .tabItem{
+
+            NavigationStack { Text("User Dashboard (stub)") }
+                .tabItem {
                     Image(systemName: "house.fill")
                     Text("User Dashboard")
                 }
-                 
-            }
         }
-        .padding()
     }
 }
 
