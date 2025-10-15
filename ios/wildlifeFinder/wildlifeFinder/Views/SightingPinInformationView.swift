@@ -23,14 +23,15 @@ struct sighting_entry {
     var species = "Flamingo"
     var image_url: String? = "Caribbean_Flamingo"
     var sound_url: String? = "sound.mp3"
-    var description = "Lorem ipsum dolor sit amet consectetur adipiscing elit. Ex sapien vitae pellentesque sem placerat in id. Pretium tellus duis convallis tempus leo eu aenean. Urna tempor pulvinar vivamus fringilla lacus nec metus. Iaculis massa nisl malesuada lacinia integer nunc posuere. Semper vel class aptent taciti sociosqu ad litora. Conubia nostra inceptos himenaeos orci varius natoque penatibus. Dis parturient montes nascetur ridiculus mus donec rhoncus. Nulla molestie mattis scelerisque maximus eget fermentum odio. Purus est efficitur laoreet mauris pharetra vestibulum fusce. \n\nTo learn more, visit wikipedia.com/flamingo"
+    var description = "Lorem ipsum dolor sit amet consectetur adipiscing elit. Ex sapien vitae pellentesque sem placerat in id. Pretium tellus duis convallis tempus leo eu aenean. Urna tempor pulvinar vivamus fringilla lacus nec metus. Iaculis massa nisl malesuada lacinia integer nunc posuere. Semper vel class aptent taciti sociosqu ad litora. Conubia nostra inceptos himenaeos orci varius natoque penatibus. Dis parturient montes nascetur ridiculus mus donec rhoncus. Nulla molestie mattis scelerisque maximus eget fermentum odio. Purus est efficitur laoreet mauris pharetra vestibulum fusce."
     var username = "Named Teriyaki"
     var date_posted = Date()
     var priv_setting: privacy = ._public
     var caption =  "Whoa.. I didn't expect to see a flamingo here! I was just on my way to class when I found this... "
+    var other_sources: [String]? = ["wikipedia.com/flamingo", "wikipedia.org/wiki/Chilean_flamingo", "google.com"]
 }
 
-//TODO: confirm w backend: description alr ends with learn more link
+//TODO: description does not. add it together.
 
 
 struct SightingPinInformationView: View {
@@ -65,6 +66,22 @@ struct SightingPinInformationView: View {
                 .frame(maxWidth: .infinity, maxHeight: 100)
                 .opacity(0)
         }
+    }
+    
+    @ViewBuilder
+    func compile_description(description: String, other_sources: [String]?) -> some View {
+        
+        if  other_sources != nil {
+            Text(description + "\n\nLearn more at: ")
+        } else {
+            Text(description)
+        }
+        if let other_sources{
+            ForEach(other_sources, id: \.self){
+                Link($0, destination: URL(string: $0)!)
+            }
+        }
+        
     }
     
     @ViewBuilder
@@ -127,9 +144,11 @@ struct SightingPinInformationView: View {
                 .padding(.top, 5)
             
             ScrollView{ // I don't think description will be this long
-                Text("**Description:** \(entry.description)")
+                Text("**Description:**")
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 5)
+                compile_description(description: entry.description, other_sources:entry.other_sources)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .lineLimit(nil)
             }
             Button(routeButtonText()){
