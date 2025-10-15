@@ -12,18 +12,16 @@ struct ContentView: View {
     @State private var selectedTab = 0
     
     //to delete
-    @State var fromHVA = false
-    @State var entry = sighting_entry()
+    @State var in_route = true
     
     var body: some View {
         TabView(selection: $selectedTab) {
             Tab(value: 0) {
-                // SightingMapView()
-                SightingPinInformationView(fromHVA: $fromHVA, entry: $entry)
+                SightingMapView()
             }
             
             Tab(value: 1) {
-                // route view or wtv
+                RoutePreviewView(inCurrentRoute: $in_route)
             }
             
             Tab(value: 2) {

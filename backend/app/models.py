@@ -1,12 +1,5 @@
 from sqlalchemy import Column, String, DateTime, Boolean, Float, Integer, ForeignKey, Text
 from sqlalchemy.orm import relationship
-import os
-
-# Only import and use Geometry if not in testing mode
-TESTING = os.getenv("TESTING", "0") == "1"
-if not TESTING:
-    from geoalchemy2 import Geometry
-
 from app.database import Base
 import uuid
 from datetime import datetime
@@ -15,7 +8,7 @@ class Species(Base):
     __tablename__ = "species"
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    common_name = Column(String, nullable=False)
+    common_name = Column(String, nullable=True)
     scientific_name = Column(String, nullable=False)
     habitat = Column(Text, nullable=True)
     diet = Column(Text, nullable=True)
@@ -36,12 +29,7 @@ class Sighting(Base):
     taken_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     is_private = Column(Boolean, nullable=False, default=False)
     media_url = Column(String, nullable=True)
-    notes = Column(Text, nullable=True)  # User notes about the sighting
     created_at = Column(DateTime, default=datetime.utcnow)
-    
-    # Add geometry column only in production (PostgreSQL with PostGIS)
-    if not TESTING:
-        geom = Column(Geometry('POINT', srid=4326), nullable=True)
     
     # Relationships
     species = relationship("Species", back_populates="sightings")
@@ -78,4 +66,3 @@ class RouteWaypoint(Base):
     # Relationships
     route = relationship("Route", back_populates="waypoints")
     sighting = relationship("Sighting", back_populates="route_waypoints")
-

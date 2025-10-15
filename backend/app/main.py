@@ -29,7 +29,7 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(species.router, prefix="/api/species", tags=["species"])
+app.include_router(species.router, prefix="/v1/species", tags=["species"])
 app.include_router(sightings.router, prefix="/api/sightings", tags=["sightings"])
 app.include_router(routing.router, prefix="/api/route", tags=["routing"])
 app.include_router(identify.router, prefix="/api/identify", tags=["identify"])
@@ -45,4 +45,3 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
