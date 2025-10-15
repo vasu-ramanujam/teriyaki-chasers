@@ -33,16 +33,42 @@ public enum Waypoint: Identifiable, Hashable {
         case .hotspot(let h):  return "h-\(h.id)"
         }
     }
+
     public var coordinate: CLLocationCoordinate2D {
         switch self {
         case .sighting(let s): return s.coordinate
         case .hotspot(let h):  return h.coordinate
         }
     }
+
     public var title: String {
         switch self {
         case .sighting(let s): return "\(s.species.emoji) \(s.species.name)"
         case .hotspot(let h):  return "High Volume: \(h.name)"
         }
+    }
+}
+
+// MARK: - Explicit conformance (because CLLocationCoordinate2D isn't Hashable)
+extension Sighting: Equatable {
+    public static func == (lhs: Sighting, rhs: Sighting) -> Bool { lhs.id == rhs.id }
+}
+extension Sighting {
+    public func hash(into hasher: inout Hasher) { hasher.combine(id) }
+}
+
+extension Hotspot: Equatable {
+    public static func == (lhs: Hotspot, rhs: Hotspot) -> Bool { lhs.id == rhs.id }
+}
+extension Hotspot {
+    public func hash(into hasher: inout Hasher) { hasher.combine(id) }
+}
+
+extension Waypoint {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    public static func == (lhs: Waypoint, rhs: Waypoint) -> Bool {
+        lhs.id == rhs.id
     }
 }

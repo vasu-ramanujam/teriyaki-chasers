@@ -13,17 +13,23 @@ struct SearchBarView: View {
         VStack(spacing: 6) {
             HStack {
                 Image(systemName: "line.3.horizontal")
+
                 TextField(placeholder, text: $text)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled(true)
                     .submitLabel(.search)
-                    .onChange(of: text) { onChange($0) }
+                    .onChange(of: text) { _, newValue in
+                        onChange(newValue)
+                    }
                     .onSubmit { onSubmit() }
 
                 if !text.isEmpty {
-                    Button { onClear() } label { Image(systemName: "xmark.circle.fill") }
-                        .buttonStyle(.plain)
+                    Button(action: { onClear() }) {
+                        Image(systemName: "xmark.circle.fill")
+                    }
+                    .buttonStyle(.plain)
                 }
+
                 Image(systemName: "magnifyingglass")
             }
             .padding(.horizontal, 12)
@@ -33,11 +39,13 @@ struct SearchBarView: View {
             if !suggestions.isEmpty {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(suggestions, id: \.self) { s in
-                        Button { onPickSuggestion(s) } label {
+                        Button(action: { onPickSuggestion(s) }) {
                             HStack { Text(s); Spacer() }
-                                .padding(.vertical, 8).padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
                         }
                         .buttonStyle(.plain)
+
                         if s != suggestions.last { Divider() }
                     }
                 }
