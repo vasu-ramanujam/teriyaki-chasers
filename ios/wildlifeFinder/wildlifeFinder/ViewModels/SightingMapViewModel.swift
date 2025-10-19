@@ -3,41 +3,48 @@ import MapKit
 import SwiftUI
 
 @MainActor
-final class MapViewModel: ObservableObject {
+final class SightingMapViewModel: ObservableObject {
+    // Region (Apple Park-ish mock coords so you see pins immediately)
     @Published var mapRegion = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 37.334, longitude: -122.009),
-        span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+        center: .init(latitude: 37.334, longitude: -122.009),
+        span: .init(latitudeDelta: 0.02, longitudeDelta: 0.02)
     )
 
+    // Data
     @Published var sightings: [Sighting] = []
     @Published var hotspots: [Hotspot] = []
 
-    // UI state
+    // Toggles (chips in your UI)
     @Published var showSightings = true
     @Published var showHotspots = false
 
+    // Search + suggestions
     @Published var searchText: String = ""
     @Published var selectedSpecies: String? = nil
     @Published var suggestions: [String] = []
-    @Published var selectedPin: Waypoint? = nil
 
-    // Route
+    // Selection
+    @Published var selectedPin: Waypoint? = nil
     @Published var selectedWaypoints: Set<Waypoint> = []
 
-    private let api: APIService
+    var canGenerateRoute: Bool { !selectedWaypoints.isEmpty }
 
-    init(api: APIService = MockAPIService()) {
-        self.api = api
-    }
+    func loadMock() {
+        // quick mock; swap with API later
+        let flamingo = Species(name: "flamingo", emoji: "🦩")
+        let turkey   = Species(name: "turkey", emoji: "🦃")
+        let swan     = Species(name: "mute swan", emoji: "🦢")
 
-    func load() async {
-        do {
-            async let s = api.fetchSightings()
-            async let h = api.fetchHotspots()
-            (sightings, hotspots) = try await (s, h)
-        } catch {
-            print("Failed to load: \(error)")
-        }
+        self.sightings = [
+            .init(species: flamingo, coordinate: .init(latitude: 37.334, longitude: -122.008), createdAt: .now, note: "near marsh"),
+            .init(species: turkey,   coordinate: .init(latitude: 37.333, longitude: -122.010), createdAt: .now, note: "trail edge"),
+            .init(species: turkey,   coordinate: .init(latitude: 37.335, longitude: -122.006), createdAt: .now, note: nil),
+            .init(species: swan,     coordinate: .init(latitude: 37.336, longitude: -122.005), createdAt: .now, note: "lake")
+        ]
+        self.hotspots = [
+            .init(name: "Wetlands", coordinate: .init(latitude: 37.332, longitude: -122.004), densityScore: 0.82),
+            .init(name: "North Meadow", coordinate: .init(latitude: 37.337, longitude: -122.012), densityScore: 0.65)
+        ]
     }
 
     var filteredSightings: [Sighting] {
@@ -46,9 +53,8 @@ final class MapViewModel: ObservableObject {
     }
 
     func updateSuggestions() {
-        Task {
-            suggestions = await api.speciesSuggestions(prefix: searchText)
-        }
+        let all = ["flamingo", "turkey", "turtle", "mute swan", "bear", "horse"]
+        suggestions = searchText.isEmpty ? [] : all.filter { $0.localizedCaseInsensitiveContains(searchText) }.prefix(5).map { $0 }
     }
 
     func clearFilter() {
@@ -58,12 +64,7 @@ final class MapViewModel: ObservableObject {
     }
 
     func toggleWaypoint(_ wp: Waypoint) {
-        if selectedWaypoints.contains(wp) {
-            selectedWaypoints.remove(wp)
-        } else {
-            selectedWaypoints.insert(wp)
-        }
+        if selectedWaypoints.contains(wp) { selectedWaypoints.remove(wp) }
+        else { selectedWaypoints.insert(wp) }
     }
-
-    var canGenerateRoute: Bool { !selectedWaypoints.isEmpty }
 }
