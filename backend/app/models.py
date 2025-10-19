@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, Boolean, Float, Integer, ForeignKey, Text
+from sqlalchemy import Column, String, DateTime, Boolean, Float, Integer, ForeignKey, Text, JSON
 from sqlalchemy.orm import relationship
 from app.database import Base
 import uuid
@@ -13,6 +13,8 @@ class Species(Base):
     habitat = Column(Text, nullable=True)
     diet = Column(Text, nullable=True)
     behavior = Column(Text, nullable=True)
+    description = Column(Text, nullable=True)
+    other_sources = Column(JSON, nullable=True)  # Array of links to other references
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -23,12 +25,14 @@ class Sighting(Base):
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String, nullable=True)  # NULL for anonymous
+    username = Column(String, nullable=True)  # User's display name
     species_id = Column(Integer, ForeignKey("species.id"), nullable=False)
     lat = Column(Float, nullable=False)  # Latitude
     lon = Column(Float, nullable=False)  # Longitude
     taken_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     is_private = Column(Boolean, nullable=False, default=False)
     media_url = Column(String, nullable=True)
+    caption = Column(Text, nullable=True)  # Optional caption
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships

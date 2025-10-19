@@ -4,7 +4,7 @@ from sqlalchemy import func
 from typing import List, Optional
 from app.database import get_db
 from app.models import Species as SpeciesModel
-from app.schemas import Species, SpeciesSearch
+from app.schemas import Species, SpeciesSearch, SpeciesDetail
 
 router = APIRouter()
 
@@ -23,14 +23,20 @@ async def search_species(
     species_list = query.all()
     return SpeciesSearch(items=species_list)
 
-@router.get("/{species_id}", response_model=Species)
+@router.get("/{species_id}", response_model=SpeciesDetail)
 async def get_species(
-    species_id: str,
+    species_id: int,
     db: Session = Depends(get_db)
 ):
     """Get species details by ID"""
     species = db.query(SpeciesModel).filter(SpeciesModel.id == species_id).first()
     if not species:
         raise HTTPException(status_code=404, detail="Species not found")
-    return species
+    
+    return SpeciesDetail(
+        species=species.scientific_name,
+        english_name=species.common_name,
+        description=species.description,
+        other_sources=species.other_sources or []
+    )
 
