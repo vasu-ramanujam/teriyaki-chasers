@@ -19,10 +19,6 @@ enum privacy {
     case _public, _private
 }
 
-enum where_from {
-    case map, hva, ar
-}
-
 struct sighting_entry {
     var species = "Flamingo"
     var image_url: String? = "Caribbean_Flamingo"
@@ -33,14 +29,7 @@ struct sighting_entry {
     var priv_setting: privacy = ._public
     var caption =  "Whoa.. I didn't expect to see a flamingo here! I was just on my way to class when I found this... "
     var other_sources: [String]? = ["wikipedia.com/flamingo", "wikipedia.org/wiki/Chilean_flamingo", "google.com"]
-    var origin: where_from = .map
 }
-
-struct bound_entry {
-    var entry: sighting_entry
-    var is_presented: Bool
-}
-
 
 //TODO: description does not. add it together.
 
@@ -49,19 +38,18 @@ struct SightingPinInformationView: View {
     // TODO: insert state, binding, etc variables
     
     //information from SMVM
+    @Binding var fromHVA: Bool
     @Binding var entry: sighting_entry
-    @Binding var is_presented: Bool
     // -
     
     @State var showSoundAlert = false
     
     func routeButtonText() -> String {
-        if entry.origin == .hva {
+        if fromHVA {
             return "Add High Volume Area to Route"
-        } else if entry.origin == .map{
+        } else {
             return "Add to Route"
         }
-        return "error"
     }
     
     @ViewBuilder
@@ -163,31 +151,19 @@ struct SightingPinInformationView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .lineLimit(nil)
             }
-            switch entry.origin {
-            case .map:
-                Button("Add to Route"){
-                    //TODO: add to route list and return to sighting map
-                    //TODO: depending on fromHVA flag
-                }
-                .buttonStyle(OrangeButtonStyle())
-                .font(.headline)
-                Spacer()
-            case .hva:
-                Button("Add High-Volume Area to Route"){
-                    //TODO: add to route list and return to sighting map
-                    //TODO: depending on fromHVA flag
-                }
-                .buttonStyle(OrangeButtonStyle())
-                .font(.headline)
-                Spacer()
-            case .ar:
-                //do nothing
-                Spacer()
+            Button(routeButtonText()){
+                //TODO: add to route list and return to sighting map
+                //TODO: depending on fromHVA flag
             }
+            .padding([.top])
+            .buttonStyle(OrangeButtonStyle())
+            .font(.headline)
+
+            Spacer()
+            
             HStack{
                 Button("< Back"){
                     //TODO: return to prv call (sighting map OR HVA info)
-                    is_presented.toggle()
                 }
                 .padding([.leading])
                 .buttonStyle(GreenButtonStyle())
@@ -199,3 +175,13 @@ struct SightingPinInformationView: View {
     }
 }
 
+#Preview {
+    struct Preview: View{
+        @State var fromHVA = false
+        @State var entry = sighting_entry()
+        var body: some View{
+            SightingPinInformationView(fromHVA: $fromHVA, entry: $entry)
+        }
+    }
+    return Preview()
+}
