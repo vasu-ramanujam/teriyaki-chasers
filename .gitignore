@@ -15,6 +15,8 @@ Pods/
 
 # Documentation
 *.md
+!README.md
+!**/README.md
 
 # Test artifacts
 *.db
