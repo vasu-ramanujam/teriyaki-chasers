@@ -126,6 +126,9 @@ async def create_sighting(
         
         return sighting
         
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))

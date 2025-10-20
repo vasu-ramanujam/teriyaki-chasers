@@ -29,6 +29,16 @@ class SpeciesDetail(BaseModel):
     description: Optional[str] = None
     other_sources: Optional[List[str]] = None
 
+class SpeciesDetails(BaseModel):
+    """Enhanced species details with Wikipedia integration"""
+    species: str  # scientific name
+    english_name: Optional[str] = None  # common name from Wikipedia
+    description: Optional[str] = None  # description from Wikipedia
+    other_sources: List[str] = []  # Wikipedia and Wikidata links
+
+    class Config:
+        from_attributes = True
+
 class SpeciesSearch(BaseModel):
     items: List[Species]
 
