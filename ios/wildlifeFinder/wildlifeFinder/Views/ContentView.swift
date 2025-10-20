@@ -1,47 +1,49 @@
-//
-//  ContentView.swift
-//  wildlifeFinder
-//
-//  Created by Alvin Jiang on 10/6/25.
-//
 
 import SwiftUI
 
 struct ContentView: View {
-    
-    @State private var selectedTab = 0
-    
-    //to delete
-    @State var fromHVA = false
-    @State var entry = sighting_entry()
-    
     var body: some View {
-        TabView(selection: $selectedTab) {
-            Tab(value: 0) {
-                // SightingMapView()
-                SightingPinInformationView(fromHVA: $fromHVA, entry: $entry)
+        TabView {
+            NavigationStack {
+                SightingMapView()
             }
-            
-            Tab(value: 1) {
-                // route view or wtv
+            .tabItem {
+                Image(systemName: "map")
+                Text("Sighting Map")
             }
-            
-            Tab(value: 2) {
-                // go to choose add pic / sound
+
+            NavigationStack {
+                RouteStackView(waypoints: [])
             }
-            
-            Tab(value: 3) {
-                // animal search
+            .tabItem {
+                Image(systemName: "point.bottomleft.forward.to.arrow.triangle.scurvepath.fill")
+                Text("Current Route")
             }
-            
-            Tab(value: 4) {
-                // user dashboard
+
+            NavigationStack {
+                Text("Post Sighting (stub)")
+            }
+            .tabItem {
+                Image(systemName: "plus")
+                Text("Add")
+            }
+
+            NavigationStack {
+                Text("Animal Search (stub)")
+            }
+            .tabItem {
+                Image(systemName: "magnifyingglass")
+                Text("Animal Search")
+            }
+
+            NavigationStack {
+                Text("User Dashboard (stub)")
+            }
+            .tabItem {
+                Image(systemName: "house.fill")
+                Text("User Dashboard")
             }
         }
-        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-        .safeAreaInset(edge: .bottom){
-            BottomTabBarView(selectedTab: $selectedTab)
-        }.ignoresSafeArea()
     }
 }
 
