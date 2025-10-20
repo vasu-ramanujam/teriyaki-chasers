@@ -36,16 +36,15 @@ final class SightingMapViewModel: ObservableObject {
         let swan     = Species(name: "mute swan", emoji: "🦢")
 
         self.sightings = [
-            .init(species: flamingo, coordinate: .init(latitude: 37.334, longitude: -122.008), createdAt: .now, note: "Whoa.. I didn't expect to see a flamingo here! I was just on my way to class when I found this... ", username: "Named Teriyaki", privacy: .pub),
-            .init(species: turkey,   coordinate: .init(latitude: 37.333, longitude: -122.010), createdAt: .now, note: "trail edge", username: "Teriyaki", privacy: .pub),
-            .init(species: turkey,   coordinate: .init(latitude: 37.335, longitude: -122.006), createdAt: .now, note: nil, username: "I Luv Turkeys", privacy: .pub),
-            .init(species: swan,     coordinate: .init(latitude: 37.336, longitude: -122.005), createdAt: .now, note: "lake", username: "UnNamed Teriyaki", privacy: .priv)
+            .init(species: flamingo, coordinate: .init(latitude: 37.334, longitude: -122.008), createdAt: .now, note: "near marsh"),
+            .init(species: turkey,   coordinate: .init(latitude: 37.333, longitude: -122.010), createdAt: .now, note: "trail edge"),
+            .init(species: turkey,   coordinate: .init(latitude: 37.335, longitude: -122.006), createdAt: .now, note: nil),
+            .init(species: swan,     coordinate: .init(latitude: 37.336, longitude: -122.005), createdAt: .now, note: "lake")
         ]
-        // not required until MVP
-        /*self.hotspots = [
+        self.hotspots = [
             .init(name: "Wetlands", coordinate: .init(latitude: 37.332, longitude: -122.004), densityScore: 0.82),
             .init(name: "North Meadow", coordinate: .init(latitude: 37.337, longitude: -122.012), densityScore: 0.65)
-        ]*/
+        ]
     }
 
     var filteredSightings: [Sighting] {
@@ -67,8 +66,5 @@ final class SightingMapViewModel: ObservableObject {
     func toggleWaypoint(_ wp: Waypoint) {
         if selectedWaypoints.contains(wp) { selectedWaypoints.remove(wp) }
         else { selectedWaypoints.insert(wp) }
-        
     }
-    
-    
 }

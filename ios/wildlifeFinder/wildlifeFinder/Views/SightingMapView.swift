@@ -3,8 +3,17 @@ import MapKit
 
 struct SightingMapView: View {
     @StateObject private var vm = SightingMapViewModel()
-    @State private var showRouteSheet = false
+
+    // iOS 17 map camera
     @State private var cameraPosition: MapCameraPosition = .automatic
+
+    // Sheets
+    @State private var showSightingSheet = false
+    @State private var showHVASheet = false
+
+    // Inputs for your SightingPinInformationView
+    @State private var fromHVA = false
+    @State private var entry = sighting_entry()
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -66,9 +75,16 @@ struct SightingMapView: View {
                 .background(.ultraThinMaterial)
             }
         }
-        .onAppear { vm.loadMock() }
-        .sheet(item: $vm.selectedPin) { pin in
-            SightingPinInformationView(waypoint: pin)
+        .onAppear {
+            vm.loadMock()
+            cameraPosition = .region(vm.mapRegion)
+        }
+        .sheet(isPresented: $showSightingSheet) {
+            SightingPinInformationView(fromHVA: $fromHVA, entry: $entry)
+                .presentationBackground(.regularMaterial)
+        }
+        .sheet(isPresented: $showHVASheet) {
+            HVAPinInformationView()
                 .presentationBackground(.regularMaterial)
         }
         .sheet(isPresented: $showRouteSheet) {
@@ -77,13 +93,17 @@ struct SightingMapView: View {
         .toolbar(.hidden, for: .navigationBar)
     }
 
+    @State private var showRouteSheet = false
+
     private var mapLayer: some View {
         Map(position: $cameraPosition) {
             if vm.showSightings {
                 ForEach(vm.filteredSightings) { s in
                     Annotation("\(s.species.emoji) \(s.species.name)", coordinate: s.coordinate) {
                         PinButton(icon: "mappin.circle.fill", color: .green) {
-                            vm.selectedPin = .sighting(s)
+                            populateEntry(from: s)
+                            fromHVA = false
+                            showSightingSheet = true
                         }
                         .contextMenu {
                             Button(vm.selectedWaypoints.contains(.sighting(s)) ? "Remove from route" : "Add to route") {
@@ -105,7 +125,8 @@ struct SightingMapView: View {
                 ForEach(vm.hotspots) { h in
                     Annotation(h.name, coordinate: h.coordinate) {
                         PinButton(icon: "flame.circle.fill", color: .orange) {
-                            vm.selectedPin = .hotspot(h)
+                            fromHVA = true
+                            showHVASheet = true
                         }
                         .contextMenu {
                             Button(vm.selectedWaypoints.contains(.hotspot(h)) ? "Remove from route" : "Add to route") {
@@ -124,7 +145,21 @@ struct SightingMapView: View {
             }
         }
         .ignoresSafeArea()
-        .onAppear { cameraPosition = .region(vm.mapRegion) }
+    }
+
+    // Build your SightingPinInformationView's data
+    private func populateEntry(from s: Sighting) {
+        entry = sighting_entry(
+            species: s.species.name,
+            image_url: nil,
+            sound_url: nil,
+            description: "Sighted \(s.species.name).",
+            username: "Anonymous",
+            date_posted: s.createdAt,
+            priv_setting: ._public,
+            caption: "—",
+            other_sources: nil
+        )
     }
 }
 
