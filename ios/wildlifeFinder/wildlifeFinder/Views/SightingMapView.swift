@@ -12,8 +12,6 @@ struct SightingMapView: View {
     @State private var showHVASheet = false
 
     // Inputs for your SightingPinInformationView
-    @State private var fromHVA = false
-    @State private var entry = sighting_entry()
     @State private var waypointObj: Waypoint? = nil
     
     // RouteViewModel stuff
@@ -89,7 +87,7 @@ struct SightingMapView: View {
         }
         .sheet(isPresented: $showSightingSheet) {
             if let w = waypointObj {
-                SightingPinInformationView(fromHVA: $fromHVA, entry: $entry, sightingObj: w)
+                SightingPinInformationView(sightingObj: w)
                     .presentationBackground(.regularMaterial)
             }
         }
@@ -115,6 +113,11 @@ struct SightingMapView: View {
                         PinButton(icon: "mappin.circle.fill", color: .green) {
                             showSightingSheet = true
                             waypointObj = .sighting(s)
+                            
+                            // selected pin = this pin
+                            vm.selectedSighting = s
+                            vm.pinOrigin = .map
+                            vm.compileDescription() //TODO: add parameter
                         }
                         .contextMenu {
                             Button(vm.selectedWaypoints.contains(.sighting(s)) ? "Remove from route" : "Add to route") {
@@ -138,6 +141,12 @@ struct SightingMapView: View {
                         PinButton(icon: "flame.circle.fill", color: .orange) {
                             showHVASheet = true
                             waypointObj = .hotspot(h)
+                            
+                            // selected pin = this pin
+                            let select = Waypoint.hotspot(h)
+                            vm.selectedPin = select
+                            vm.pinOrigin = .hva
+                            vm.compileDescription() //TODO: add parameter
                         }
                         .contextMenu {
                             Button(vm.selectedWaypoints.contains(.hotspot(h)) ? "Remove from route" : "Add to route") {

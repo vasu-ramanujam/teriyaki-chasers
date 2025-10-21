@@ -23,10 +23,6 @@ let test_sighting = Sighting(species: flamingo, coordinate: .init(latitude: 37.3
 struct SightingPinInformationView: View {
     // TODO: insert state, binding, etc variables
     
-    //information from SMVM
-    @ObservedObject var vm: SightingMapViewModel
-
-    
     //SMVM - from media get?? -- check in with backend bc it's not implemented yet; change to @Binding
     @State var image_url: String? = "Caribbean_Flamingo"
     @State var sound_url: String? = nil
@@ -42,14 +38,23 @@ struct SightingPinInformationView: View {
     let sightingObj: Waypoint
     
     func routeButtonText() -> String {
-        var text = vm.selectedWaypoints.contains(sightingObj) ? "Remove" : "Add"
-        let endText = vm.selectedWaypoints.contains(sightingObj) ? " from Route" : " to Route"
-        
-        if fromHVA {
-            text += "High Volume"
+        switch vm.pinOrigin {
+        case .hva:
+            if vm.selectedWaypoints.contains(sightingObj) {
+                return "Remove High Volume Area from Route"
+            } else {
+                return "Add High Volume Area to Route"
+            }
+        case .map:
+            if vm.selectedWaypoints.contains(sightingObj) {
+                return "Remove from Route"
+            } else {
+                return "Add to Route"
+            }
+        case .ar:
+            //break
+            return ""
         }
-        
-        return text + endText
     }
     
     @ViewBuilder
@@ -179,14 +184,3 @@ struct SightingPinInformationView: View {
         .padding()
     }
 }
-
-//#Preview {
-//    struct Preview: View{
-//        @State var fromHVA = false
-//        @State var entry = sighting_entry()
-//        var body: some View{
-//            SightingPinInformationView(fromHVA: $fromHVA, entry: $entry)
-//        }
-//    }
-//    return Preview()
-//}
