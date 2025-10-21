@@ -26,6 +26,10 @@ struct HVAPinInformationView: View {
         
     ]
     
+    let hotspotObj: Waypoint
+    
+    @EnvironmentObject private var vm: SightingMapViewModel
+    
     let entries: [String: sighting_entry] = [
          "Black Bear": sighting_entry(
              species: "Black Bear",
@@ -82,9 +86,11 @@ struct HVAPinInformationView: View {
                     }
                 }
             }
-            Button("Add High-Volume Area to Route"){
+            Button(vm.selectedWaypoints.contains(hotspotObj) ? "Remove High-Volume Area from Route" : "Add High-Volume Area to Route"){
                 //TODO: add to route list and return to sighting map
                 //TODO: depending on fromHVA flag
+                vm.toggleWaypoint(hotspotObj)
+                dismiss()
             }
             .padding([.top])
             .buttonStyle(.borderedProminent)
@@ -109,6 +115,7 @@ struct HVAPinInformationView: View {
                         get: { entry },
                         set: { newValue in sheetEntry = newValue }
                     ),
+                    sightingObj: hotspotObj
                 )
                 .presentationBackground(.regularMaterial)
         }
@@ -116,11 +123,11 @@ struct HVAPinInformationView: View {
 }
 
 
-#Preview {
-    struct Preview: View{
-        var body: some View{
-            HVAPinInformationView()
-        }
-    }
-    return Preview()
-}
+//#Preview {
+//    struct Preview: View{
+//        var body: some View{
+//            HVAPinInformationView(hotspotObj: Hotspot(name: "Wetlands", coordinate: .init(latitude: 37.332, longitude: -122.004), densityScore: 0.82))
+//        }
+//    }
+//    return Preview()
+//}

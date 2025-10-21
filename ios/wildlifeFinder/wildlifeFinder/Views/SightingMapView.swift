@@ -2,7 +2,7 @@ import SwiftUI
 import MapKit
 
 struct SightingMapView: View {
-    @StateObject private var vm = SightingMapViewModel()
+    @EnvironmentObject private var vm: SightingMapViewModel
 
     // iOS 17 map camera
     @State private var cameraPosition: MapCameraPosition = .automatic
@@ -14,6 +14,7 @@ struct SightingMapView: View {
     // Inputs for your SightingPinInformationView
     @State private var fromHVA = false
     @State private var entry = sighting_entry()
+    @State private var waypointObj: Waypoint? = nil
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -80,12 +81,16 @@ struct SightingMapView: View {
             cameraPosition = .region(vm.mapRegion)
         }
         .sheet(isPresented: $showSightingSheet) {
-            SightingPinInformationView(fromHVA: $fromHVA, entry: $entry)
-                .presentationBackground(.regularMaterial)
+            if let w = waypointObj {
+                SightingPinInformationView(fromHVA: $fromHVA, entry: $entry, sightingObj: w)
+                    .presentationBackground(.regularMaterial)
+            }
         }
         .sheet(isPresented: $showHVASheet) {
-            HVAPinInformationView()
-                .presentationBackground(.regularMaterial)
+            if let w = waypointObj {
+                HVAPinInformationView(hotspotObj: w)
+                    .presentationBackground(.regularMaterial)
+            }
         }
         .sheet(isPresented: $showRouteSheet) {
             RouteStackView(waypoints: Array(vm.selectedWaypoints))
@@ -104,6 +109,7 @@ struct SightingMapView: View {
                             populateEntry(from: s)
                             fromHVA = false
                             showSightingSheet = true
+                            waypointObj = .sighting(s)
                         }
                         .contextMenu {
                             Button(vm.selectedWaypoints.contains(.sighting(s)) ? "Remove from route" : "Add to route") {
@@ -127,6 +133,7 @@ struct SightingMapView: View {
                         PinButton(icon: "flame.circle.fill", color: .orange) {
                             fromHVA = true
                             showHVASheet = true
+                            waypointObj = .hotspot(h)
                         }
                         .contextMenu {
                             Button(vm.selectedWaypoints.contains(.hotspot(h)) ? "Remove from route" : "Add to route") {

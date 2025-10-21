@@ -12,6 +12,7 @@ struct wildlifeFinderApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(SightingMapViewModel())
         }
     }
 }

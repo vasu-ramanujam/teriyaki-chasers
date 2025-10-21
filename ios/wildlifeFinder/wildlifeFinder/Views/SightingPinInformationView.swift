@@ -48,12 +48,19 @@ struct SightingPinInformationView: View {
     
     @State var showSoundAlert = false
     
+    @EnvironmentObject private var vm: SightingMapViewModel
+    
+    let sightingObj: Waypoint
+    
     func routeButtonText() -> String {
+        var text = vm.selectedWaypoints.contains(sightingObj) ? "Remove" : "Add"
+        let endText = vm.selectedWaypoints.contains(sightingObj) ? " from Route" : " to Route"
+        
         if fromHVA {
-            return "Add High Volume Area to Route"
-        } else {
-            return "Add to Route"
+            text += "High Volume"
         }
+        
+        return text + endText
     }
     
     @ViewBuilder
@@ -158,6 +165,8 @@ struct SightingPinInformationView: View {
             Button(routeButtonText()){
                 //TODO: add to route list and return to sighting map
                 //TODO: depending on fromHVA flag
+                vm.toggleWaypoint(sightingObj)
+                dismiss()
             }
             .padding([.top])
             .buttonStyle(OrangeButtonStyle())
@@ -180,13 +189,13 @@ struct SightingPinInformationView: View {
     }
 }
 
-#Preview {
-    struct Preview: View{
-        @State var fromHVA = false
-        @State var entry = sighting_entry()
-        var body: some View{
-            SightingPinInformationView(fromHVA: $fromHVA, entry: $entry)
-        }
-    }
-    return Preview()
-}
+//#Preview {
+//    struct Preview: View{
+//        @State var fromHVA = false
+//        @State var entry = sighting_entry()
+//        var body: some View{
+//            SightingPinInformationView(fromHVA: $fromHVA, entry: $entry)
+//        }
+//    }
+//    return Preview()
+//}
