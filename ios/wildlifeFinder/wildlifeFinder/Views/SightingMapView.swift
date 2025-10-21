@@ -15,6 +15,9 @@ struct SightingMapView: View {
     @State private var fromHVA = false
     @State private var entry = sighting_entry()
     @State private var waypointObj: Waypoint? = nil
+    
+    // RouteViewModel stuff
+    @EnvironmentObject private var routeVM: RouteViewModel
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -61,6 +64,10 @@ struct SightingMapView: View {
 
                     Button {
                         showRouteSheet = true
+                        
+                        Task {
+                            await routeVM.buildRoute(from: Array(vm.selectedWaypoints))
+                        }
                     } label: {
                         Text("Generate Route")
                             .fontWeight(.semibold)

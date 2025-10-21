@@ -13,6 +13,7 @@ struct wildlifeFinderApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(SightingMapViewModel())
+                .environmentObject(RouteViewModel())
         }
     }
 }

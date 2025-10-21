@@ -29,7 +29,7 @@ final class RouteViewModel: ObservableObject {
             let req = MKDirections.Request()
             req.source = MKMapItem(placemark: .init(coordinate: legs[idx].from))
             req.destination = MKMapItem(placemark: .init(coordinate: legs[idx].to))
-            req.transportType = .automobile
+            req.transportType = .walking
 
             do {
                 let response = try await MKDirections(request: req).calculate()
