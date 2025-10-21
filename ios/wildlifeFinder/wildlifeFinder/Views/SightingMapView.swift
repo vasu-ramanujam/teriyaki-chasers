@@ -12,8 +12,6 @@ struct SightingMapView: View {
     @State private var showHVASheet = false
 
     // Inputs for your SightingPinInformationView
-    @State private var fromHVA = false
-    @State private var entry = sighting_entry()
     @State private var waypointObj: Waypoint? = nil
     
     // RouteViewModel stuff
@@ -113,10 +111,13 @@ struct SightingMapView: View {
                 ForEach(vm.filteredSightings) { s in
                     Annotation("\(s.species.emoji) \(s.species.name)", coordinate: s.coordinate) {
                         PinButton(icon: "mappin.circle.fill", color: .green) {
-                            populateEntry(from: s)
-                            fromHVA = false
                             showSightingSheet = true
                             waypointObj = .sighting(s)
+                            
+                            // selected pin = this pin
+                            vm.selectedSighting = s
+                            vm.pinOrigin = .map
+                            vm.compileDescription() //TODO: add parameter
                         }
                         .contextMenu {
                             Button(vm.selectedWaypoints.contains(.sighting(s)) ? "Remove from route" : "Add to route") {
@@ -138,9 +139,14 @@ struct SightingMapView: View {
                 ForEach(vm.hotspots) { h in
                     Annotation(h.name, coordinate: h.coordinate) {
                         PinButton(icon: "flame.circle.fill", color: .orange) {
-                            fromHVA = true
                             showHVASheet = true
                             waypointObj = .hotspot(h)
+                            
+                            // selected pin = this pin
+                            let select = Waypoint.hotspot(h)
+                            vm.selectedPin = select
+                            vm.pinOrigin = .hva
+                            vm.compileDescription() //TODO: add parameter
                         }
                         .contextMenu {
                             Button(vm.selectedWaypoints.contains(.hotspot(h)) ? "Remove from route" : "Add to route") {
@@ -161,20 +167,6 @@ struct SightingMapView: View {
         .ignoresSafeArea()
     }
 
-    // Build your SightingPinInformationView's data
-    private func populateEntry(from s: Sighting) {
-        entry = sighting_entry(
-            species: s.species.name,
-            image_url: nil,
-            sound_url: nil,
-            description: "Sighted \(s.species.name).",
-            username: "Anonymous",
-            date_posted: s.createdAt,
-            priv_setting: ._public,
-            caption: "—",
-            other_sources: nil
-        )
-    }
 }
 
 // Local UI helpers
