@@ -19,10 +19,11 @@ enum privacy {
     case _public, _private
 }
 
-struct sighting_entry {
+struct sighting_entry: Identifiable {
+    let id = UUID()
     var species = "Flamingo"
     var image_url: String? = "Caribbean_Flamingo"
-    var sound_url: String? = "sound.mp3"
+    var sound_url: String? = "sound1.mp3"
     var description = "Lorem ipsum dolor sit amet consectetur adipiscing elit. Ex sapien vitae pellentesque sem placerat in id. Pretium tellus duis convallis tempus leo eu aenean. Urna tempor pulvinar vivamus fringilla lacus nec metus. Iaculis massa nisl malesuada lacinia integer nunc posuere. Semper vel class aptent taciti sociosqu ad litora. Conubia nostra inceptos himenaeos orci varius natoque penatibus. Dis parturient montes nascetur ridiculus mus donec rhoncus. Nulla molestie mattis scelerisque maximus eget fermentum odio. Purus est efficitur laoreet mauris pharetra vestibulum fusce."
     var username = "Named Teriyaki"
     var date_posted = Date()
@@ -38,9 +39,12 @@ struct SightingPinInformationView: View {
     // TODO: insert state, binding, etc variables
     
     //information from SMVM
-    @Binding var fromHVA: Bool
+    @Binding var fromHVA: Bool // do we need the binding bool?
     @Binding var entry: sighting_entry
     // -
+    
+    // built-in dismiss, returns to the previous screen
+    @Environment(\.dismiss) var dismiss
     
     @State var showSoundAlert = false
     
@@ -164,6 +168,7 @@ struct SightingPinInformationView: View {
             HStack{
                 Button("< Back"){
                     //TODO: return to prv call (sighting map OR HVA info)
+                    dismiss()
                 }
                 .padding([.leading])
                 .buttonStyle(GreenButtonStyle())

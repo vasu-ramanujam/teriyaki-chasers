@@ -15,6 +15,9 @@ struct Pin: Identifiable {
 struct HVAPinInformationView: View {
 
     // @Binding var entries: [sighting_entry]
+    // built-in dismiss, returns to the previous screen
+    @Environment(\.dismiss) var dismiss
+    
     //TODO: replace with entries from smvm
     let pins = [
         Pin(name: "Black Bear"),
@@ -22,6 +25,34 @@ struct HVAPinInformationView: View {
         Pin(name: "Turkey")
         
     ]
+    
+    let entries: [String: sighting_entry] = [
+         "Black Bear": sighting_entry(
+             species: "Black Bear",
+             image_url: "black_bear",
+             sound_url: "sound2.mp3",
+             description: "Lorem ipsum dolor sit amet consectetur adipiscing elit.",
+             caption: "Whoa.. I didn't expect to see a black bear here!"
+         ),
+         "Flamingo": sighting_entry(
+             species: "Flamingo",
+             image_url: "Caribbean_Flamingo",
+             sound_url: "sound1.mp3",
+             description: "Lorem ipsum dolor sit amet consectetur adipiscing elit.",
+             caption: "Whoa.. I didn't expect to see a flamingo here!"
+         ),
+         "Turkey": sighting_entry(
+             species: "Turkey",
+             image_url: "turkey",
+             sound_url: "sound3.mp3",
+             description: "Ex sapien vitae pellentesque sem placerat in id.",
+             caption: "Whoa.. I didn't expect to see a turkey here!"
+         )
+     ]
+    
+    // private let hvaID: UUID = UUID() // could remove
+    @State private var sheetEntry: sighting_entry? = nil // the entry object associated with the selected pin
+    @State private var showSightingSheet = false
         
     var body: some View {
         VStack{
@@ -37,7 +68,12 @@ struct HVAPinInformationView: View {
             List {
                 ForEach(pins) {pin in
                     Button {
-                        // open the sighting pin info page
+                        // change this implementation
+                        if let entry = entries[pin.name] {
+                            sheetEntry = entry // assign the correct entry
+                            showSightingSheet = true
+                        }
+                        showSightingSheet = true // trigger the sheet
                     } label: {
                         HStack {
                             Image(systemName: "mappin")
@@ -46,7 +82,6 @@ struct HVAPinInformationView: View {
                     }
                 }
             }
-            
             Button("Add High-Volume Area to Route"){
                 //TODO: add to route list and return to sighting map
                 //TODO: depending on fromHVA flag
@@ -59,7 +94,7 @@ struct HVAPinInformationView: View {
             
             HStack{
                 Button("< Back"){
-                    //TODO: return to sighting map
+                    dismiss()
                 }
                 .padding([.leading])
                 Spacer()
@@ -67,6 +102,16 @@ struct HVAPinInformationView: View {
             
         }
         .padding()
+        .sheet(item: $sheetEntry) {entry in
+                SightingPinInformationView(
+                    fromHVA: .constant(true),
+                    entry: Binding(
+                        get: { entry },
+                        set: { newValue in sheetEntry = newValue }
+                    ),
+                )
+                .presentationBackground(.regularMaterial)
+        }
     }
 }
 
