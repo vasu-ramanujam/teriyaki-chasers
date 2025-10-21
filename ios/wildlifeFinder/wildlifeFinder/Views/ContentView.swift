@@ -2,6 +2,8 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject private var vm: SightingMapViewModel
+
     var body: some View {
         TabView {
             NavigationStack {
@@ -13,7 +15,7 @@ struct ContentView: View {
             }
 
             NavigationStack {
-                RouteStackView(waypoints: [])
+                RouteStackView(waypoints: Array(vm.selectedWaypoints))
             }
             .tabItem {
                 Image(systemName: "point.bottomleft.forward.to.arrow.triangle.scurvepath.fill")

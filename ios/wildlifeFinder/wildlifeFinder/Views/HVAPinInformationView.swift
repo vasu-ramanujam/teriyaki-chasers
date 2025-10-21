@@ -29,6 +29,10 @@ struct HVAPinInformationView: View {
         
     ]
     
+    let hotspotObj: Waypoint
+    
+    @EnvironmentObject private var vm: SightingMapViewModel
+    
     var entries: [String: Sighting] = [
     "Flamingo": Sighting(species: Species(name: "flamingo", emoji: "🦩"), coordinate: .init(latitude: 37.334, longitude: -122.008), createdAt: .now, note: "near marsh", username: "Named Teriyaki", isPrivate: false),
     "Turkey 1": Sighting(species: Species(name: "turkey", emoji: "🦃"),   coordinate: .init(latitude: 37.333, longitude: -122.010), createdAt: .now, note: "trail edge", username: "Named Turkey", isPrivate: false),
@@ -72,9 +76,11 @@ struct HVAPinInformationView: View {
                     }
                 }
             }
-            Button("Add High-Volume Area to Route"){
+            Button(vm.selectedWaypoints.contains(hotspotObj) ? "Remove High-Volume Area from Route" : "Add High-Volume Area to Route"){
                 //TODO: add to route list and return to sighting map
                 //TODO: depending on fromHVA flag
+                vm.toggleWaypoint(hotspotObj)
+                dismiss()
             }
             .padding([.top])
             .buttonStyle(.borderedProminent)
@@ -93,16 +99,24 @@ struct HVAPinInformationView: View {
         }
         .padding()
         .sheet(item: $sheetEntry) {entry in
-            // selected pin = this pin
-            //vm.selectedSighting = entry
-            //vm.pinOrigin = .hva
-            //vm.compileDescription() //TODO: add parameter
-            SightingPinInformationView(vm: vm)
+                SightingPinInformationView(
+                    fromHVA: .constant(true),
+                    entry: Binding(
+                        get: { entry },
+                        set: { newValue in sheetEntry = newValue }
+                    ),
+                )
                 .presentationBackground(.regularMaterial)
         }
     }
 }
 
 
-
-
+#Preview {
+    struct Preview: View{
+        var body: some View{
+            HVAPinInformationView()
+        }
+    }
+    return Preview()
+}

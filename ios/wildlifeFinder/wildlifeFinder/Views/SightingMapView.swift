@@ -2,8 +2,7 @@ import SwiftUI
 import MapKit
 
 struct SightingMapView: View {
-    @StateObject var vm = SightingMapViewModel()
-    //changed form private to allow sighting pin info view to access it
+    @EnvironmentObject private var vm: SightingMapViewModel
 
     // iOS 17 map camera
     @State private var cameraPosition: MapCameraPosition = .automatic
@@ -12,6 +11,13 @@ struct SightingMapView: View {
     @State private var showSightingSheet = false
     @State private var showHVASheet = false
 
+    // Inputs for your SightingPinInformationView
+    @State private var fromHVA = false
+    @State private var entry = sighting_entry()
+    @State private var waypointObj: Waypoint? = nil
+    
+    // RouteViewModel stuff
+    @EnvironmentObject private var routeVM: RouteViewModel
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -58,6 +64,10 @@ struct SightingMapView: View {
 
                     Button {
                         showRouteSheet = true
+                        
+                        Task {
+                            await routeVM.buildRoute(from: Array(vm.selectedWaypoints))
+                        }
                     } label: {
                         Text("Generate Route")
                             .fontWeight(.semibold)
@@ -78,12 +88,16 @@ struct SightingMapView: View {
             cameraPosition = .region(vm.mapRegion)
         }
         .sheet(isPresented: $showSightingSheet) {
-            SightingPinInformationView(vm: vm)
-                .presentationBackground(.regularMaterial)
+            if let w = waypointObj {
+                SightingPinInformationView(fromHVA: $fromHVA, entry: $entry, sightingObj: w)
+                    .presentationBackground(.regularMaterial)
+            }
         }
         .sheet(isPresented: $showHVASheet) {
-            HVAPinInformationView(vm: vm)
-                .presentationBackground(.regularMaterial)
+            if let w = waypointObj {
+                HVAPinInformationView(hotspotObj: w)
+                    .presentationBackground(.regularMaterial)
+            }
         }
         .sheet(isPresented: $showRouteSheet) {
             RouteStackView(waypoints: Array(vm.selectedWaypoints))
@@ -100,11 +114,7 @@ struct SightingMapView: View {
                     Annotation("\(s.species.emoji) \(s.species.name)", coordinate: s.coordinate) {
                         PinButton(icon: "mappin.circle.fill", color: .green) {
                             showSightingSheet = true
-                            
-                            // selected pin = this pin
-                            vm.selectedSighting = s
-                            vm.pinOrigin = .map
-                            vm.compileDescription() //TODO: add parameter
+                            waypointObj = .sighting(s)
                         }
                         .contextMenu {
                             Button(vm.selectedWaypoints.contains(.sighting(s)) ? "Remove from route" : "Add to route") {
@@ -127,12 +137,7 @@ struct SightingMapView: View {
                     Annotation(h.name, coordinate: h.coordinate) {
                         PinButton(icon: "flame.circle.fill", color: .orange) {
                             showHVASheet = true
-                            
-                            // selected pin = this pin
-                            let select = Waypoint.hotspot(h)
-                            vm.selectedPin = select
-                            vm.pinOrigin = .hva
-                            vm.compileDescription() //TODO: add parameter
+                            waypointObj = .hotspot(h)
                         }
                         .contextMenu {
                             Button(vm.selectedWaypoints.contains(.hotspot(h)) ? "Remove from route" : "Add to route") {
