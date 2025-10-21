@@ -26,8 +26,36 @@ final class SightingMapViewModel: ObservableObject {
     // Selection
     @Published var selectedPin: Waypoint? = nil
     @Published var selectedWaypoints: Set<Waypoint> = []
+    
+    // for SPIV
+    @Published var selectedSighting: Sighting? = nil
+    @Published var selectedHotspot: Hotspot? = nil
+    @Published var pinOrigin: where_from = .map
+    
+    // Information view - compiled description
+    @Published var sightingCompiledDescription: String = "" //when pin is selected, compile description given species
 
     var canGenerateRoute: Bool { !selectedWaypoints.isEmpty }
+    
+    //assume the call to API requires some species parameter
+    //TODO: add parameter based on backend API schema
+    func compileDescription() {
+        // quick mock with hard data; swap with API call later
+        
+        // info from API:
+        let summary = "Lorem ipsum dolor sit amet consectetur adipiscing elit. Ex sapien vitae pellentesque sem placerat in id. Pretium tellus duis convallis tempus leo eu aenean. Urna tempor pulvinar vivamus fringilla lacus nec metus. Iaculis massa nisl malesuada lacinia integer nunc posuere. Semper vel class aptent taciti sociosqu ad litora. Conubia nostra inceptos himenaeos orci varius natoque penatibus. Dis parturient montes nascetur ridiculus mus donec rhoncus. Nulla molestie mattis scelerisque maximus eget fermentum odio. Purus est efficitur laoreet mauris pharetra vestibulum fusce."
+        let other_sources: [String]? = ["wikipedia.com/flamingo", "wikipedia.org/wiki/Chilean_flamingo", "google.com"]
+        
+        //compile
+        var description = summary
+        if  let sources = other_sources {
+            description +=  "\n\nLearn more at: "
+            sources.forEach { src in
+                description += "\n- \(src)"
+            }
+        }
+        sightingCompiledDescription = description
+    }
 
     func loadMock() {
         // quick mock; swap with API later
@@ -36,10 +64,10 @@ final class SightingMapViewModel: ObservableObject {
         let swan     = Species(name: "mute swan", emoji: "🦢")
 
         self.sightings = [
-            .init(species: flamingo, coordinate: .init(latitude: 37.334, longitude: -122.008), createdAt: .now, note: "near marsh"),
-            .init(species: turkey,   coordinate: .init(latitude: 37.333, longitude: -122.010), createdAt: .now, note: "trail edge"),
-            .init(species: turkey,   coordinate: .init(latitude: 37.335, longitude: -122.006), createdAt: .now, note: nil),
-            .init(species: swan,     coordinate: .init(latitude: 37.336, longitude: -122.005), createdAt: .now, note: "lake")
+            .init(species: flamingo, coordinate: .init(latitude: 37.334, longitude: -122.008), createdAt: .now, note: "near marsh", username: "Named Teriyaki", isPrivate: false),
+            .init(species: turkey,   coordinate: .init(latitude: 37.333, longitude: -122.010), createdAt: .now, note: "trail edge", username: "Named Turkey", isPrivate: false),
+            .init(species: turkey,   coordinate: .init(latitude: 37.335, longitude: -122.006), createdAt: .now, note: nil, username: "Teriyaki", isPrivate: false),
+            .init(species: swan,     coordinate: .init(latitude: 37.336, longitude: -122.005), createdAt: .now, note: "lake", username: "Tester", isPrivate: true)
         ]
         self.hotspots = [
             .init(name: "Wetlands", coordinate: .init(latitude: 37.332, longitude: -122.004), densityScore: 0.82),
@@ -67,4 +95,7 @@ final class SightingMapViewModel: ObservableObject {
         if selectedWaypoints.contains(wp) { selectedWaypoints.remove(wp) }
         else { selectedWaypoints.insert(wp) }
     }
+    
+    
+    
 }

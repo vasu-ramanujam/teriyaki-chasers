@@ -4,6 +4,7 @@
 //
 //  Created by Vasu Ramanujam on 10/8/25.
 //
+
 import SwiftUI
 
 struct Pin: Identifiable {
@@ -15,6 +16,8 @@ struct Pin: Identifiable {
 struct HVAPinInformationView: View {
 
     // @Binding var entries: [sighting_entry]
+    @ObservedObject var vm: SightingMapViewModel
+
     // built-in dismiss, returns to the previous screen
     @Environment(\.dismiss) var dismiss
     
@@ -26,32 +29,17 @@ struct HVAPinInformationView: View {
         
     ]
     
-    let entries: [String: sighting_entry] = [
-         "Black Bear": sighting_entry(
-             species: "Black Bear",
-             image_url: "black_bear",
-             sound_url: "sound2.mp3",
-             description: "Lorem ipsum dolor sit amet consectetur adipiscing elit.",
-             caption: "Whoa.. I didn't expect to see a black bear here!"
-         ),
-         "Flamingo": sighting_entry(
-             species: "Flamingo",
-             image_url: "Caribbean_Flamingo",
-             sound_url: "sound1.mp3",
-             description: "Lorem ipsum dolor sit amet consectetur adipiscing elit.",
-             caption: "Whoa.. I didn't expect to see a flamingo here!"
-         ),
-         "Turkey": sighting_entry(
-             species: "Turkey",
-             image_url: "turkey",
-             sound_url: "sound3.mp3",
-             description: "Ex sapien vitae pellentesque sem placerat in id.",
-             caption: "Whoa.. I didn't expect to see a turkey here!"
-         )
-     ]
+    var entries: [String: Sighting] = [
+    "Flamingo": Sighting(species: Species(name: "flamingo", emoji: "🦩"), coordinate: .init(latitude: 37.334, longitude: -122.008), createdAt: .now, note: "near marsh", username: "Named Teriyaki", isPrivate: false),
+    "Turkey 1": Sighting(species: Species(name: "turkey", emoji: "🦃"),   coordinate: .init(latitude: 37.333, longitude: -122.010), createdAt: .now, note: "trail edge", username: "Named Turkey", isPrivate: false),
+    "Turkey": Sighting(species: Species(name: "turkey", emoji: "🦃"),   coordinate: .init(latitude: 37.335, longitude: -122.006), createdAt: .now, note: nil, username: "Teriyaki", isPrivate: false),
+    "Mute Swan": Sighting(species: Species(name: "mute swan", emoji: "🦢"),     coordinate: .init(latitude: 37.336, longitude: -122.005), createdAt: .now, note: "lake", username: "Tester", isPrivate: true)
+    ]
+    
+    
     
     // private let hvaID: UUID = UUID() // could remove
-    @State private var sheetEntry: sighting_entry? = nil // the entry object associated with the selected pin
+    @State private var sheetEntry: Sighting? = nil // the entry object associated with the selected pin
     @State private var showSightingSheet = false
         
     var body: some View {
@@ -63,6 +51,8 @@ struct HVAPinInformationView: View {
                     .font(.title)
                 Spacer()
             }
+            
+            //TODO: variables
             Text("Over the last week, people saw 6 animals of 3 different species in this area!")
             
             List {
@@ -103,24 +93,16 @@ struct HVAPinInformationView: View {
         }
         .padding()
         .sheet(item: $sheetEntry) {entry in
-                SightingPinInformationView(
-                    fromHVA: .constant(true),
-                    entry: Binding(
-                        get: { entry },
-                        set: { newValue in sheetEntry = newValue }
-                    ),
-                )
+            // selected pin = this pin
+            //vm.selectedSighting = entry
+            //vm.pinOrigin = .hva
+            //vm.compileDescription() //TODO: add parameter
+            SightingPinInformationView(vm: vm)
                 .presentationBackground(.regularMaterial)
         }
     }
 }
 
 
-#Preview {
-    struct Preview: View{
-        var body: some View{
-            HVAPinInformationView()
-        }
-    }
-    return Preview()
-}
+
+

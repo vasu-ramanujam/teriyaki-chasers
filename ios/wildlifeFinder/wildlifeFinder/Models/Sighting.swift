@@ -14,6 +14,8 @@ public struct Sighting: Identifiable, Hashable {
     public let coordinate: CLLocationCoordinate2D
     public let createdAt: Date
     public let note: String?
+    public let username: String
+    public let isPrivate: Bool
 }
 
 public struct Hotspot: Identifiable, Hashable {
@@ -47,6 +49,7 @@ public enum Waypoint: Identifiable, Hashable {
         case .hotspot(let h):  return "High Volume: \(h.name)"
         }
     }
+    
 }
 
 // MARK: - Explicit conformance (because CLLocationCoordinate2D isn't Hashable)
@@ -71,4 +74,8 @@ extension Waypoint {
     public static func == (lhs: Waypoint, rhs: Waypoint) -> Bool {
         lhs.id == rhs.id
     }
+}
+
+public enum where_from {
+    case hva, map, ar
 }
