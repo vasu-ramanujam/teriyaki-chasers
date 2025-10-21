@@ -9,6 +9,11 @@ import SwiftUI
 
 @main
 struct wildlifeFinderApp: App {
+    // start collecting GPS info
+    init() {
+        LocManager.shared.startUpdates()
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
