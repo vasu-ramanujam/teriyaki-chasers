@@ -22,6 +22,9 @@ struct RouteStackView: View {
                             }
                         }
                     }
+                    
+                    Marker("You", systemImage: "location.circle.fill", coordinate: LocationManagerViewModel.shared.coordinate)
+                        .tint(.blue)
                 }
                 .frame(height: 300)
                 .clipShape(RoundedRectangle(cornerRadius: 16))

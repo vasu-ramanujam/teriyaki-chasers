@@ -20,6 +20,10 @@ final class LocationManagerViewModel {
     
     private(set) var location = Location(lat: 0.0, lon: 0.0, speed: 0.0)
     
+    var coordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(latitude: .init(location.lat), longitude: .init(location.lon))
+    }
+    
     @ObservationIgnored
     var speed: String {
         switch location.speed {

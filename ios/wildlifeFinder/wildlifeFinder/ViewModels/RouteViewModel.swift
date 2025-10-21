@@ -18,6 +18,7 @@ final class RouteViewModel: ObservableObject {
 
         // Make ordered legs (0->1, 1->2, ...)
         var legs: [RouteLeg] = []
+        legs.append(RouteLeg(from: LocationManagerViewModel.shared.coordinate, to: waypoints[0].coordinate))
         for i in 0..<(waypoints.count - 1) {
             let a = waypoints[i].coordinate
             let b = waypoints[i + 1].coordinate
