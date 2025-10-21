@@ -23,10 +23,6 @@ let test_sighting = Sighting(species: flamingo, coordinate: .init(latitude: 37.3
 struct SightingPinInformationView: View {
     // TODO: insert state, binding, etc variables
     
-    //information from SMVM
-    @ObservedObject var vm: SightingMapViewModel
-
-    
     //SMVM - from media get?? -- check in with backend bc it's not implemented yet; change to @Binding
     @State var image_url: String? = "Caribbean_Flamingo"
     @State var sound_url: String? = nil

@@ -14,10 +14,6 @@ struct Pin: Identifiable {
 }
 
 struct HVAPinInformationView: View {
-
-    // @Binding var entries: [sighting_entry]
-    @ObservedObject var vm: SightingMapViewModel
-
     // built-in dismiss, returns to the previous screen
     @Environment(\.dismiss) var dismiss
     
@@ -103,7 +99,7 @@ struct HVAPinInformationView: View {
             //vm.selectedSighting = entry
             //vm.pinOrigin = .hva
             //vm.compileDescription() //TODO: add parameter
-            SightingPinInformationView(vm: vm)
+            SightingPinInformationView(sightingObj: hotspotObj)
                 .presentationBackground(.regularMaterial)
         }
     }

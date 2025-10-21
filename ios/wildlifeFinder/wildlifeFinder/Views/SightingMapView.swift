@@ -87,7 +87,7 @@ struct SightingMapView: View {
         }
         .sheet(isPresented: $showSightingSheet) {
             if let w = waypointObj {
-                SightingPinInformationView(fromHVA: $fromHVA, entry: $entry, sightingObj: w)
+                SightingPinInformationView(sightingObj: w)
                     .presentationBackground(.regularMaterial)
             }
         }
