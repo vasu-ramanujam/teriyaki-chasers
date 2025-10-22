@@ -52,20 +52,17 @@ final class SightingMapViewModel: ObservableObject {
             // Convert API sightings to app models
             var convertedSightings: [Sighting] = []
             for apiSighting in apiSightings {
-                // Find or create species
-                let species: Species
-                if let existingSpecies = species.first(where: { $0.id == apiSighting.species_id }) {
-                    species = existingSpecies
+                // Find or create the Species object for this sighting
+                var resolvedSpecies: Species
+                if let existing = self.species.first(where: { $0.id == apiSighting.species_id }) {
+                    resolvedSpecies = existing
                 } else {
-                    // Fetch species details
                     let apiSpecies = try await APIService.shared.getSpecies(id: apiSighting.species_id)
                     let newSpecies = Species(from: apiSpecies)
-                    species.append(newSpecies)
-                    species = newSpecies
+                    self.species.append(newSpecies)
+                    resolvedSpecies = newSpecies
                 }
-                
-                let sighting = Sighting(from: apiSighting, species: species)
-                convertedSightings.append(sighting)
+                convertedSightings.append(Sighting(from: apiSighting, species: resolvedSpecies))
             }
             
             self.sightings = convertedSightings
