@@ -23,7 +23,9 @@ struct ContentView: View {
             }
 
             NavigationStack {
-                Text("Post Sighting (stub)")
+                //TODO: change
+                IdentifiedAnimalView()
+                //Text("Post Sighting (stub)")
             }
             .tabItem {
                 Image(systemName: "plus")
