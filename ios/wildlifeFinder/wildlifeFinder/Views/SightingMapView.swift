@@ -96,11 +96,10 @@ struct SightingMapView: View {
             }
         }
         .sheet(isPresented: $showHVASheet) {
-            if let w = waypointObj {
-                // HVAPinInformationView(hotspotObj: w)
-                //    .presentationBackground(.regularMaterial)
-                
-            }
+            /*if let w = waypointObj {
+                HVAPinInformationView(hotspotObj: w)
+                    .presentationBackground(.regularMaterial)
+            }*/
         }
         .sheet(isPresented: $showRouteSheet) {
             RouteStackView(waypoints: Array(vm.selectedWaypoints))
@@ -142,12 +141,7 @@ struct SightingMapView: View {
                         PinButton(icon: "flame.circle.fill", color: .orange) {
                             showHVASheet = true
                             waypointObj = .hotspot(h)
-                            
-                            // selected pin = this pin
-                            let select = Waypoint.hotspot(h)
-                            vm.selectedPin = select
-                            vm.pinOrigin = .hva
-                            vm.compileDescription() //TODO: add parameter
+                            hotspotObj = h
                         }
                         .contextMenu {
                             Button(vm.selectedWaypoints.contains(.hotspot(h)) ? "Remove from route" : "Add to route") {
