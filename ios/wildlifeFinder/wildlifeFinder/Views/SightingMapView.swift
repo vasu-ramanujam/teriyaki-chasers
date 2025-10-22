@@ -10,14 +10,13 @@ struct SightingMapView: View {
     // Sheets
     @State private var showSightingSheet = false
     @State private var showHVASheet = false
+    @State private var showRouteSheet = false
 
     // Inputs for your SightingPinInformationView
     @State private var waypointObj: Waypoint? = nil
     @State private var sightingObj: Sighting? = nil
     @State private var hotspotObj: Hotspot? = nil
 
-
-    
     // RouteViewModel stuff
     @EnvironmentObject private var routeVM: RouteViewModel
 
@@ -59,8 +58,16 @@ struct SightingMapView: View {
                         ToggleChip(title: "Sighting Pin", isOn: $vm.showSightings)
                         ToggleChip(title: "High Volume Area", isOn: $vm.showHotspots)
                         Spacer()
-                        Button { } label: { Image(systemName: "scope") }
-                            .buttonStyle(.bordered)
+                        Button { 
+                            Task {
+                                await vm.loadSightings()
+                            }
+                        } label: { 
+                            Image(systemName: "arrow.clockwise")
+                                .foregroundColor(vm.isLoading ? .orange : .primary)
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(vm.isLoading)
                     }
                     .padding(.horizontal)
 
@@ -86,7 +93,10 @@ struct SightingMapView: View {
             }
         }
         .onAppear {
-            vm.loadMock()
+            // Load real data instead of mock
+            Task {
+                await vm.loadSightings()
+            }
             cameraPosition = .region(vm.mapRegion)
         }
         .sheet(isPresented: $showSightingSheet) {
@@ -105,9 +115,22 @@ struct SightingMapView: View {
             RouteStackView(waypoints: Array(vm.selectedWaypoints))
         }
         .toolbar(.hidden, for: .navigationBar)
+        .overlay {
+            if vm.isLoading {
+                VStack {
+                    ProgressView("Loading sightings...")
+                        .padding()
+                        .background(.regularMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+            }
+        }
+        .alert("Error", isPresented: .constant(vm.errorMessage != nil)) {
+            Button("OK") { vm.errorMessage = nil }
+        } message: {
+            Text(vm.errorMessage ?? "")
+        }
     }
-
-    @State private var showRouteSheet = false
 
     private var mapLayer: some View {
         Map(position: $cameraPosition) {
@@ -161,7 +184,6 @@ struct SightingMapView: View {
         }
         .ignoresSafeArea()
     }
-
 }
 
 // Local UI helpers
