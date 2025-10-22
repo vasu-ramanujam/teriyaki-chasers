@@ -2,20 +2,69 @@ import Foundation
 import CoreLocation
 import MapKit
 
+// MARK: - Updated Models to match backend
 public struct Species: Identifiable, Hashable {
-    public let id: UUID = .init()
-    public let name: String
-    public let emoji: String
+    public let id: Int
+    public let common_name: String
+    public let scientific_name: String
+    public let habitat: String?
+    public let diet: String?
+    public let behavior: String?
+    public let description: String?
+    public let other_sources: [String]?
+    public let created_at: Date
+    
+    // Computed properties for UI compatibility
+    public var name: String { common_name }
+    public var emoji: String {
+        // Map species to emojis - you can expand this
+        switch common_name.lowercased() {
+        case let name where name.contains("flamingo"): return "🦩"
+        case let name where name.contains("turkey"): return "🦃"
+        case let name where name.contains("swan"): return "🦢"
+        case let name where name.contains("eagle"): return "🦅"
+        case let name where name.contains("owl"): return "🦉"
+        case let name where name.contains("duck"): return "🦆"
+        case let name where name.contains("goose"): return "🪿"
+        case let name where name.contains("heron"): return "🦆"
+        case let name where name.contains("pelican"): return "🦆"
+        default: return "🐦"
+        }
+    }
+    
+    public init(from apiSpecies: APISpecies) {
+        self.id = apiSpecies.id
+        self.common_name = apiSpecies.common_name
+        self.scientific_name = apiSpecies.scientific_name
+        self.habitat = apiSpecies.habitat
+        self.diet = apiSpecies.diet
+        self.behavior = apiSpecies.behavior
+        self.description = apiSpecies.description
+        self.other_sources = apiSpecies.other_sources
+        self.created_at = ISO8601DateFormatter().date(from: apiSpecies.created_at) ?? Date()
+    }
 }
 
 public struct Sighting: Identifiable, Hashable {
-    public let id: UUID = .init()
+    public let id: String
     public let species: Species
     public let coordinate: CLLocationCoordinate2D
     public let createdAt: Date
     public let note: String?
     public let username: String
     public let isPrivate: Bool
+    public let media_url: String?
+    
+    public init(from apiSighting: APISighting, species: Species) {
+        self.id = apiSighting.id
+        self.species = species
+        self.coordinate = CLLocationCoordinate2D(latitude: apiSighting.lat, longitude: apiSighting.lon)
+        self.createdAt = ISO8601DateFormatter().date(from: apiSighting.taken_at) ?? Date()
+        self.note = apiSighting.caption
+        self.username = apiSighting.username ?? "Anonymous"
+        self.isPrivate = apiSighting.is_private
+        self.media_url = apiSighting.media_url
+    }
 }
 
 public struct Hotspot: Identifiable, Hashable {
@@ -49,7 +98,6 @@ public enum Waypoint: Identifiable, Hashable {
         case .hotspot(let h):  return "High Volume: \(h.name)"
         }
     }
-    
 }
 
 // MARK: - Explicit conformance (because CLLocationCoordinate2D isn't Hashable)
