@@ -28,18 +28,18 @@ final class SightingMapViewModel: ObservableObject {
     @Published var selectedWaypoints: Set<Waypoint> = []
     
     // for SPIV
-    @Published var selectedSighting: Sighting? = nil
-    @Published var selectedHotspot: Hotspot? = nil
-    @Published var pinOrigin: where_from = .map
+    //@Published var selectedSighting: Sighting? = nil
+    //@Published var selectedHotspot: Hotspot? = nil
+    //@Published var pinOrigin: where_from = .map
     
     // Information view - compiled description
-    @Published var sightingCompiledDescription: String = "" //when pin is selected, compile description given species
+    //@Published var sightingCompiledDescription: String = "" //when pin is selected, compile description given species
 
     var canGenerateRoute: Bool { !selectedWaypoints.isEmpty }
     
     //assume the call to API requires some species parameter
     //TODO: add parameter based on backend API schema
-    func compileDescription() {
+    /*func compileDescription() {
         // quick mock with hard data; swap with API call later
         
         // info from API:
@@ -55,7 +55,7 @@ final class SightingMapViewModel: ObservableObject {
             }
         }
         sightingCompiledDescription = description
-    }
+    }*/
 
     func loadMock() {
         // quick mock; swap with API later

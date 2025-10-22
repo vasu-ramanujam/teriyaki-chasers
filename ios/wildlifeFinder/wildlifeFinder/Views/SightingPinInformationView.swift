@@ -22,12 +22,7 @@ let test_sighting = Sighting(species: flamingo, coordinate: .init(latitude: 37.3
 
 struct SightingPinInformationView: View {
     // TODO: insert state, binding, etc variables
-    
-    //SMVM - from media get?? -- check in with backend bc it's not implemented yet; change to @Binding
-    @State var image_url: String? = "Caribbean_Flamingo"
-    @State var sound_url: String? = nil
-    // -
-    
+
     // built-in dismiss, returns to the previous screen
     @Environment(\.dismiss) var dismiss
     
@@ -35,10 +30,22 @@ struct SightingPinInformationView: View {
     
     @EnvironmentObject private var vm: SightingMapViewModel
     
-    let sightingObj: Waypoint
+    //@Binding var sighting: Sighting
+    //@Binding var origin: where_from
+    @State var pinvm: SightingPinInformationViewModel
+    
+    init(sighting: Sighting, origin: where_from, waypointObj: Waypoint) {
+        self.showSoundAlert = false
+        self.pinvm = SightingPinInformationViewModel(s: sighting, o: origin)
+        self.sightingObj = waypointObj
+    }
+    
+    
+    
+    var sightingObj: Waypoint
     
     func routeButtonText() -> String {
-        switch vm.pinOrigin {
+        switch pinvm.origin {
         case .hva:
             if vm.selectedWaypoints.contains(sightingObj) {
                 return "Remove High Volume Area from Route"
@@ -51,7 +58,7 @@ struct SightingPinInformationView: View {
             } else {
                 return "Add to Route"
             }
-        case .ar:
+        case .other:
             //break
             return ""
         }
@@ -59,7 +66,7 @@ struct SightingPinInformationView: View {
     
     @ViewBuilder
     func MediaUnwrap() -> some View {
-        if let img = image_url {
+        if let img = pinvm.image_url {
             Image(img)
                 .resizable()
                 .scaledToFit()
@@ -73,27 +80,12 @@ struct SightingPinInformationView: View {
         }
     }
     
-    // delete / move to SMVM
-    @ViewBuilder
-    func compile_description(description: String, other_sources: [String]?) -> some View {
-        
-        if  other_sources != nil {
-            Text(description + "\n\nLearn more at: ")
-        } else {
-            Text(description)
-        }
-        if let other_sources{
-            ForEach(other_sources, id: \.self){
-                Link($0, destination: URL(string: $0)!)
-            }
-        }
-        
-    }
+
     
     @ViewBuilder
     func MediaView() -> some View {
         ZStack(alignment: .bottom){
-            ZStack(alignment: image_url != nil ? .topTrailing: .top){
+            ZStack(alignment: pinvm.image_url != nil ? .topTrailing: .top){
                 MediaUnwrap()
                 Button {
                     showSoundAlert = true
@@ -110,18 +102,18 @@ struct SightingPinInformationView: View {
                             .frame(width: 40, height: 40)
                             .padding(5)
                             .foregroundColor(.black)
-                            .opacity(sound_url != nil ? 0 : 0.8)
+                            .opacity(pinvm.sound_url != nil ? 0 : 0.8)
                     }
                 }
                 .alert(isPresented: $showSoundAlert){
                     Alert(
-                        title: sound_url != nil ?  Text("Playing sound...") : Text("No sound available"),
+                        title: pinvm.sound_url != nil ?  Text("Playing sound...") : Text("No sound available"),
                         
                         message: Text("Sound available only in MVP")
                     )
                 }
             }
-            if let _entry = vm.selectedSighting , let caption = _entry.note {
+            if let caption = pinvm.currentSighting.note {
                 Text(caption)
                     .font(.system(size: 14))
                     .foregroundColor(.white)
@@ -138,16 +130,16 @@ struct SightingPinInformationView: View {
             HStack{
                 Image(systemName: "mappin")
                     .font(.title)
-                Text(vm.selectedSighting!.species.name)
+                Text(pinvm.currentSighting.species.name)
                     .font(.title)
                 Spacer()
             }
             MediaView()
             
             HStack{
-                Text("Posted by: \(vm.selectedSighting!.isPrivate ? "Anonymous" : vm.selectedSighting!.username)")
+                Text("Posted by: \(pinvm.currentSighting.isPrivate ? "Anonymous" : pinvm.currentSighting.username)")
                 Spacer()
-                Text("\(vm.selectedSighting!.createdAt.formatted(date: .numeric, time: .shortened))")
+                Text("\(pinvm.currentSighting.createdAt.formatted(date: .numeric, time: .shortened))")
             }
                 .padding(.top, 5)
             
@@ -155,20 +147,19 @@ struct SightingPinInformationView: View {
                 Text("**Description:**")
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 5)
-                Text(vm.sightingCompiledDescription)
+                Text(pinvm.description)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .lineLimit(nil)
             }
-            Button(routeButtonText()){
-                //TODO: add to route list and return to sighting map
-                //TODO: depending on fromHVA flag
-                vm.toggleWaypoint(sightingObj)
-                dismiss()
+            if pinvm.origin != .other {
+                Button(routeButtonText()){
+                    vm.toggleWaypoint(sightingObj)
+                    dismiss()
+                }
+                .padding([.top])
+                .buttonStyle(OrangeButtonStyle())
+                .font(.headline)
             }
-            .padding([.top])
-            .buttonStyle(OrangeButtonStyle())
-            .font(.headline)
-
             Spacer()
             
             HStack{

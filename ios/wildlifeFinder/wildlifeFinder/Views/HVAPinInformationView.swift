@@ -4,7 +4,7 @@
 //
 //  Created by Vasu Ramanujam on 10/8/25.
 //
-
+/*
 import SwiftUI
 
 struct Pin: Identifiable {
@@ -104,3 +104,5 @@ struct HVAPinInformationView: View {
         }
     }
 }
+
+*/

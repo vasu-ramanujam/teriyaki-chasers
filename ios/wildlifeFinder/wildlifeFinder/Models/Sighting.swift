@@ -77,5 +77,5 @@ extension Waypoint {
 }
 
 public enum where_from {
-    case hva, map, ar
+    case hva, map, other
 }

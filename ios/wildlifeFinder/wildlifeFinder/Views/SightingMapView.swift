@@ -13,6 +13,10 @@ struct SightingMapView: View {
 
     // Inputs for your SightingPinInformationView
     @State private var waypointObj: Waypoint? = nil
+    @State private var sightingObj: Sighting? = nil
+    @State private var hotspotObj: Hotspot? = nil
+
+
     
     // RouteViewModel stuff
     @EnvironmentObject private var routeVM: RouteViewModel
@@ -86,15 +90,16 @@ struct SightingMapView: View {
             cameraPosition = .region(vm.mapRegion)
         }
         .sheet(isPresented: $showSightingSheet) {
-            if let w = waypointObj {
-                SightingPinInformationView(sightingObj: w)
+            if let w = waypointObj, let s = sightingObj {
+                SightingPinInformationView(sighting: s, origin: .map, waypointObj: w)
                     .presentationBackground(.regularMaterial)
             }
         }
         .sheet(isPresented: $showHVASheet) {
             if let w = waypointObj {
-                HVAPinInformationView(hotspotObj: w)
-                    .presentationBackground(.regularMaterial)
+                // HVAPinInformationView(hotspotObj: w)
+                //    .presentationBackground(.regularMaterial)
+                
             }
         }
         .sheet(isPresented: $showRouteSheet) {
@@ -113,11 +118,7 @@ struct SightingMapView: View {
                         PinButton(icon: "mappin.circle.fill", color: .green) {
                             showSightingSheet = true
                             waypointObj = .sighting(s)
-                            
-                            // selected pin = this pin
-                            vm.selectedSighting = s
-                            vm.pinOrigin = .map
-                            vm.compileDescription() //TODO: add parameter
+                            sightingObj = s
                         }
                         .contextMenu {
                             Button(vm.selectedWaypoints.contains(.sighting(s)) ? "Remove from route" : "Add to route") {
