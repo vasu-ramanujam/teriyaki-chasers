@@ -1,5 +1,6 @@
 import Foundation
 import CoreLocation
+import MapKit
 
 // MARK: - API Models
 public struct APISpecies: Codable, Identifiable {
@@ -61,6 +62,20 @@ public struct APISightingList: Codable {
     public let items: [APISighting]
 }
 
+public struct APISpeciesDetails: Codable {
+    public let species: String             // scientific name
+    public let english_name: String?
+    public let description: String?
+    public let other_sources: [String]?
+}
+extension APIService {
+    public func getSpeciesDetails(id: Int) async throws -> APISpeciesDetails {
+        let url = URL(string: "\(baseURL)/species/\(id)")!
+        let (data, _) = try await session.data(from: url)
+        return try JSONDecoder().decode(APISpeciesDetails.self, from: data)
+    }
+}
+
 // MARK: - API Service
 public class APIService: ObservableObject {
     public static let shared = APIService()
@@ -113,7 +128,7 @@ public class APIService: ObservableObject {
     
     // MARK: - Route API
     public func createRoute(start: CLLocationCoordinate2D, end: CLLocationCoordinate2D) async throws -> APIRoute {
-        let url = URL(string: "\(baseURL)/route")!
+        let url = URL(string: "\(baseURL)/route/")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

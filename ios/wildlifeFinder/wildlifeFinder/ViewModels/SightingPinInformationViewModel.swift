@@ -21,6 +21,19 @@ public class SightingPinInformationViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
+        let details = try await APIService.shared.getSpeciesDetails(id: currentSighting.species.id)
+                    self.speciesDetails = Species(
+                        id: currentSighting.species.id,
+                        common_name: details.english_name ?? currentSighting.species.common_name,
+                        scientific_name: details.species,
+                        habitat: currentSighting.species.habitat,
+                        diet: currentSighting.species.diet,
+                        behavior: currentSighting.species.behavior,
+                        description: details.description ?? currentSighting.species.description,
+                        other_sources: details.other_sources,
+                        created_at: currentSighting.species.created_at
+                    )
+
         do {
             let apiSpecies = try await APIService.shared.getSpecies(id: currentSighting.species.id)
             self.speciesDetails = Species(from: apiSpecies)
