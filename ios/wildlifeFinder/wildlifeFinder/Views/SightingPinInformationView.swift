@@ -1,48 +1,17 @@
-//
-//  SightingPinInformationView.swift
-//  wildlifeFinder
-//
-//  Created by Alvin Jiang on 10/6/25.
-//
-
-// view called from Sighting Map
-
-// also called from high volume sighting > See more info > click on one of the sightings that make it up
-
-// View should show add to route with accessed from sighting map, add HVA to route when accessed from high volume sighting
 import SwiftUI
 
-// HARDCODED INFORMATION
-// TODO: remove hardcoded info and replace with calls to SMVM
-
-let flamingo = Species(name: "flamingo", emoji: "🦩")
-let test_sighting = Sighting(species: flamingo, coordinate: .init(latitude: 37.334, longitude: -122.008), createdAt: .now, note: "Whoa.. I didn't expect to see a flamingo here! I was just on my way to class when I found this...", username: "Named Teriyaki", isPrivate: false)
-
-
-
 struct SightingPinInformationView: View {
-    // TODO: insert state, binding, etc variables
-
-    // built-in dismiss, returns to the previous screen
     @Environment(\.dismiss) var dismiss
-    
     @State var showSoundAlert = false
-    
     @EnvironmentObject private var vm: SightingMapViewModel
     
-    //@Binding var sighting: Sighting
-    //@Binding var origin: where_from
-    @State var pinvm: SightingPinInformationViewModel
+    @StateObject var pinvm: SightingPinInformationViewModel
+    var sightingObj: Waypoint
     
     init(sighting: Sighting, origin: where_from, waypointObj: Waypoint) {
-        self.showSoundAlert = false
-        self.pinvm = SightingPinInformationViewModel(s: sighting, o: origin)
         self.sightingObj = waypointObj
+        self._pinvm = StateObject(wrappedValue: SightingPinInformationViewModel(s: sighting, o: origin))
     }
-    
-    
-    
-    var sightingObj: Waypoint
     
     func routeButtonText() -> String {
         switch pinvm.origin {
@@ -59,7 +28,6 @@ struct SightingPinInformationView: View {
                 return "Add to Route"
             }
         case .other:
-            //break
             return ""
         }
     }
@@ -67,20 +35,26 @@ struct SightingPinInformationView: View {
     @ViewBuilder
     func MediaUnwrap() -> some View {
         if let img = pinvm.image_url {
-            Image(img)
-                .resizable()
-                .scaledToFit()
-                .containerRelativeFrame(.horizontal) { size, axis in
-                    size * 0.93
-                    }
+            AsyncImage(url: URL(string: img)) { image in
+                image
+                    .resizable()
+                    .scaledToFit()
+            } placeholder: {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .overlay(
+                        ProgressView()
+                    )
+            }
+            .containerRelativeFrame(.horizontal) { size, axis in
+                size * 0.93
+            }
         } else {
             Rectangle()
                 .frame(maxWidth: .infinity, maxHeight: 100)
                 .opacity(0)
         }
     }
-    
-
     
     @ViewBuilder
     func MediaView() -> some View {
@@ -89,7 +63,6 @@ struct SightingPinInformationView: View {
                 MediaUnwrap()
                 Button {
                     showSoundAlert = true
-                    //TODO: if sound, display sound
                 } label: {
                     ZStack{
                         Image(systemName: "play.square.fill")
@@ -108,7 +81,6 @@ struct SightingPinInformationView: View {
                 .alert(isPresented: $showSoundAlert){
                     Alert(
                         title: pinvm.sound_url != nil ?  Text("Playing sound...") : Text("No sound available"),
-                        
                         message: Text("Sound available only in MVP")
                     )
                 }
@@ -121,7 +93,6 @@ struct SightingPinInformationView: View {
                     .background(.black.opacity(0.6))
                     .frame(maxWidth: .infinity)
             }
-            
         }
     }
     
@@ -141,16 +112,26 @@ struct SightingPinInformationView: View {
                 Spacer()
                 Text("\(pinvm.currentSighting.createdAt.formatted(date: .numeric, time: .shortened))")
             }
-                .padding(.top, 5)
+            .padding(.top, 5)
             
-            ScrollView{ // I don't think description will be this long
-                Text("**Description:**")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 5)
-                Text(pinvm.description)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .lineLimit(nil)
+            ScrollView{
+                if pinvm.isLoading {
+                    HStack {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text("Loading species information...")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding()
+                } else {
+                    Text(pinvm.description)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .lineLimit(nil)
+                        .padding(.top, 5)
+                }
             }
+            
             if pinvm.origin != .other {
                 Button(routeButtonText()){
                     vm.toggleWaypoint(sightingObj)
@@ -170,8 +151,18 @@ struct SightingPinInformationView: View {
                 .buttonStyle(GreenButtonStyle())
                 Spacer()
             }
-            
         }
         .padding()
+        .onAppear {
+            Task {
+                await pinvm.loadSpeciesDetails()
+                pinvm.loadMedia()
+            }
+        }
+        .alert("Error", isPresented: .constant(pinvm.errorMessage != nil)) {
+            Button("OK") { pinvm.errorMessage = nil }
+        } message: {
+            Text(pinvm.errorMessage ?? "")
+        }
     }
 }
