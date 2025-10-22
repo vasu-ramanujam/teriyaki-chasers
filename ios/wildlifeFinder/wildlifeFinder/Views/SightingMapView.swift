@@ -136,7 +136,7 @@ struct SightingMapView: View {
         Map(position: $cameraPosition) {
             if vm.showSightings {
                 ForEach(vm.filteredSightings) { s in
-                    Annotation("\(s.species.emoji) \(s.species.name)", coordinate: s.coordinate) {
+                    Annotation("\(s.species.name)", coordinate: s.coordinate) {
                         PinButton(icon: "mappin.circle.fill", color: .green) {
                             showSightingSheet = true
                             waypointObj = .sighting(s)
