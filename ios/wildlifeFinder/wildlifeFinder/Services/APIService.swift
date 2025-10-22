@@ -2,68 +2,68 @@ import Foundation
 import CoreLocation
 
 // MARK: - API Models
-struct APISpecies: Codable, Identifiable {
-    let id: Int
-    let common_name: String
-    let scientific_name: String
-    let habitat: String?
-    let diet: String?
-    let behavior: String?
-    let description: String?
-    let other_sources: [String]?
-    let created_at: String
+public struct APISpecies: Codable, Identifiable {
+    public let id: Int
+    public let common_name: String
+    public let scientific_name: String
+    public let habitat: String?
+    public let diet: String?
+    public let behavior: String?
+    public let description: String?
+    public let other_sources: [String]?
+    public let created_at: String
 }
 
-struct APISighting: Codable, Identifiable {
-    let id: String
-    let user_id: String?
-    let username: String?
-    let species_id: Int
-    let lat: Double
-    let lon: Double
-    let taken_at: String
-    let is_private: Bool
-    let media_url: String?
-    let caption: String?
-    let created_at: String
+public struct APISighting: Codable, Identifiable {
+    public let id: String
+    public let user_id: String?
+    public let username: String?
+    public let species_id: Int
+    public let lat: Double
+    public let lon: Double
+    public let taken_at: String
+    public let is_private: Bool
+    public let media_url: String?
+    public let caption: String?
+    public let created_at: String
 }
 
-struct APIRoute: Codable, Identifiable {
-    let id: String
-    let provider: String
-    let polyline: String
-    let distance_m: Double
-    let duration_s: Double
+public struct APIRoute: Codable, Identifiable {
+    public let id: String
+    public let provider: String
+    public let polyline: String
+    public let distance_m: Double
+    public let duration_s: Double
 }
 
-struct APIRouteCreate: Codable {
-    let start: APIRoutePoint
-    let end: APIRoutePoint
+public struct APIRouteCreate: Codable {
+    public let start: APIRoutePoint
+    public let end: APIRoutePoint
 }
 
-struct APIRoutePoint: Codable {
-    let lat: Double
-    let lon: Double
+public struct APIRoutePoint: Codable {
+    public let lat: Double
+    public let lon: Double
 }
 
-struct APISightingFilter: Codable {
-    let area: String
-    let species_id: Int?
-    let start_time: String?
-    let end_time: String?
+public struct APISightingFilter: Codable {
+    public let area: String
+    public let species_id: Int?
+    public let start_time: String?
+    public let end_time: String?
 }
 
-struct APISpeciesSearch: Codable {
-    let items: [APISpecies]
+public struct APISpeciesSearch: Codable {
+    public let items: [APISpecies]
 }
 
-struct APISightingList: Codable {
-    let items: [APISighting]
+public struct APISightingList: Codable {
+    public let items: [APISighting]
 }
 
 // MARK: - API Service
-class APIService: ObservableObject {
-    static let shared = APIService()
+public class APIService: ObservableObject {
+    public static let shared = APIService()
     
     private let baseURL = "http://localhost:8000/v1" // Update with your backend URL
     private let session = URLSession.shared
@@ -71,7 +71,7 @@ class APIService: ObservableObject {
     private init() {}
     
     // MARK: - Species API
-    func searchSpecies(query: String, limit: Int = 10) async throws -> [APISpecies] {
+    public func searchSpecies(query: String, limit: Int = 10) async throws -> [APISpecies] {
         let url = URL(string: "\(baseURL)/species")!
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
         components.queryItems = [
@@ -84,14 +84,14 @@ class APIService: ObservableObject {
         return response.items
     }
     
-    func getSpecies(id: Int) async throws -> APISpecies {
+    public func getSpecies(id: Int) async throws -> APISpecies {
         let url = URL(string: "\(baseURL)/species/\(id)")!
         let (data, _) = try await session.data(from: url)
         return try JSONDecoder().decode(APISpecies.self, from: data)
     }
     
     // MARK: - Sightings API
-    func getSightings(filter: APISightingFilter) async throws -> [APISighting] {
+    public func getSightings(filter: APISightingFilter) async throws -> [APISighting] {
         let url = URL(string: "\(baseURL)/sightings")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -105,14 +105,14 @@ class APIService: ObservableObject {
         return response.items
     }
     
-    func getSighting(id: String) async throws -> APISighting {
+    public func getSighting(id: String) async throws -> APISighting {
         let url = URL(string: "\(baseURL)/sightings/\(id)")!
         let (data, _) = try await session.data(from: url)
         return try JSONDecoder().decode(APISighting.self, from: data)
     }
     
     // MARK: - Route API
-    func createRoute(start: CLLocationCoordinate2D, end: CLLocationCoordinate2D) async throws -> APIRoute {
+    public func createRoute(start: CLLocationCoordinate2D, end: CLLocationCoordinate2D) async throws -> APIRoute {
         let url = URL(string: "\(baseURL)/route")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -131,7 +131,7 @@ class APIService: ObservableObject {
     }
     
     // MARK: - Helper Methods
-    func createBoundingBox(center: CLLocationCoordinate2D, span: MKCoordinateSpan) -> String {
+    public func createBoundingBox(center: CLLocationCoordinate2D, span: MKCoordinateSpan) -> String {
         let latDelta = span.latitudeDelta / 2
         let lonDelta = span.longitudeDelta / 2
         
