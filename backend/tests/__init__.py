@@ -1,3 +1,1 @@
-"""
-Test suite for Animal Explorer API
-"""
+# Tests package for Animal Explorer API

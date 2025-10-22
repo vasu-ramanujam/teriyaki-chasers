@@ -7,9 +7,40 @@ import uuid
 import os
 from app.database import get_db
 from app.models import Sighting as SightingModel, Species
-from app.schemas import Sighting, SightingList, SightingCreate, SightingFilter
+from app.schemas import Sighting, SightingList, SightingCreate, SightingFilter, SightingDetail
 
 router = APIRouter()
+
+@router.get("/{sighting_id}", response_model=SightingDetail)
+async def get_sighting(
+    sighting_id: str,
+    db: Session = Depends(get_db)
+):
+    """Get details of a single sighting"""
+    try:
+        # Query sighting with species information
+        sighting = db.query(SightingModel).join(Species).filter(
+            SightingModel.id == sighting_id
+        ).first()
+        
+        if not sighting:
+            raise HTTPException(status_code=404, detail="Sighting not found")
+        
+        # Format the response according to API documentation
+        return SightingDetail(
+            id=int(sighting.id) if sighting.id.isdigit() else hash(sighting.id) % 1000000,  # Convert to int for API
+            species=sighting.species.scientific_name,  # Species observed
+            location=f"{sighting.lat},{sighting.lon}",  # Location as lat,lon
+            time=sighting.taken_at.isoformat(),  # Time in ISO format
+            username=sighting.username or "Anonymous",  # User's display name
+            is_private=sighting.is_private,  # Whether post is private
+            caption=sighting.caption  # Optional caption
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/", response_model=SightingList)
 async def get_sightings(
@@ -58,6 +89,8 @@ async def create_sighting(
     lat: float = Form(...),
     lon: float = Form(...),
     is_private: bool = Form(False),
+    username: Optional[str] = Form(None),
+    caption: Optional[str] = Form(None),
     photo: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
@@ -82,6 +115,8 @@ async def create_sighting(
             lon=lon,
             taken_at=datetime.utcnow(),
             is_private=is_private,
+            username=username,
+            caption=caption,
             media_url=file_path
         )
         
@@ -91,6 +126,9 @@ async def create_sighting(
         
         return sighting
         
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))

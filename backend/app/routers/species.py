@@ -3,10 +3,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional, Dict, Any
 import httpx
-
 from app.database import get_db
 from app.models import Species as SpeciesModel
-from app.schemas import SpeciesDetails, SpeciesSearch
+from app.schemas import Species, SpeciesSearch, SpeciesDetail, SpeciesDetails
 
 router = APIRouter()
 
@@ -100,7 +99,6 @@ async def _enrich_with_wikipedia(scientific_name: str) -> Dict[str, Any]:
     # return None when external failures
     return {"english_name": None, "description": None, "other_sources": []}
 
-
 @router.get("/", response_model=SpeciesSearch)
 async def search_species(
     q: str = Query(..., description="Search query"),
@@ -116,28 +114,25 @@ async def search_species(
     species_list = query.all()
     return SpeciesSearch(items=species_list)
 
-
 @router.get("/{species_id}", response_model=SpeciesDetails)
 async def get_species(
-    species_id: str,
+    species_id: int,
     db: Session = Depends(get_db)
 ):
-    """Get species details by ID"""
-    species = (
-        db.query(SpeciesModel)
-        .filter(SpeciesModel.id == species_id)
-        .first()
-    )
+    """Get species details by ID with Wikipedia enrichment"""
+    species = db.query(SpeciesModel).filter(SpeciesModel.id == species_id).first()
     if not species:
         raise HTTPException(status_code=404, detail="Species not found")
-
+    
     scientific_name = getattr(species, "scientific_name", None)
-
+    
+    # Enrich with Wikipedia data
     wiki = await _enrich_with_wikipedia(scientific_name)
-
+    
     return SpeciesDetails(
         species=scientific_name,
         english_name=wiki["english_name"],
         description=wiki["description"],
         other_sources=wiki["other_sources"],
     )
+
