@@ -16,21 +16,7 @@ public struct Species: Identifiable, Hashable {
     
     // Computed properties for UI compatibility
     public var name: String { common_name }
-    public var emoji: String {
-        // Map species to emojis - you can expand this
-        switch common_name.lowercased() {
-        case let name where name.contains("flamingo"): return "🦩"
-        case let name where name.contains("turkey"): return "🦃"
-        case let name where name.contains("swan"): return "🦢"
-        case let name where name.contains("eagle"): return "🦅"
-        case let name where name.contains("owl"): return "🦉"
-        case let name where name.contains("duck"): return "🦆"
-        case let name where name.contains("goose"): return "🪿"
-        case let name where name.contains("heron"): return "🦆"
-        case let name where name.contains("pelican"): return "🦆"
-        default: return "🐦"
-        }
-    }
+
     
     public init(from apiSpecies: APISpecies) {
         self.id = apiSpecies.id
@@ -94,7 +80,7 @@ public enum Waypoint: Identifiable, Hashable {
 
     public var title: String {
         switch self {
-        case .sighting(let s): return "\(s.species.emoji) \(s.species.name)"
+        case .sighting(let s): return s.species.name
         case .hotspot(let h):  return "High Volume: \(h.name)"
         }
     }
