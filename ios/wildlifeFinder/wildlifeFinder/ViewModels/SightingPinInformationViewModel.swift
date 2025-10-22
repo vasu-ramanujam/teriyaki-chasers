@@ -9,11 +9,8 @@
  
  gets the information
  
- edits in view model
- 
- 
- 
  */
+
 import Foundation
 import SwiftUI
 
