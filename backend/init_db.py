@@ -3,9 +3,10 @@
 Initialize the database with sample data
 """
 import asyncio
+from datetime import datetime
 from sqlalchemy.orm import sessionmaker
 from app.database import engine, Base
-from app.models import Species
+from app.models import Species, Sighting
 import uuid
 
 def init_database():
@@ -63,9 +64,27 @@ def init_database():
         
         for species in sample_species:
             db.add(species)
+        db.flush()
+        by_sci = {s.scientific_name: s for s in db.query(Species).all()}
+        now = datetime.utcnow()
+        sample_sightings = [
+            {"sci": "Bubo virginianus",     "lat": 37.3340, "lon": -122.0090, "user": "Ada",   "cap": "Perched on the oak"},
+            {"sci": "Turdus migratorius",   "lat": 37.3332, "lon": -122.0101, "user": "Robin", "cap": "Early worm run"},
+            {"sci": "Buteo jamaicensis",    "lat": 37.3352, "lon": -122.0063, "user": "Hawk",  "cap": "Soaring over meadow"},
+        ]
+        for s in sample_sightings:
+            db.add(Sighting(
+                species_id=by_sci[s["sci"]].id,
+                lat=s["lat"], lon=s["lon"],
+                taken_at=now,
+                is_private=False,
+                username=s["user"],
+                caption=s["cap"],
+                media_url=None
+            ))
         
         db.commit()
-        print("Database initialized with sample species")
+        print("Database initialized with sample species and sightings")
         
     except Exception as e:
         print(f"Error initializing database: {e}")
