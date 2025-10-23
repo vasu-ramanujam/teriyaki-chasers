@@ -16,3 +16,7 @@ Pods/
 # OS System Files
 .DS_Store
 .DS_Store
+
+# build stuff
+.venv*
+__pycache__*

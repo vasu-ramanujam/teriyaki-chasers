@@ -13,9 +13,8 @@ struct SightingMapView: View {
     @State private var showRouteSheet = false
 
     // Inputs for your SightingPinInformationView
-    @State private var waypointObj: Waypoint? = nil
-    @State private var sightingObj: Sighting? = nil
-    @State private var hotspotObj: Hotspot? = nil
+    @State private var selectedSighting: sightingSheetInfo?
+    @State private var selectedHotspot: hotspotSheetInfo?
 
     // RouteViewModel stuff
     @EnvironmentObject private var routeVM: RouteViewModel
@@ -99,17 +98,15 @@ struct SightingMapView: View {
             }
             cameraPosition = .region(vm.mapRegion)
         }
-        .sheet(isPresented: $showSightingSheet) {
-            if let w = waypointObj, let s = sightingObj {
-                SightingPinInformationView(sighting: s, origin: .map, waypointObj: w)
-                    .presentationBackground(.regularMaterial)
-            }
+        .sheet(item: $selectedSighting) { item in
+            SightingPinInformationView(
+                sighting: item.sighting,
+                origin: .map,
+                waypointObj: item.waypoint
+            )
         }
-        .sheet(isPresented: $showHVASheet) {
-            /*if let w = waypointObj {
-                HVAPinInformationView(hotspotObj: w)
-                    .presentationBackground(.regularMaterial)
-            }*/
+        .sheet(item: $selectedHotspot) { item in
+            HVAPinInformationView(hotspotObj: item.waypoint)
         }
         .sheet(isPresented: $showRouteSheet) {
             RouteStackView(waypoints: Array(vm.selectedWaypoints))
@@ -138,9 +135,8 @@ struct SightingMapView: View {
                 ForEach(vm.filteredSightings) { s in
                     Annotation("\(s.species.name)", coordinate: s.coordinate) {
                         PinButton(icon: "mappin.circle.fill", color: .green) {
-                            showSightingSheet = true
-                            waypointObj = .sighting(s)
-                            sightingObj = s
+                            selectedSighting = sightingSheetInfo(sighting: s,
+                                                                 waypoint: .sighting(s))
                         }
                         .contextMenu {
                             Button(vm.selectedWaypoints.contains(.sighting(s)) ? "Remove from route" : "Add to route") {
@@ -162,9 +158,8 @@ struct SightingMapView: View {
                 ForEach(vm.hotspots) { h in
                     Annotation(h.name, coordinate: h.coordinate) {
                         PinButton(icon: "flame.circle.fill", color: .orange) {
-                            showHVASheet = true
-                            waypointObj = .hotspot(h)
-                            hotspotObj = h
+                            selectedHotspot = hotspotSheetInfo(hotspot: h,
+                                                                 waypoint: .hotspot(h))
                         }
                         .contextMenu {
                             Button(vm.selectedWaypoints.contains(.hotspot(h)) ? "Remove from route" : "Add to route") {
@@ -215,4 +210,16 @@ private struct PinButton: View {
         }
         .buttonStyle(.plain)
     }
+}
+
+private struct sightingSheetInfo: Identifiable {
+    let id = UUID()
+    let sighting: Sighting
+    let waypoint: Waypoint
+}
+
+private struct hotspotSheetInfo: Identifiable {
+    let id = UUID()
+    let hotspot: Hotspot
+    let waypoint: Waypoint
 }
