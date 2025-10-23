@@ -7,6 +7,7 @@ final class RouteViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
 
+
     func buildRoute(from waypoints: [Waypoint]) async {
         errorMessage = nil
         guard waypoints.count >= 2 else {
@@ -29,12 +30,13 @@ final class RouteViewModel: ObservableObject {
             
             // Create legs between waypoints
             for i in 0..<(waypoints.count - 1) {
-                let leg = RouteLeg(from: waypoints[i].coordinate, to: waypoints[i + 1].coordinate)
+                var leg = RouteLeg(from: waypoints[i].coordinate, to: waypoints[i + 1].coordinate)
                 leg.distance = apiRoute.distance_m
                 leg.expectedTravelTime = apiRoute.duration_s
                 // Note: You'd need to decode the polyline here for the actual route
                 legs.append(leg)
             }
+
             
             self.appRoute = AppRoute(legs: legs)
             

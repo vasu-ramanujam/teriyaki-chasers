@@ -6,17 +6,17 @@ public final class SightingPinInformationViewModel: ObservableObject {
 
     // MARK: - Published state
     @Published private(set) var currentSighting: Sighting
-    @Published private(set) var origin: Origin
+    @Published private(set) var origin: where_from
     @Published private(set) var speciesDetails: Species?
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
 
-    // Media
+    // Media (camelCase)
     @Published private(set) var imageURL: URL?
     @Published private(set) var soundURL: URL?
 
     // MARK: - Init
-    public init(s: Sighting, o: Origin) {
+    public init(s: Sighting, o: where_from) {
         self.currentSighting = s
         self.origin = o
         self.speciesDetails = s.species
@@ -56,7 +56,7 @@ public final class SightingPinInformationViewModel: ObservableObject {
             )
         } catch {
             self.errorMessage = "Failed to load species details: \(error.localizedDescription)"
-            // keep whatever we had (e.g., `s.species`) so UI still renders something
+            // keep whatever we had so UI still renders something
         }
     }
 
@@ -89,20 +89,24 @@ public final class SightingPinInformationViewModel: ObservableObject {
         imageURL = URL(string: currentSighting.media_url ?? "")
         soundURL = nil
     }
-}
 
+    /// Backwards-compat shim for the view that calls `loadMedia()`
+    func loadMedia() {
+        reloadMediaFromSighting()
+    }
+}
 
 extension Species {
     init(
         id: Int,
-        common_name: String,          
-        scientific_name: String,      
-        habitat: String?,             
+        common_name: String,
+        scientific_name: String,
+        habitat: String?,
         diet: String?,
         behavior: String?,
         description: String?,
         other_sources: [String]?,
-        created_at: Date              // non-optional
+        created_at: Date
     ) {
         self.id = id
         self.common_name = common_name
@@ -114,11 +118,4 @@ extension Species {
         self.other_sources = other_sources
         self.created_at = created_at
     }
-}
-
-// MARK: - Supporting type (rename for Swift style)
-public enum Origin {
-    case map
-    case list
-    case deeplink
 }
