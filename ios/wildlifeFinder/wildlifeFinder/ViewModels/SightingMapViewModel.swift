@@ -35,45 +35,60 @@ final class SightingMapViewModel: ObservableObject {
     var canGenerateRoute: Bool { !selectedWaypoints.isEmpty }
 
     // MARK: - API Integration
-    func loadSightings() async {
-        isLoading = true
-        errorMessage = nil
-        
-        do {
-            let filter = APISightingFilter(
-                area: APIService.shared.createBoundingBox(center: mapRegion.center, span: mapRegion.span),
-                species_id: nil,
-                start_time: nil,
-                end_time: nil
-            )
-            
-            let apiSightings = try await APIService.shared.getSightings(filter: filter)
-            
-            // Convert API sightings to app models
-            var convertedSightings: [Sighting] = []
-            for apiSighting in apiSightings {
-                // Find or create the Species object for this sighting
-                var resolvedSpecies: Species
-                if let existing = self.species.first(where: { $0.id == apiSighting.species_id }) {
-                    resolvedSpecies = existing
-                } else {
-                    let apiSpecies = try await APIService.shared.getSpecies(id: apiSighting.species_id)
-                    let newSpecies = Species(from: apiSpecies)
-                    self.species.append(newSpecies)
-                    resolvedSpecies = newSpecies
-                }
-                convertedSightings.append(Sighting(from: apiSighting, species: resolvedSpecies))
+func loadSightings() async {
+    isLoading = true
+    errorMessage = nil
+    defer { isLoading = false }
+
+    do {
+        // 1) Build filter and fetch API sightings
+        let filter = APISightingFilter(
+            area: APIService.shared.createBoundingBox(center: mapRegion.center, span: mapRegion.span),
+            species_id: nil,
+            start_time: nil,
+            end_time: nil
+        )
+        let apiSightings = try await APIService.shared.getSightings(filter: filter)
+
+        // 2) Prepare a species cache (seed with any already-loaded species)
+        var speciesById: [Int: Species] = Dictionary(uniqueKeysWithValues: self.species.map { ($0.id, $0) })
+
+        // 3) For each sighting, ensure we have its Species (using details endpoint)
+        for apiSighting in apiSightings {
+            let sid = apiSighting.species_id
+            if speciesById[sid] == nil {
+                let details = try await APIService.shared.getSpeciesDetails(id: sid)
+                let mapped = Species(
+                    id: sid,
+                    common_name: details.english_name ?? "Unknown",
+                    scientific_name: details.species,
+                    habitat: nil,
+                    diet: nil,
+                    behavior: nil,
+                    description: details.description,
+                    other_sources: details.other_sources,
+                    created_at: Date()
+                )
+                speciesById[sid] = mapped
             }
-            
-            self.sightings = convertedSightings
-            
-        } catch {
-            errorMessage = "Failed to load sightings: \(error.localizedDescription)"
-            print("Error loading sightings: \(error)")
         }
-        
-        isLoading = false
+
+        // 4) Convert API sightings to app models using the resolved Species
+        let convertedSightings: [Sighting] = apiSightings.compactMap { api in
+            guard let sp = speciesById[api.species_id] else { return nil }
+            return Sighting(from: api, species: sp)
+        }
+
+        // 5) Commit state updates
+        self.species = Array(speciesById.values)
+        self.sightings = convertedSightings
+
+    } catch {
+        errorMessage = "Failed to load sightings: \(error.localizedDescription)"
+        print("Error loading sightings:", error)
     }
+}
+
     
     func searchSpecies(query: String) async {
         guard !query.isEmpty else {

@@ -107,7 +107,7 @@ public class APIService: ObservableObject {
     
     // MARK: - Sightings API
     public func getSightings(filter: APISightingFilter) async throws -> [APISighting] {
-        let url = URL(string: "\(baseURL)/sightings")!
+        let url = URL(string: "\(baseURL)/sightings/")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
