@@ -61,7 +61,7 @@ public final class SightingPinInformationViewModel: ObservableObject {
     }
 
     // MARK: - Derived text
-    var description: String {
+    var description: LocalizedStringKey {
         guard let s = speciesDetails else { return "Loading species information..." }
 
         var parts: [String] = []
@@ -81,7 +81,8 @@ public final class SightingPinInformationViewModel: ObservableObject {
             parts.append("**Learn more:**\n" + sources.map { "• \($0)" }.joined(separator: "\n"))
         }
 
-        return parts.isEmpty ? "No additional information available." : parts.joined(separator: "\n\n")
+        let toReturn = parts.isEmpty ? "No additional information available." : parts.joined(separator: "\n\n")
+        return LocalizedStringKey(toReturn)
     }
 
     // MARK: - Media refresh
