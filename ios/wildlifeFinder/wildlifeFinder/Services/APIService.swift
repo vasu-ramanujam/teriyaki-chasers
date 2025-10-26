@@ -80,7 +80,7 @@ extension APIService {
 public class APIService: ObservableObject {
     public static let shared = APIService()
     
-    private let baseURL = "http://localhost:8000/v1" // Update with your backend URL
+    private let baseURL = "http://192.168.0.213:3000/v1" // Update with your backend URL
     private let session = URLSession.shared
     
     private init() {}

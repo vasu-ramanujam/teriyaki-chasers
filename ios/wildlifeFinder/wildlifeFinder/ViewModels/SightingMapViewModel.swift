@@ -6,7 +6,7 @@ import SwiftUI
 final class SightingMapViewModel: ObservableObject {
     // Region (Apple Park-ish mock coords so you see pins immediately)
     @Published var mapRegion = MKCoordinateRegion(
-        center: .init(latitude: 37.334, longitude: -122.009),
+        center: .init(latitude: 42.2777761, longitude: -83.7315377),
         span: .init(latitudeDelta: 0.02, longitudeDelta: 0.02)
     )
 
