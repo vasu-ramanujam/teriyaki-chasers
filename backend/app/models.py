@@ -29,13 +29,16 @@ class Sighting(Base):
     __tablename__ = "sightings"
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, nullable=True)  # NULL for anonymous
+    user_id = Column(String, nullable=True)  # NULL for anonymous (auth ID)
+    username = Column(String, nullable=True)  # Display name like "Ada" or "birdwatcher1"
     species_id = Column(String, ForeignKey("species.id"), nullable=False)
     lat = Column(Float, nullable=False)  # Latitude
     lon = Column(Float, nullable=False)  # Longitude
     taken_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     is_private = Column(Boolean, nullable=False, default=False)
-    media_url = Column(String, nullable=True)
+    media_url = Column(String, nullable=True)  # Photo URL
+    media_thumb_url = Column(String, nullable=True)  # Thumbnail URL
+    audio_url = Column(String, nullable=True)  # Audio recording URL
     notes = Column(Text, nullable=True)  # User notes about the sighting
     created_at = Column(DateTime, default=datetime.utcnow)
     

@@ -7,11 +7,16 @@ from dotenv import load_dotenv
 from app.routers import species, sightings, routing, identify
 from app.database import engine, Base
 from app.config import settings
+from pathlib import Path
 
 load_dotenv()
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
+
+# Create upload directory if it doesn't exist
+upload_dir = Path(settings.upload_directory)
+upload_dir.mkdir(exist_ok=True)
 
 app = FastAPI(
     title="Animal Explorer API",
@@ -27,6 +32,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files for uploads (only if using local storage)
+if settings.storage_type == "local":
+    app.mount(
+        "/uploads", 
+        StaticFiles(directory=settings.upload_directory), 
+        name="uploads"
+    )
 
 # Include routers
 app.include_router(species.router, prefix="/api/species", tags=["species"])
