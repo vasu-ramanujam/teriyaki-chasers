@@ -12,6 +12,12 @@ class Settings(BaseSettings):
     inaturalist_api_key: Optional[str] = None
     birdweather_api_key: Optional[str] = None
     
+    # AWS S3 Configuration
+    aws_access_key_id: Optional[str] = None
+    aws_secret_access_key: Optional[str] = None
+    aws_region: str = "us-east-2"
+    aws_s3_bucket_name: Optional[str] = None
+    
     class Config:
         env_file = ".env"
 

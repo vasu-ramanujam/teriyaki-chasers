@@ -24,7 +24,8 @@ public struct APISighting: Codable, Identifiable {
     public let lon: Double
     public let taken_at: String
     public let is_private: Bool
-    public let media_url: String?
+    public let media_url: String?  // Image/photo URL
+    public let audio_url: String?  // Audio recording URL
     public let caption: String?
     public let created_at: String
 }

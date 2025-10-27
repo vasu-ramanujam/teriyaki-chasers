@@ -40,6 +40,7 @@ public struct Sighting: Identifiable, Hashable {
     public let username: String
     public let isPrivate: Bool
     public let media_url: String?
+    public let audio_url: String?
     
     public init(from apiSighting: APISighting, species: Species) {
         self.id = apiSighting.id
@@ -50,6 +51,7 @@ public struct Sighting: Identifiable, Hashable {
         self.username = apiSighting.username ?? "Anonymous"
         self.isPrivate = apiSighting.is_private
         self.media_url = apiSighting.media_url
+        self.audio_url = apiSighting.audio_url
     }
 }
 

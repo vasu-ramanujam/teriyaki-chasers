@@ -8,8 +8,13 @@ import os
 from app.database import get_db
 from app.models import Sighting as SightingModel, Species
 from app.schemas import Sighting, SightingList, SightingCreate, SightingFilter, SightingDetail
+from app.services.s3_service import S3Service
+from app.config import settings
 
 router = APIRouter()
+
+# Initialize S3 service
+s3_service = S3Service()
 
 @router.get("/{sighting_id}", response_model=SightingDetail)
 async def get_sighting(
@@ -91,22 +96,79 @@ async def create_sighting(
     is_private: bool = Form(False),
     username: Optional[str] = Form(None),
     caption: Optional[str] = Form(None),
-    photo: UploadFile = File(...),
+    photo: Optional[UploadFile] = File(None),
+    audio: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
-    """Create a new sighting with photo"""
+    """
+    Create a new sighting with optional photo and audio
+    
+    Args:
+        species_id: ID of the species
+        lat: Latitude
+        lon: Longitude
+        is_private: Whether the sighting is private
+        username: Username of the uploader
+        caption: Optional caption for the sighting
+        photo: Optional image file
+        audio: Optional audio file
+    """
     try:
         # Verify species exists
         species = db.query(Species).filter(Species.id == species_id).first()
         if not species:
             raise HTTPException(status_code=404, detail="Species not found")
         
-        # Save uploaded file (for now, save locally)
-        os.makedirs("uploads", exist_ok=True)
-        file_path = f"uploads/{uuid.uuid4()}_{photo.filename}"
-        with open(file_path, "wb") as buffer:
-            content = await photo.read()
-            buffer.write(content)
+        # Require at least one media file
+        if not photo and not audio:
+            raise HTTPException(status_code=400, detail="At least one media file (photo or audio) is required")
+        
+        media_url = None
+        audio_url = None
+        
+        # Upload photo to S3 if provided
+        if photo:
+            photo_content = await photo.read()
+            photo_filename = f"{uuid.uuid4()}_{photo.filename}"
+            content_type = s3_service.get_content_type(photo.filename)
+            
+            if settings.aws_s3_bucket_name:
+                # Use S3
+                media_url = await s3_service.upload_file(
+                    file_content=photo_content,
+                    file_name=photo_filename,
+                    content_type=content_type,
+                    folder="sightings/photos"
+                )
+            else:
+                # Fallback to local storage
+                os.makedirs("uploads/photos", exist_ok=True)
+                file_path = f"uploads/photos/{photo_filename}"
+                with open(file_path, "wb") as buffer:
+                    buffer.write(photo_content)
+                media_url = file_path
+        
+        # Upload audio to S3 if provided
+        if audio:
+            audio_content = await audio.read()
+            audio_filename = f"{uuid.uuid4()}_{audio.filename}"
+            content_type = s3_service.get_content_type(audio.filename)
+            
+            if settings.aws_s3_bucket_name:
+                # Use S3
+                audio_url = await s3_service.upload_file(
+                    file_content=audio_content,
+                    file_name=audio_filename,
+                    content_type=content_type,
+                    folder="sightings/audio"
+                )
+            else:
+                # Fallback to local storage
+                os.makedirs("uploads/audio", exist_ok=True)
+                file_path = f"uploads/audio/{audio_filename}"
+                with open(file_path, "wb") as buffer:
+                    buffer.write(audio_content)
+                audio_url = file_path
         
         # Create sighting
         sighting = SightingModel(
@@ -117,7 +179,8 @@ async def create_sighting(
             is_private=is_private,
             username=username,
             caption=caption,
-            media_url=file_path
+            media_url=media_url,
+            audio_url=audio_url
         )
         
         db.add(sighting)
