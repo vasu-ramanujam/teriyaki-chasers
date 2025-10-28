@@ -1,4 +1,4 @@
-#!/Users/davisow/Desktop/School/Classes/f25/eecs498/teriyaki-chasers/backend/.venv/bin/python
+#!/Users/alvinjg/school/eecs498/teriyaki-chasers/backend/.venv/bin/python3.14
 import sys
 from dotenv.__main__ import cli
 if __name__ == '__main__':

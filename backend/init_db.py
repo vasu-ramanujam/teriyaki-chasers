@@ -67,10 +67,15 @@ def init_database():
         db.flush()
         by_sci = {s.scientific_name: s for s in db.query(Species).all()}
         now = datetime.utcnow()
+        # sample lat, longs at the dude
+        # "lat": 42.2911208, "lon": -83.7159276
+        # "lat": 42.2912344, "lon": -83.7159963
+        # "lat": 42.2912455, "lon": -83.7159920
+
         sample_sightings = [
-            {"sci": "Bubo virginianus",     "lat": 37.3340, "lon": -122.0090, "user": "Ada",   "cap": "Perched on the oak"},
-            {"sci": "Turdus migratorius",   "lat": 37.3332, "lon": -122.0101, "user": "Robin", "cap": "Early worm run"},
-            {"sci": "Buteo jamaicensis",    "lat": 37.3352, "lon": -122.0063, "user": "Hawk",  "cap": "Soaring over meadow"},
+            {"sci": "Bubo virginianus",     "lat": 42.2776062, "lon": -83.7315065, "user": "Ada",   "cap": "Perched on the oak"},
+            {"sci": "Turdus migratorius",   "lat": 42.2777608, "lon": -83.7315565, "user": "Robin", "cap": "Early worm run"},
+            {"sci": "Buteo jamaicensis",    "lat": 42.2777565, "lon": -83.7316044, "user": "Hawk",  "cap": "Soaring over meadow"},
         ]
         for s in sample_sightings:
             db.add(Sighting(
