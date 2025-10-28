@@ -49,6 +49,7 @@ struct InitialView: View {
             // Add a sound
             Button {
                 // Hook to recording sound
+                audioURL = URL(string: "https://en.wikipedia.org/wiki/American_red_squirrel")
             } label: {
                 Image(systemName: "mic")
                     .foregroundStyle(.white)
@@ -64,17 +65,16 @@ struct InitialView: View {
 
             if image != nil || audioURL != nil {
                 // Identify the sighting
-                Button {
-                    // Hook to Identify page
-                } label: {
-                    Text("Identify")
-                        .foregroundStyle(.black)
+                NavigationLink("Identify") {
+                    IdentifyView()
                 }
+                .foregroundStyle(.black)
                 .padding()
                 .background(
                     buttonBackground(color: Color(red: 241/255.0, green: 154/255.0, blue: 62/255.0)),
                     alignment: .center
                 )
+                .navigationBarBackButtonHidden(true)
             }
         }
         .scaleEffect(1.5)
@@ -90,5 +90,55 @@ struct buttonBackground: View {
         RoundedRectangle(cornerRadius: cornerRad)
             .fill(color)
             .shadow(radius: shadowRad)
+    }
+}
+
+struct IdentifyView: View {
+    @State private var isLoading: Bool = false
+    @State private var animal: Species?
+    
+    var body: some View {
+        VStack {
+            if isLoading {
+                ProgressView("Identifying...")
+            } else {
+                if let animal = animal {
+                    Text("You found: \(animal.common_name)!")
+                        .font(.largeTitle) // Start with a large font size
+                        .lineLimit(1) // Ensure the text stays on a single line
+                        .minimumScaleFactor(0.1) // Allow scaling down to 10% of the original size
+                        .frame(maxWidth: .infinity)
+                        .padding(.leading)
+                        .padding(.trailing)
+                    
+                    SpeciesView(species: animal)
+                    
+                    NavigationLink("Post Sighting"){
+                        
+                    }
+                    .foregroundStyle(.black)
+                    .padding()
+                    .background(
+                    buttonBackground(color: Color(red: 241/255.0, green: 154/255.0, blue: 62/255.0)),
+                    alignment: .center
+                    )
+                } else {
+                    Text("There should be an animal here lol")
+                }
+                
+            }
+        }
+        .onAppear {
+            isLoading = true
+            
+            Task {
+                // call the identification API
+                
+                // this is mock data for now
+                animal = MockSpecies.squirrel
+            }
+            
+            isLoading = false
+        }
     }
 }
