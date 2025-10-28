@@ -23,7 +23,7 @@ struct ContentView: View {
             }
 
             NavigationStack {
-                Text("Post Sighting (stub)")
+                PostFlowView()
             }
             .tabItem {
                 Image(systemName: "plus")
