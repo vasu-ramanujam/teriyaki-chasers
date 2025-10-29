@@ -46,7 +46,8 @@ func loadSightings() async {
             area: APIService.shared.createBoundingBox(center: mapRegion.center, span: mapRegion.span),
             species_id: nil,
             start_time: nil,
-            end_time: nil
+            end_time: nil,
+            username: nil
         )
         let apiSightings = try await APIService.shared.getSightings(filter: filter)
 
