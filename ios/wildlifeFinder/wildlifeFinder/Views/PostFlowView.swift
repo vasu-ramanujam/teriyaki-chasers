@@ -74,7 +74,6 @@ struct InitialView: View {
                     buttonBackground(color: Color(red: 241/255.0, green: 154/255.0, blue: 62/255.0)),
                     alignment: .center
                 )
-                .navigationBarBackButtonHidden(true)
             }
         }
         .scaleEffect(1.5)
@@ -101,6 +100,7 @@ struct IdentifyView: View {
         VStack {
             if isLoading {
                 ProgressView("Identifying...")
+                    .navigationBarBackButtonHidden(true)
             } else {
                 if let animal = animal {
                     Text("You found: \(animal.common_name)!")
@@ -110,7 +110,8 @@ struct IdentifyView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.leading)
                         .padding(.trailing)
-                    
+                        .navigationBarBackButtonHidden(true)
+
                     SpeciesView(species: animal)
                     
                     NavigationLink("Post Sighting"){
