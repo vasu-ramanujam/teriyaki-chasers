@@ -7,21 +7,31 @@
 import SwiftUI
 
 struct PostFlowView: View {
+    @State private var path = NavigationPath()
+    @StateObject private var postVM = PostViewModel()
+    
     var body: some View {
-        NavigationStack {
-            InitialView()
+        NavigationStack(path: $path) {
+            InitialView(postVM: postVM, path: $path)
+                .navigationDestination(for: String.self) { value in
+                    if value == "identify"{
+                        IdentifyView(postVM: postVM, path: $path)
+                    } else if value == "post" {
+                        PostView(postVM: postVM, path: $path)
+                    }
+                }
         }
     }
 }
 
 struct InitialView: View {
-    @State var image: UIImage? = nil
-    @State var audioURL: URL? = nil
+    @StateObject var postVM: PostViewModel
+    @Binding var path: NavigationPath
     
     var body: some View {
         VStack {
             // Display image
-            if let image = image {
+            if let image = postVM.image {
                 Text("Image goes here")
             }
             
@@ -31,7 +41,7 @@ struct InitialView: View {
             } label: {
                 Image(systemName: "camera")
                     .foregroundStyle(.white)
-                Text(image != nil ? "Retake Photo" : "Take Photo")
+                Text(postVM.image != nil ? "Retake Photo" : "Take Photo")
                     .foregroundStyle(.white)
             }
             .padding()
@@ -42,18 +52,20 @@ struct InitialView: View {
             .padding(.bottom)
 
             // Display image
-            if let sound = audioURL {
+            if let sound = postVM.audioURL {
                 Text("Sound goes here")
             }
             
             // Add a sound
             Button {
                 // Hook to recording sound
-                audioURL = URL(string: "https://en.wikipedia.org/wiki/American_red_squirrel")
+                
+                // This is here as a placeholder so I can advance to the next page
+                postVM.audioURL = URL(string: "https://en.wikipedia.org/wiki/American_red_squirrel")
             } label: {
                 Image(systemName: "mic")
                     .foregroundStyle(.white)
-                Text(audioURL != nil ? "Rerecord Audio" : "Record Audio")
+                Text(postVM.audioURL != nil ? "Rerecord Audio" : "Record Audio")
                     .foregroundStyle(.white)
             }
             .padding()
@@ -63,11 +75,9 @@ struct InitialView: View {
             )
             .padding(.bottom)
 
-            if image != nil || audioURL != nil {
+            if postVM.image != nil || postVM.audioURL != nil {
                 // Identify the sighting
-                NavigationLink("Identify") {
-                    IdentifyView()
-                }
+                NavigationLink("Identify", value: "identify")
                 .foregroundStyle(.black)
                 .padding()
                 .background(
@@ -94,15 +104,16 @@ struct buttonBackground: View {
 
 struct IdentifyView: View {
     @State private var isLoading: Bool = false
-    @State private var animal: Species?
-    
+    @StateObject var postVM: PostViewModel
+    @Binding var path: NavigationPath
+
     var body: some View {
         VStack {
             if isLoading {
                 ProgressView("Identifying...")
                     .navigationBarBackButtonHidden(true)
             } else {
-                if let animal = animal {
+                if let animal = postVM.animal {
                     Text("You found: \(animal.common_name)!")
                         .font(.largeTitle) // Start with a large font size
                         .lineLimit(1) // Ensure the text stays on a single line
@@ -114,32 +125,141 @@ struct IdentifyView: View {
 
                     SpeciesView(species: animal)
                     
-                    NavigationLink("Post Sighting"){
-                        
-                    }
+                    NavigationLink("Post Sighting", value: "post")
                     .foregroundStyle(.black)
                     .padding()
                     .background(
-                    buttonBackground(color: Color(red: 241/255.0, green: 154/255.0, blue: 62/255.0)),
-                    alignment: .center
+                        buttonBackground(color: Color(red: 241/255.0, green: 154/255.0, blue: 62/255.0)),
+                        alignment: .center
                     )
                 } else {
-                    Text("There should be an animal here lol")
+                    Text("There should be an animal lol")
                 }
                 
             }
         }
         .onAppear {
-            isLoading = true
-            
             Task {
+                isLoading = true
                 // call the identification API
                 
                 // this is mock data for now
-                animal = MockSpecies.squirrel
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                postVM.animal = MockSpecies.squirrel
+                
+                isLoading = false
             }
             
-            isLoading = false
+        }
+    }
+}
+
+struct PostView: View {
+    @StateObject var postVM: PostViewModel
+    @Binding var path: NavigationPath
+
+    var body: some View {
+        VStack {
+            ZStack(alignment: .topTrailing) {
+                if let image = postVM.image {
+                    Image(uiImage: image)
+                        .padding(.trailing)
+                } else {
+                    Image(systemName: "photo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 200)
+                        .padding(.trailing)
+                }
+            
+                Button {
+                    postVM.image = nil
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.red)
+                }
+            }
+            .padding()
+            
+            ZStack(alignment: .topTrailing) {
+                Text("Audio bar here")
+                    .padding(.trailing)
+                
+                Button {
+                    postVM.audioURL = nil
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.red)
+                }
+            }
+            .padding()
+            
+            VStack(alignment: .leading) {
+                Text("Enter caption...")
+                
+                TextField("Caption", text: $postVM.caption)
+                    .frame(height: 50)
+                    .padding(.leading)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.black, lineWidth: 2)
+                    )
+            }
+            .containerRelativeFrame(.horizontal) { size, axis in
+                size * 0.8
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(.gray)
+                    .opacity(0.2)
+            )
+            
+            VStack(alignment: .leading) {
+                Text("Visibility:")
+                
+                HStack {
+                    Text("Anonymous")
+                    
+                    Toggle("", isOn: $postVM.isPublic)
+                        .labelsHidden()
+                    
+                    Text("Public")
+                }
+                .containerRelativeFrame(.horizontal) { size, axis in
+                    size * 0.8
+                }
+            }
+            .containerRelativeFrame(.horizontal) { size, axis in
+                size * 0.8
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(.gray)
+                    .opacity(0.2)
+            )
+            
+            Button {
+                // make API call to post details
+                
+                // reset the view model
+                postVM.image = nil
+                postVM.audioURL = nil
+                postVM.speciesId = nil
+                postVM.animal = nil
+                
+                // return to start
+                path.removeLast(path.count)
+            } label: {
+                Text("Post")
+                    .foregroundStyle(.black)
+                    .padding()
+                    .background(
+                        buttonBackground(color: Color(red: 241/255.0, green: 154/255.0, blue: 62/255.0)),
+                        alignment: .center
+                    )
+            }
         }
     }
 }
