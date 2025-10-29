@@ -13,71 +13,91 @@ from app.routers.species import _enrich_with_wikipedia, _fetch_wikipedia_summary
 
 router = APIRouter()
 
-@router.post("/photo", response_model=IdentificationResult)
-async def identify_photo(
-    photo: UploadFile = File(...),
-    db: Session = Depends(get_db)
-):
-    """Identify animal species from photo using AI"""
+OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+
+async def identify_with_gpt(file_bytes: bytes, file_type: str) -> str:
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    b64_data = base64.b64encode(file_bytes).decode("utf-8")
+
+    if file_type == "photo":
+        content = [
+            {"type": "text", "text": "Identify the wildlife species shown in this image. Return only its English common name."},
+            {"type": "image_url", "image_url": f"data:image/jpeg;base64,{b64_data}"}
+        ]
+    else:
+        content = [
+            {"type": "text", "text": "Identify the wildlife species from this audio recording of animal sounds. Return only its English common name."},
+            {"type": "input_audio", "input_audio": {"data": b64_data, "format": "wav"}}
+        ]
+
+    payload = {
+        "model": OPENAI_MODEL,
+        "messages": [{"role": "user", "content": content}],
+    }
+
+    async with httpx.AsyncClient(timeout=30) as client:
+        r = await client.post(OPENAI_API_URL, headers=headers, json=payload)
+        if r.status_code != 200:
+            raise HTTPException(status_code=r.status_code, detail=f"OpenAI error: {r.text}")
+        result = r.json()
+        return result["choices"][0]["message"]["content"].strip()
+
+
+async def _get_wikipedia_with_image(name: str) -> Dict[str, Any]:
+    """get wiki main_image besides summary and other_resources"""
+    summary = await _fetch_wikipedia_summary_by_title(name)
+    if not summary:
+        data = await _enrich_with_wikipedia(name)
+        data["main_image"] = None
+        return data
+
+    data = {
+        "english_name": summary.get("title"),
+        "description": summary.get("extract"),
+        "other_sources": [],
+        "main_image": summary.get("originalimage", {}).get("source")
+    }
+
+    content_urls = summary.get("content_urls", {}).get("desktop", {})
+    if "page" in content_urls:
+        data["other_sources"].append(content_urls["page"])
+    if "wikibase_item" in summary:
+        data["other_sources"].append(f"https://www.wikidata.org/wiki/{summary['wikibase_item']}")
+    return data
+
+
+@router.post("/photo")
+async def identify_photo(photo: UploadFile = File(...), db: Session = Depends(get_db)):
+    """Identify animal species from photo"""
     try:
-        # Read image data
-        image_data = await photo.read()
-        
-        # Use AI identification service
-        ai_service = AIIdentificationService()
-        candidates = await ai_service.identify_photo(image_data)
-        
-        # If AI service fails, fall back to mock data for development
-        if not candidates:
-            candidates = [
-                IdentificationCandidate(
-                    species_id="123e4567-e89b-12d3-a456-426614174000",  # Mock UUID
-                    label="Great Horned Owl",
-                    score=0.85
-                ),
-                IdentificationCandidate(
-                    species_id="123e4567-e89b-12d3-a456-426614174001",  # Mock UUID
-                    label="Barred Owl", 
-                    score=0.12
-                )
-            ]
-        
-        return IdentificationResult(candidates=candidates)
-        
+        img_bytes = await photo.read()
+        label = await identify_with_gpt(img_bytes, "photo")
+        wiki_data = await _get_wikipedia_with_image(label)
+        return {
+            "label": label,
+            "wiki_data": wiki_data
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/audio", response_model=IdentificationResult)
-async def identify_audio(
-    audio: UploadFile = File(...),
-    db: Session = Depends(get_db)
-):
-    """Identify animal species from audio using AI"""
+
+@router.post("/audio")
+async def identify_audio(audio: UploadFile = File(...), db: Session = Depends(get_db)):
+    """Identify animal species from audio"""
     try:
-        # Read audio data
-        audio_data = await audio.read()
-        
-        # Use AI identification service
-        ai_service = AIIdentificationService()
-        candidates = await ai_service.identify_audio(audio_data)
-        
-        # If AI service fails, fall back to mock data for development
-        if not candidates:
-            candidates = [
-                IdentificationCandidate(
-                    species_id="123e4567-e89b-12d3-a456-426614174002",
-                    label="American Robin",
-                    score=0.78
-                ),
-                IdentificationCandidate(
-                    species_id="123e4567-e89b-12d3-a456-426614174003",
-                    label="Northern Cardinal",
-                    score=0.15
-                )
-            ]
-        
-        return IdentificationResult(candidates=candidates)
-        
+        audio_bytes = await audio.read()
+        label = await identify_with_gpt(audio_bytes, "audio")
+        wiki_data = await _get_wikipedia_with_image(label)
+        return {
+            "label": label,
+            "wiki_data": wiki_data
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
