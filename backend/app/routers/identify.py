@@ -1,12 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Dict, Any
 import requests
 import base64
+import httpx
+import os
 from app.database import get_db
 from app.models import Species
 from app.schemas import IdentificationResult, IdentificationCandidate
 from app.services.ai_identification import AIIdentificationService
+from app.routers.species import _enrich_with_wikipedia, _fetch_wikipedia_summary_by_title
 
 router = APIRouter()
 
