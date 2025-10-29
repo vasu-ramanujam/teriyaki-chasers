@@ -53,6 +53,7 @@ struct SightingMapView: View {
                 Spacer()
 
                 VStack(spacing: 10) {
+                    
                     HStack(spacing: 8) {
                         ToggleChip(title: "Sighting Pin", isOn: $vm.showSightings)
                         ToggleChip(title: "High Volume Area", isOn: $vm.showHotspots)
@@ -69,6 +70,7 @@ struct SightingMapView: View {
                         .disabled(vm.isLoading)
                     }
                     .padding(.horizontal)
+                    .padding(.top, 7)
 
                     Button {
                         showRouteSheet = true
@@ -223,3 +225,4 @@ private struct hotspotSheetInfo: Identifiable {
     let hotspot: Hotspot
     let waypoint: Waypoint
 }
+
