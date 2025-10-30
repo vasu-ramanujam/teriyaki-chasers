@@ -153,11 +153,12 @@ The species API automatically enriches species data with:
 4. Run database migrations
 5. Deploy with Gunicorn or similar
 
-### Docker (Optional)
+### Docker (for testing on a physical device)
 ```bash
-docker build -t wildlife-api .
-docker run -p 8000:8000 wildlife-api
+docker compose up --build
+# optionally add -d to the end to not show logs
 ```
+*Make sure in APIService.swift that the baseURL is set to ```http://<your_machine_ip>:3000/v1```, where you can get your IP by running: ```curl ifconfig.me```
 
 ## 🤝 Contributing
 
