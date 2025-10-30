@@ -27,6 +27,8 @@ struct PostFlowView: View {
 struct InitialView: View {
     @StateObject var postVM: PostViewModel
     @Binding var path: NavigationPath
+    @State private var showCamera = false
+    @StateObject private var audio = AudioRecorder()
     
     var body: some View {
         VStack {
@@ -37,7 +39,7 @@ struct InitialView: View {
             
             // Add an image
             Button {
-                // Hook to taking the picture
+                showCamera = true
             } label: {
                 Image(systemName: "camera")
                     .foregroundStyle(.white)
@@ -58,10 +60,19 @@ struct InitialView: View {
             
             // Add a sound
             Button {
-                // Hook to recording sound
-                
-                // This is here as a placeholder so I can advance to the next page
-                postVM.audioURL = URL(string: "https://en.wikipedia.org/wiki/American_red_squirrel")
+                Task {
+                    do {
+                        try await audio.requestPermission()
+                        if audio.isRecording { audio.stop() }
+                        try audio.start()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
+                            audio.stop()
+                            postVM.audioURL = audio.recordedURL
+                        }
+                    } catch {
+                        print("Audio recording failed: \(error)")
+                    }
+                }
             } label: {
                 Image(systemName: "mic")
                     .foregroundStyle(.white)
@@ -87,6 +98,11 @@ struct InitialView: View {
             }
         }
         .scaleEffect(1.5)
+        .sheet(isPresented: $showCamera) {
+            ImagePicker(sourceType: .camera) { img in
+                postVM.image = img
+            }
+        }
     }
 }
 
@@ -141,13 +157,31 @@ struct IdentifyView: View {
         .onAppear {
             Task {
                 isLoading = true
-                // call the identification API
-                
-                // this is mock data for now
-                try? await Task.sleep(nanoseconds: 2_000_000_000)
-                postVM.animal = MockSpecies.squirrel
-                
-                isLoading = false
+                defer { isLoading = false }
+                do {
+                    if let image = postVM.image, let data = image.jpegData(compressionQuality: 0.85) {
+                        let result = try await APIService.shared.identifyPhoto(imageData: data)
+                        if let top = result.candidates.sorted(by: { $0.score > $1.score }).first {
+                            let matches = try await APIService.shared.searchSpecies(query: top.label, limit: 1)
+                            if let s = matches.first {
+                                postVM.animal = Species(from: s)
+                                postVM.speciesId = s.id
+                            }
+                        }
+                    } else if let audioURL = postVM.audioURL {
+                        let data = try Data(contentsOf: audioURL)
+                        let result = try await APIService.shared.identifyAudio(audioData: data)
+                        if let top = result.candidates.sorted(by: { $0.score > $1.score }).first {
+                            let matches = try await APIService.shared.searchSpecies(query: top.label, limit: 1)
+                            if let s = matches.first {
+                                postVM.animal = Species(from: s)
+                                postVM.speciesId = s.id
+                            }
+                        }
+                    }
+                } catch {
+                    print("Identify error: \(error)")
+                }
             }
             
         }
@@ -157,6 +191,8 @@ struct IdentifyView: View {
 struct PostView: View {
     @StateObject var postVM: PostViewModel
     @Binding var path: NavigationPath
+    @State private var isPosting = false
+    @State private var postError: String?
 
     var body: some View {
         VStack {
@@ -241,16 +277,7 @@ struct PostView: View {
             )
             
             Button {
-                // make API call to post details
-                
-                // reset the view model
-                postVM.image = nil
-                postVM.audioURL = nil
-                postVM.speciesId = nil
-                postVM.animal = nil
-                
-                // return to start
-                path.removeLast(path.count)
+                Task { await postSighting() }
             } label: {
                 Text("Post")
                     .foregroundStyle(.black)
@@ -260,6 +287,46 @@ struct PostView: View {
                         alignment: .center
                     )
             }
+            .disabled(isPosting || postVM.image == nil || postVM.speciesId == nil)
+        }
+        .alert("Post failed", isPresented: .constant(postError != nil)) {
+            Button("OK") { postError = nil }
+        } message: {
+            Text(postError ?? "")
+        }
+    }
+}
+
+extension PostView {
+    func postSighting() async {
+        guard let image = postVM.image, let jpeg = image.jpegData(compressionQuality: 0.9) else { return }
+        guard let speciesId = postVM.speciesId else { return }
+        isPosting = true
+        defer { isPosting = false }
+
+        let coord = LocationManagerViewModel.shared.coordinate
+        do {
+            _ = try await APIService.shared.createSighting(
+                speciesId: speciesId,
+                coordinate: coord,
+                isPublic: postVM.isPublic,
+                caption: postVM.caption,
+                username: nil,
+                imageJPEGData: jpeg
+            )
+
+            // reset the view model
+            postVM.image = nil
+            postVM.audioURL = nil
+            postVM.speciesId = nil
+            postVM.animal = nil
+            postVM.caption = ""
+            postVM.isPublic = false
+
+            // return to start
+            path.removeLast(path.count)
+        } catch {
+            postError = error.localizedDescription
         }
     }
 }
