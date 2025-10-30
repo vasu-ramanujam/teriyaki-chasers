@@ -42,16 +42,14 @@ class S3Service:
     
     def __init__(self):
         """Initialize S3 client"""
-        self.bucket_name = settings.s3_bucket_name
-        self.cdn_domain = settings.cdn_domain
+        self.bucket_name = settings.aws_s3_bucket_name
         
         # Initialize boto3 client
         self.s3_client = boto3.client(
             's3',
-            aws_access_key_id=settings.s3_access_key,
-            aws_secret_access_key=settings.s3_secret_key,
-            region_name=settings.s3_region,
-            endpoint_url=settings.s3_endpoint_url,
+            aws_access_key_id=settings.aws_access_key_id,
+            aws_secret_access_key=settings.aws_secret_access_key,
+            region_name=settings.aws_region,
             config=Config(signature_version='s3v4')
         )
     
@@ -67,14 +65,14 @@ class S3Service:
         """
         Generate a unique S3 key for the file
         
-        Format: {media_type}/{year}/{month}/{uuid}.{ext}
-        Example: images/2024/01/abc-123-def.jpg
+        Format: sightings/{photos|audio}/{uuid}_{filename}
+        Example: sightings/photos/abc-123-def_image.jpg
         """
-        now = datetime.utcnow()
         unique_id = str(uuid.uuid4())
         
-        # Organize by type and date for better management
-        key = f"{media_type}s/{now.year}/{now.month:02d}/{unique_id}{file_extension}"
+        # Match AWS guide structure: sightings/photos/ or sightings/audio/
+        folder = "photos" if media_type == "image" else "audio"
+        key = f"sightings/{folder}/{unique_id}{file_extension}"
         
         return key
     
@@ -118,18 +116,23 @@ class S3Service:
         
         # Generate presigned URL
         try:
+            params = {
+                'Bucket': self.bucket_name,
+                'Key': file_key,
+                'ContentType': content_type
+            }
+            
+            # Only add ContentLength if file_size is provided
+            if file_size:
+                params['ContentLength'] = file_size
+            
+            # Note: Metadata is NOT included in presigned URLs because the client
+            # would need to provide those exact headers when uploading, which is
+            # inconvenient. S3 will accept the upload without metadata.
+            
             presigned_url = self.s3_client.generate_presigned_url(
                 'put_object',
-                Params={
-                    'Bucket': self.bucket_name,
-                    'Key': file_key,
-                    'ContentType': content_type,
-                    'ContentLength': file_size if file_size else None,
-                    'Metadata': {
-                        'original-filename': filename,
-                        'upload-timestamp': datetime.utcnow().isoformat()
-                    }
-                },
+                Params=params,
                 ExpiresIn=self.PRESIGNED_URL_EXPIRATION,
                 HttpMethod='PUT'
             )
@@ -185,21 +188,11 @@ class S3Service:
     
     def get_public_url(self, file_key: str) -> str:
         """
-        Get the public URL for a file
-        Uses CDN domain if configured, otherwise S3 direct URL
+        Get the public URL for a file in S3
+        Returns standard AWS S3 URL
         """
-        if self.cdn_domain:
-            # Use CDN for optimized delivery
-            return f"https://{self.cdn_domain}/{file_key}"
-        else:
-            # Direct S3 URL
-            if settings.s3_endpoint_url:
-                # Custom endpoint (e.g., DigitalOcean Spaces)
-                base_url = settings.s3_endpoint_url.rstrip('/')
-                return f"{base_url}/{self.bucket_name}/{file_key}"
-            else:
-                # Standard AWS S3 URL
-                return f"https://{self.bucket_name}.s3.{settings.s3_region}.amazonaws.com/{file_key}"
+        # Standard AWS S3 URL
+        return f"https://{self.bucket_name}.s3.{settings.aws_region}.amazonaws.com/{file_key}"
     
     def verify_upload_completed(self, file_key: str) -> bool:
         """
@@ -256,5 +249,5 @@ class S3Service:
             return None
 
 
-# Global S3 service instance
-s3_service = S3Service() if settings.storage_type == "s3" else None
+# Global S3 service instance (always initialized for S3-only storage)
+s3_service = S3Service()

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, Query, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_
 from typing import List, Optional
@@ -15,7 +15,6 @@ if not TESTING:
 from app.database import get_db
 from app.models import Sighting as SightingModel, Species
 from app.schemas import Sighting as SightingSchema, SightingList, SightingCreate, SightingUpdate
-from app.services.storage import storage_service
 from app.services.s3_service import s3_service
 from app.config import settings
 
@@ -50,13 +49,6 @@ async def get_upload_url(request: PresignedUrlRequest):
     3. Client uploads file directly to S3 using the presigned URL (PUT request)
     4. Client creates sighting with the file_key and public_url
     """
-    # Only available when using S3 storage
-    if settings.storage_type != "s3":
-        raise HTTPException(
-            status_code=501,
-            detail="Presigned URLs are only available when storage_type is 's3'. Current storage type is 'local'."
-        )
-    
     # Validate media type
     if request.media_type not in ["image", "audio"]:
         raise HTTPException(
@@ -65,15 +57,18 @@ async def get_upload_url(request: PresignedUrlRequest):
         )
     
     try:
-        # Generate presigned URL
-        upload_url, file_key = s3_service.generate_presigned_upload_url(
+        # Generate presigned URL - use a filename with the extension
+        filename = f"upload{request.file_extension}"
+        result = s3_service.generate_presigned_upload_url(
+            filename=filename,
             media_type=request.media_type,
-            content_type=request.content_type,
-            file_extension=request.file_extension
+            content_type=request.content_type
         )
         
-        # Get public URL (will use CDN if configured)
-        public_url = s3_service.get_public_url(file_key)
+        # Extract values from returned dict
+        upload_url = result["presigned_url"]
+        file_key = result["file_key"]
+        public_url = result["public_url"]
         
         return PresignedUrlResponse(
             upload_url=upload_url,
@@ -142,25 +137,20 @@ async def create_sighting(
     lon: float = Form(...),
     is_private: bool = Form(False),
     username: Optional[str] = Form(None),
-    photo: Optional[UploadFile] = File(None),
-    audio: Optional[UploadFile] = File(None),
     photo_url: Optional[str] = Form(None),
-    photo_thumb_url: Optional[str] = Form(None),
     audio_url: Optional[str] = Form(None),
     notes: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
     """
-    Create a new sighting with media.
+    Create a new sighting with media from S3.
     
-    Supports two modes:
-    1. Direct upload: Upload photo/audio files directly (local storage)
-    2. S3 presigned URLs: Provide URLs after uploading to S3 (scalable)
-    
-    For S3 flow:
+    Flow:
     1. Call POST /api/sightings/upload-url to get presigned URL
     2. Upload file directly to S3 using presigned URL
     3. Call this endpoint with photo_url/audio_url parameters
+    
+    At least one media URL (photo_url or audio_url) is required.
     """
     try:
         # Verify species exists
@@ -168,37 +158,14 @@ async def create_sighting(
         if not species:
             raise HTTPException(status_code=404, detail="Species not found")
         
-        # At least one media source is required (either file or URL)
-        has_media = photo or audio or photo_url or audio_url
-        if not has_media:
+        # At least one media URL is required
+        if not photo_url and not audio_url:
             raise HTTPException(
                 status_code=400, 
-                detail="At least one media file or URL (photo or audio) is required"
+                detail="At least one media URL (photo_url or audio_url) is required"
             )
         
-        # Process photo
-        media_url = None
-        media_thumb_url = None
-        
-        if photo:
-            # Direct file upload (local storage)
-            media_url, media_thumb_url = await storage_service.save_image(photo)
-        elif photo_url:
-            # S3 URL provided
-            media_url = photo_url
-            media_thumb_url = photo_thumb_url  # Optional, can be None
-        
-        # Process audio
-        final_audio_url = None
-        
-        if audio:
-            # Direct file upload (local storage)
-            final_audio_url = await storage_service.save_audio(audio)
-        elif audio_url:
-            # S3 URL provided
-            final_audio_url = audio_url
-        
-        # Create sighting
+        # Create sighting with S3 URLs
         sighting_data = {
             "species_id": species_id,
             "lat": lat,
@@ -206,9 +173,8 @@ async def create_sighting(
             "taken_at": datetime.utcnow(),
             "is_private": is_private,
             "username": username,
-            "media_url": media_url,
-            "media_thumb_url": media_thumb_url,
-            "audio_url": final_audio_url,
+            "media_url": photo_url,
+            "audio_url": audio_url,
             "notes": notes
         }
         
@@ -224,6 +190,8 @@ async def create_sighting(
         
         return sighting
         
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))

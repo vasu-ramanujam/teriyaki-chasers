@@ -38,7 +38,7 @@ class Sighting(SightingBase):
     id: str
     user_id: Optional[str] = None
     username: Optional[str] = None
-    media_thumb_url: Optional[str] = None
+    media_url: Optional[str] = None  # Photo URL (S3)
     audio_url: Optional[str] = None
     notes: Optional[str] = None
     created_at: datetime
