@@ -52,6 +52,10 @@ final class DashboardViewModel: ObservableObject {
     @Published var errorMessage: String?
     
     @Published var sightings: [Sighting] = []
+        
+    
+    
+    
     
     
     
@@ -89,8 +93,6 @@ func loadSightings() async {
         
         let apiSightings = try await APIService.shared.getSightings(filter: filter)
         //
-        let _ = print("spi sightings tried. awaited. size \(apiSightings.count)")
-
         // 2) Prepare a species cache (seed with any already-loaded species)
         var speciesById: [Int: Species] = [:]//Dictionary(uniqueKeysWithValues: self.species.map { ($0.id, $0) })
 
@@ -152,6 +154,7 @@ struct userSpeciesStatistics: Identifiable {
     let species_name: String
     let first_visited: Date
     let times_sighted: Int
+    let image_url: String = "Caribbean_Flamingo"
     
     var id: String {
             species_name

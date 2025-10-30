@@ -26,6 +26,7 @@ struct FlashcardView: View {
                 .resizable()
                 .scaledToFit()
                 .clipped()
+                .border(ui_green, width: 5)
                 .clipShape(RoundedRectangle(cornerRadius: 15))
                 .frame(maxWidth: 300, maxHeight: 200)
                 .padding(10)
@@ -49,6 +50,7 @@ struct FlashcardView: View {
             
         }
         .padding()
+        .background(Color(red: 255/255, green: 210/255, blue: 132/255))
         
     }
 }

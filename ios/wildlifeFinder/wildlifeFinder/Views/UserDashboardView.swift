@@ -74,8 +74,19 @@ struct UserDashboardView : View {
                 //add sighting pins here
                 ForEach(vm.sightings, id: \.id) {i in
                     
-                    NavigationLink(i.species.name) {
+                    NavigationLink{
                         SightingPinInformationView(sighting: i, origin: .other, waypointObj: .sighting(i))
+                    } label: {
+                        HStack{
+                            Text(i.species.name)
+                            Spacer()
+                            Text(i.createdAt.formatted(
+                                Date.FormatStyle()
+                                    .year(.twoDigits)
+                                    .month(.twoDigits)
+                                    .day(.defaultDigits)
+                            ))
+                        }
                     }
                 }
             }
@@ -106,7 +117,7 @@ struct UserDashboardView : View {
         var flashcard_info: userSpeciesStatistics
         
         //display different info based on flashcard_info
-        let image_url = "Caribbean_Flamingo"
+        //let image_url = "Caribbean_Flamingo"
         
         var body: some View {
             Button{
@@ -116,7 +127,7 @@ struct UserDashboardView : View {
                     Color(red: 255/255, green: 210/255, blue: 132/255)
                         .cornerRadius(10)
                     VStack{
-                        Image(image_url)
+                        Image(flashcard_info.image_url)
                             .resizable()
                             .scaledToFit()
                             .clipped()
