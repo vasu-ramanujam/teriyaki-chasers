@@ -2,22 +2,30 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>Local Network Usage Description</key>
+	<string>Connect to your local backend during development.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 		<key>NSAllowsArbitraryLoadsInWebContent</key>
 		<true/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
 		<key>NSExceptionDomains</key>
 		<dict>
 			<key>10.168.168.100</key>
 			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<key>IncludesSubdomains</key>
 				<true/>
-				<key>NSIncludesSubdomains</key>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
 			</dict>
 		</dict>
 	</dict>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>http._tcp.</string>
+	</array>
 </dict>
 </plist>

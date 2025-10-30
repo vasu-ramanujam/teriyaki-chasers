@@ -96,7 +96,7 @@ public class APIService: ObservableObject {
         #if targetEnvironment(simulator)
         return "http://127.0.0.1:8000/v1"
         #else
-        return "http://192.168.1.12:8000/v1" // <-- replace with your Mac's IP
+        return "http://10.168.168.100:8000/v1" // <-- replace with your Mac's IP
         #endif
     }()
 
@@ -124,19 +124,22 @@ public class APIService: ObservableObject {
         return try JSONDecoder().decode(APISpecies.self, from: data)
     }
     
-    // MARK: - Sightings API
     public func getSightings(filter: APISightingFilter) async throws -> [APISighting] {
         let url = URL(string: "\(baseURL)/sightings/")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         let jsonData = try JSONEncoder().encode(filter)
         request.httpBody = jsonData
-        
-        let (data, _) = try await session.data(for: request)
-        let response = try JSONDecoder().decode(APISightingList.self, from: data)
-        return response.items
+
+        let (data, response) = try await session.data(for: request)
+        if let http = response as? HTTPURLResponse {
+            print("POST \(url.absoluteString) → \(http.statusCode)")
+        }
+
+        let decoded = try JSONDecoder().decode(APISightingList.self, from: data)
+        return decoded.items
     }
     
     public func getSighting(id: String) async throws -> APISighting {
