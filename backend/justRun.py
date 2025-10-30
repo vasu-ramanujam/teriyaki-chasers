@@ -78,8 +78,17 @@ def ensure_venv(backend_dir: Path) -> Path:
         if not py.exists():
             raise RuntimeError("Venv seems corrupted: python executable not found in .venv after recreation")
 
+    # Make sure pip exists inside the venv (some Conda/macOS setups omit it)
+    try:
+        run([str(py), "-m", "ensurepip", "--upgrade"], check=False)
+    except Exception:
+        pass
+
     print("Upgrading pip...")
-    run([str(py), "-m", "pip", "install", "--upgrade", "pip", "wheel", "setuptools"])
+    try:
+        run([str(py), "-m", "pip", "install", "--upgrade", "pip", "wheel", "setuptools"], check=False)
+    except Exception as e:
+        print(f"pip upgrade failed (continuing): {e}")
     return py
 
 def install_requirements(venv_python: Path, backend_dir: Path):
