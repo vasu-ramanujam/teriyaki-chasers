@@ -116,7 +116,7 @@ func MediaView() -> some View {
             .padding(.top, 5)
             
             ScrollView{
-                if pinvm.isLoading {
+                if pinvm.isLoading { // error here likely
                     HStack {
                         ProgressView()
                             .scaleEffect(0.8)
@@ -156,7 +156,7 @@ func MediaView() -> some View {
         .padding()
         .onAppear {
             Task {
-                await pinvm.loadSpeciesDetails()
+                await pinvm.call_loadSpeciesDetails()
                 pinvm.loadMedia()
             }
         }

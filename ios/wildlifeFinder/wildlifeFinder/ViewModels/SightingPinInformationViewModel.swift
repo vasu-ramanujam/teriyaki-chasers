@@ -2,14 +2,14 @@ import Foundation
 import SwiftUI
 
 @MainActor
-public final class SightingPinInformationViewModel: ObservableObject {
+public final class SightingPinInformationViewModel: ObservableObject , GetsSpeciesDetails{
 
     // MARK: - Published state
     @Published private(set) var currentSighting: Sighting
     @Published private(set) var origin: where_from
-    @Published private(set) var speciesDetails: Species?
-    @Published private(set) var isLoading = false
-    @Published private(set) var errorMessage: String?
+    @Published var speciesDetails: Species?
+    @Published var isLoading = false
+    @Published var errorMessage: String?
 
     // Media (camelCase)
     @Published private(set) var imageURL: URL?
@@ -23,66 +23,8 @@ public final class SightingPinInformationViewModel: ObservableObject {
         self.imageURL = URL(string: s.media_url ?? "")
         self.soundURL = nil
     }
-
-    // MARK: - Load detailed species information
-    func loadSpeciesDetails() async {
-        isLoading = true
-        errorMessage = nil
-        defer { isLoading = false }
-
-        let id = currentSighting.species.id
-
-        do {
-            // Try the richer, canonical species endpoint first
-            if let apiSpecies = try? await APIService.shared.getSpecies(id: id) {
-                self.speciesDetails = Species(from: apiSpecies)
-                return
-            }
-
-            // Fallback: supplement existing species with details payload
-            let details = try await APIService.shared.getSpeciesDetails(id: id)
-
-            let base = currentSighting.species
-            self.speciesDetails = Species(
-                id: id,
-                common_name: details.english_name ?? base.common_name,
-                scientific_name: details.species,
-                habitat: base.habitat,
-                diet: base.diet,
-                behavior: base.behavior,
-                description: details.description ?? base.description,
-                other_sources: details.other_sources,
-                created_at: base.created_at
-            )
-        } catch {
-            self.errorMessage = "Failed to load species details: \(error.localizedDescription)"
-            // keep whatever we had so UI still renders something
-        }
-    }
-
-    // MARK: - Derived text
-    var description: LocalizedStringKey {
-        guard let s = speciesDetails else { return "Loading species information..." }
-
-        var parts: [String] = []
-
-        func add(_ title: String, _ value: String?) {
-            if let v = value, !v.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                parts.append("**\(title):** \(v)")
-            }
-        }
-
-        add("Habitat", s.habitat)
-        add("Diet", s.diet)
-        add("Behavior", s.behavior)
-        add("Description", s.description)
-
-        if let sources = s.other_sources, !sources.isEmpty {
-            parts.append("**Learn more:**\n" + sources.map { "• \($0)" }.joined(separator: "\n"))
-        }
-
-        let toReturn = parts.isEmpty ? "No additional information available." : parts.joined(separator: "\n\n")
-        return LocalizedStringKey(toReturn)
+    func call_loadSpeciesDetails() async {
+        await loadSpeciesDetails(currentSpecies: currentSighting.species)
     }
 
     // MARK: - Media refresh

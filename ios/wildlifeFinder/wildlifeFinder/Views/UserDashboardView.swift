@@ -104,7 +104,7 @@ struct UserDashboardView : View {
         .onAppear {
             Task {
                 vm.init_flashcards()
-                await vm.loadSightings()
+                await vm.call_loadSightings()
             }
         }
     }
