@@ -11,7 +11,7 @@ class SpeciesCreate(SpeciesBase):
     pass
 
 class Species(SpeciesBase):
-    id: str
+    id: int
     habitat: Optional[str] = None
     diet: Optional[str] = None
     behavior: Optional[str] = None
@@ -25,7 +25,7 @@ class SpeciesSearch(BaseModel):
 
 # Sighting schemas
 class SightingBase(BaseModel):
-    species_id: str
+    species_id: int
     lat: float
     lon: float
     taken_at: datetime
@@ -40,7 +40,7 @@ class Sighting(SightingBase):
     username: Optional[str] = None
     media_url: Optional[str] = None  # Photo URL (S3)
     audio_url: Optional[str] = None
-    notes: Optional[str] = None
+    caption: Optional[str] = None  # RDS uses 'caption' not 'notes'
     created_at: datetime
     
     class Config:
@@ -49,7 +49,7 @@ class Sighting(SightingBase):
 class SightingUpdate(BaseModel):
     location: Optional[str] = None  # Format: "lat,lon"
     time: Optional[str] = None      # ISO8601 datetime string
-    notes: Optional[str] = None
+    caption: Optional[str] = None  # RDS uses 'caption' not 'notes'
 
 class SightingList(BaseModel):
     items: List[Sighting]

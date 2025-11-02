@@ -14,7 +14,7 @@ from datetime import datetime
 class Species(Base):
     __tablename__ = "species"
     
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    id = Column(Integer, primary_key=True, autoincrement=True)
     common_name = Column(String, nullable=False)
     scientific_name = Column(String, nullable=False)
     habitat = Column(Text, nullable=True)
@@ -31,20 +31,15 @@ class Sighting(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String, nullable=True)  # NULL for anonymous (auth ID)
     username = Column(String, nullable=True)  # Display name like "Ada" or "birdwatcher1"
-    species_id = Column(String, ForeignKey("species.id"), nullable=False)
+    species_id = Column(Integer, ForeignKey("species.id"), nullable=False)
     lat = Column(Float, nullable=False)  # Latitude
     lon = Column(Float, nullable=False)  # Longitude
     taken_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     is_private = Column(Boolean, nullable=False, default=False)
-    media_url = Column(String, nullable=True)  # Photo URL
-    media_thumb_url = Column(String, nullable=True)  # Thumbnail URL
-    audio_url = Column(String, nullable=True)  # Audio recording URL
-    notes = Column(Text, nullable=True)  # User notes about the sighting
+    media_url = Column(String, nullable=True)  # Photo URL (S3)
+    audio_url = Column(String, nullable=True)  # Audio recording URL (S3)
+    caption = Column(Text, nullable=True)  # User caption about the sighting (RDS uses 'caption' not 'notes')
     created_at = Column(DateTime, default=datetime.utcnow)
-    
-    # Add geometry column only in production (PostgreSQL with PostGIS)
-    if not TESTING:
-        geom = Column(Geometry('POINT', srid=4326), nullable=True)
     
     # Relationships
     species = relationship("Species", back_populates="sightings")

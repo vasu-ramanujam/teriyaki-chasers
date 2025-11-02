@@ -95,23 +95,15 @@ async def get_sightings(
         # Parse bbox
         west, south, east, north = map(float, bbox.split(','))
         
-        # Query based on environment
-        if TESTING:
-            # Use simple lat/lon bounding box for testing (SQLite)
-            query = db.query(SightingModel).filter(
-                and_(
-                    SightingModel.lat >= south,
-                    SightingModel.lat <= north,
-                    SightingModel.lon >= west,
-                    SightingModel.lon <= east
-                )
+        # Use simple lat/lon bounding box query (works for both SQLite and PostgreSQL)
+        query = db.query(SightingModel).filter(
+            and_(
+                SightingModel.lat >= south,
+                SightingModel.lat <= north,
+                SightingModel.lon >= west,
+                SightingModel.lon <= east
             )
-        else:
-            # Use PostGIS spatial queries for production (PostgreSQL)
-            bbox_geom = geo_func.ST_MakeEnvelope(west, south, east, north, 4326)
-            query = db.query(SightingModel).filter(
-                geo_func.ST_Intersects(SightingModel.geom, bbox_geom)
-            )
+        )
         
         # Apply filters
         if since:
@@ -132,14 +124,14 @@ async def get_sightings(
 
 @router.post("/", response_model=SightingSchema)
 async def create_sighting(
-    species_id: str = Form(...),
+    species_id: int = Form(...),
     lat: float = Form(...),
     lon: float = Form(...),
     is_private: bool = Form(False),
     username: Optional[str] = Form(None),
     photo_url: Optional[str] = Form(None),
     audio_url: Optional[str] = Form(None),
-    notes: Optional[str] = Form(None),
+    caption: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
     """
@@ -175,12 +167,8 @@ async def create_sighting(
             "username": username,
             "media_url": photo_url,
             "audio_url": audio_url,
-            "notes": notes
+            "caption": caption
         }
-        
-        # Add geometry only in production
-        if not TESTING:
-            sighting_data["geom"] = f"POINT({lon} {lat})"
         
         sighting = SightingModel(**sighting_data)
         
@@ -234,8 +222,8 @@ async def update_sighting(
             except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid time format. Expected ISO8601 format")
         
-        if sighting_update.notes is not None:
-            sighting.notes = sighting_update.notes
+        if sighting_update.caption is not None:
+            sighting.caption = sighting_update.caption
         
         db.commit()
         db.refresh(sighting)
