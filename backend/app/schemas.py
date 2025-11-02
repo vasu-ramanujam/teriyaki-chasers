@@ -80,10 +80,12 @@ class SightingList(BaseModel):
     items: List[Sighting]
 
 class SightingFilter(BaseModel):
-    area: str
+    area: Optional[str] = None  # Optional bounding box: west,south,east,north
     species_id: Optional[int] = None
     start_time: Optional[str] = None
     end_time: Optional[str] = None
+    username: Optional[str] = None  # Filter by username (may return multiple users if duplicates exist)
+    user_id: Optional[str] = None  # Filter by user_id (recommended - unique per user account)
 
 # Route schemas
 class RoutePoint(BaseModel):
