@@ -28,79 +28,141 @@ struct InitialView: View {
     @StateObject var postVM: PostViewModel
     @Binding var path: NavigationPath
     @State private var showCamera = false
-    @StateObject private var audio = AudioRecorder()
+    @State private var showRecorder = false
+    
+    private let accentGreen = Color(red: 35/255.0, green: 86/255.0, blue: 61/255.0)
+    private let accentOrange = Color(red: 241/255.0, green: 154/255.0, blue: 62/255.0)
     
     var body: some View {
-        VStack {
-            // Display image
-            if let image = postVM.image {
-                Text("Image goes here")
-            }
-            
-            // Add an image
-            Button {
-                showCamera = true
-            } label: {
-                Image(systemName: "camera")
-                    .foregroundStyle(.white)
-                Text(postVM.image != nil ? "Retake Photo" : "Take Photo")
-                    .foregroundStyle(.white)
-            }
-            .padding()
-            .background(
-                buttonBackground(color: Color(red: 35/255.0, green: 86/255.0, blue: 61/255.0)),
-                alignment: .center
-            )
-            .padding(.bottom)
-
-            // Display image
-            if let sound = postVM.audioURL {
-                Text("Sound goes here")
-            }
-            
-            // Add a sound
-            Button {
-                Task {
-                    do {
-                        try await audio.requestPermission()
-                        if audio.isRecording { audio.stop() }
-                        try audio.start()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
-                            audio.stop()
-                            postVM.audioURL = audio.recordedURL
+        ScrollView {
+            VStack(spacing: 32) {
+                Text("Add Sighting Media")
+                    .font(.title2.bold())
+                    .padding(.top, 32)
+                
+                // MARK: Photo section
+                VStack(spacing: 16) {
+                    ZStack(alignment: .topTrailing) {
+                        Group {
+                            if let image = postVM.image {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFit()
+                            } else {
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(Color.gray.opacity(0.1))
+                                    .overlay(
+                                        VStack(spacing: 10) {
+                                            Image(systemName: "photo")
+                                                .font(.system(size: 36))
+                                                .foregroundStyle(.secondary)
+                                            Text("Add an Image")
+                                                .font(.headline)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    )
+                            }
                         }
-                    } catch {
-                        print("Audio recording failed: \(error)")
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 220)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 8)
+                        
+                        if postVM.image != nil {
+                            Button("Retake?") { showCamera = true }
+                                .font(.subheadline.weight(.semibold))
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color.blue.opacity(0.85))
+                                .foregroundColor(.white)
+                                .clipShape(Capsule())
+                                .padding(12)
+                        }
+                    }
+                    
+                    Button {
+                        showCamera = true
+                    } label: {
+                        Label(postVM.image == nil ? "Take Photo" : "Retake Photo",
+                              systemImage: "camera")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(accentGreen)
+                }
+                
+                // MARK: Audio section
+                VStack(spacing: 16) {
+                    if let audioURL = postVM.audioURL {
+                        AudioPlaybackView(url: audioURL)
+                            .id(audioURL)
+                            .padding()
+                            .background(Color.gray.opacity(0.08))
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 6)
+                            .padding(.horizontal, 4)
+                        
+                        Button("Rerecord?") { showRecorder = true }
+                            .font(.subheadline.weight(.semibold))
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 10)
+                            .background(Color.blue.opacity(0.85))
+                            .foregroundColor(.white)
+                            .clipShape(Capsule())
+                    } else {
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.gray.opacity(0.1))
+                            .frame(height: 120)
+                            .overlay(
+                                VStack(spacing: 8) {
+                                    Image(systemName: "waveform")
+                                        .font(.system(size: 36))
+                                        .foregroundStyle(.secondary)
+                                    Text("No audio recorded")
+                                        .foregroundStyle(.secondary)
+                                }
+                            )
+                        Button {
+                            showRecorder = true
+                        } label: {
+                            Label("Record a Sound", systemImage: "mic")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(accentGreen)
                     }
                 }
-            } label: {
-                Image(systemName: "mic")
-                    .foregroundStyle(.white)
-                Text(postVM.audioURL != nil ? "Rerecord Audio" : "Record Audio")
-                    .foregroundStyle(.white)
+                
+                // MARK: Identify button
+                Button {
+                    path.append("identify")
+                } label: {
+                    Text("Identify")
+                        .font(.title3.bold())
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(accentOrange)
+                .disabled(postVM.image == nil && postVM.audioURL == nil)
+                .opacity((postVM.image == nil && postVM.audioURL == nil) ? 0.4 : 1)
+                
+                Spacer(minLength: 60)
             }
-            .padding()
-            .background(
-                buttonBackground(color: Color(red: 35/255.0, green: 86/255.0, blue: 61/255.0)),
-                alignment: .center
-            )
-            .padding(.bottom)
-
-            if postVM.image != nil || postVM.audioURL != nil {
-                // Identify the sighting
-                NavigationLink("Identify", value: "identify")
-                .foregroundStyle(.black)
-                .padding()
-                .background(
-                    buttonBackground(color: Color(red: 241/255.0, green: 154/255.0, blue: 62/255.0)),
-                    alignment: .center
-                )
-            }
+            .padding(.horizontal, 24)
         }
-        .scaleEffect(1.5)
         .sheet(isPresented: $showCamera) {
             ImagePicker(sourceType: .camera) { img in
                 postVM.image = img
+            }
+        }
+        .fullScreenCover(isPresented: $showRecorder) {
+            AudioRecordingView { url in
+                postVM.audioURL = url
             }
         }
     }
@@ -119,12 +181,23 @@ struct buttonBackground: View {
 }
 
 struct IdentifyView: View {
+    @Environment(\.dismiss) var dismiss
     @State private var isLoading: Bool = false
     @StateObject var postVM: PostViewModel
     @Binding var path: NavigationPath
 
     var body: some View {
         VStack {
+            HStack {
+                Button("< Back") {
+                    dismiss()
+                }
+                .buttonStyle(.bordered)
+                .tint(.primary)
+                Spacer()
+            }
+            .padding([.horizontal, .top])
+            
             if isLoading {
                 ProgressView("Identifying...")
                     .navigationBarBackButtonHidden(true)
