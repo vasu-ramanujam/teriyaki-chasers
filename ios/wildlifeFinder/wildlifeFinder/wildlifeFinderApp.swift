@@ -9,8 +9,10 @@ import SwiftUI
 
 @main
 struct wildlifeFinderApp: App {
+    @State private var bonjourKick = BonjourKick()
     // start collecting GPS info
     init() {
+        bonjourKick.start()
         LocManager.shared.startUpdates()
     }
     
