@@ -2,30 +2,41 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>Local Network Usage Description</key>
-	<string>Connect to your local backend during development.</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-		<key>NSAllowsArbitraryLoadsInWebContent</key>
-		<true/>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>10.168.168.100</key>
-			<dict>
-				<key>IncludesSubdomains</key>
-				<true/>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
-		</dict>
-	</dict>
-	<key>NSBonjourServices</key>
-	<array>
-		<string>http._tcp.</string>
-	</array>
+    <!-- Local network + ATS configuration -->
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Connect to your local backend during development.</string>
+
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key><true/>
+        <key>NSAllowsArbitraryLoadsInWebContent</key><true/>
+        <key>NSAllowsLocalNetworking</key><true/>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <!-- IPv6 literal for your Mac; wrap in brackets -->
+            <key>[2601:400:8000:b70:810b:c06f:64de:b32c]</key>
+            <dict>
+            <key>NSExceptionAllowsInsecureHTTPLoads</key><true/>
+            <key>NSIncludesSubdomains</key><true/>
+            </dict>
+        </dict>
+    </dict>
+
+    <key>NSBonjourServices</key>
+    <array>
+        <string>_http._tcp.</string>
+    </array>
+
+    <!-- Privacy prompts used by the app -->
+    <key>NSCameraUsageDescription</key>
+    <string>Camera is needed to take wildlife photos.</string>
+
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Microphone is needed to record wildlife sounds.</string>
+
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Location is used to tag sightings with coordinates.</string>
+
+    <!-- Add any other keys your project already had (launch screen, icon files, etc.) below -->
 </dict>
 </plist>

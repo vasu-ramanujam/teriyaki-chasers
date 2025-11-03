@@ -91,14 +91,15 @@ extension APIService {
 public class APIService: ObservableObject {
     public static let shared = APIService()
     
-    // Choose API base per environment (simulator vs device)
+    // APIService.swift
     private let baseURL: String = {
         #if targetEnvironment(simulator)
-        return "http://127.0.0.1:8000/v1"
+            return "http://127.0.0.1:8000/v1"
         #else
-        return "http://10.168.168.100:8000/v1" // <-- replace with your Mac's IP
+            return "http://catherinezs-macbook-pro-65.local:8000/v1"
         #endif
     }()
+
 
     private let session = URLSession.shared
     
