@@ -20,3 +20,4 @@ Pods/
 # build stuff
 .venv*
 __pycache__*
+backend/env/

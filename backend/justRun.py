@@ -60,7 +60,6 @@ def run(cmd, env=None, cwd=None, check=True):
     return subprocess.run(cmd, env=env, cwd=cwd, check=check)
 
 def ensure_venv(backend_dir: Path) -> Path:
-    """Create .venv if missing and return path to its python executable."""
     venv_dir = backend_dir / ".venv"
     if not venv_dir.exists():
         print("Creating virtual environment at .venv ...")
@@ -68,16 +67,28 @@ def ensure_venv(backend_dir: Path) -> Path:
 
     if platform.system() == "Windows":
         py = venv_dir / "Scripts" / "python.exe"
-        pip = venv_dir / "Scripts" / "pip.exe"
     else:
         py = venv_dir / "bin" / "python"
-        pip = venv_dir / "bin" / "pip"
 
     if not py.exists():
-        raise RuntimeError("Venv seems corrupted: python executable not found in .venv")
+        print("Detected corrupted venv. Recreating .venv ...")
+        shutil.rmtree(venv_dir, ignore_errors=True)
+        run([sys.executable, "-m", "venv", str(venv_dir)])
+        py = venv_dir / ("Scripts/python.exe" if platform.system() == "Windows" else "bin/python")
+        if not py.exists():
+            raise RuntimeError("Venv seems corrupted: python executable not found in .venv after recreation")
+
+    # Make sure pip exists inside the venv (some Conda/macOS setups omit it)
+    try:
+        run([str(py), "-m", "ensurepip", "--upgrade"], check=False)
+    except Exception:
+        pass
 
     print("Upgrading pip...")
-    run([str(py), "-m", "pip", "install", "--upgrade", "pip", "wheel", "setuptools"])
+    try:
+        run([str(py), "-m", "pip", "install", "--upgrade", "pip", "wheel", "setuptools"], check=False)
+    except Exception as e:
+        print(f"pip upgrade failed (continuing): {e}")
     return py
 
 def install_requirements(venv_python: Path, backend_dir: Path):
