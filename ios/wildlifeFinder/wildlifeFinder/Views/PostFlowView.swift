@@ -140,14 +140,16 @@ struct IdentifyView: View {
         }
         .onAppear {
             Task {
-                isLoading = true
-                // call the identification API
-                
-                // this is mock data for now
-                try? await Task.sleep(nanoseconds: 2_000_000_000)
-                postVM.animal = MockSpecies.squirrel
-                
-                isLoading = false
+                if postVM.animal == nil {
+                    isLoading = true
+                    // call the identification API
+                    
+                    // this is mock data for now
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    postVM.animal = MockSpecies.squirrel
+                    
+                    isLoading = false
+                }
             }
             
         }
