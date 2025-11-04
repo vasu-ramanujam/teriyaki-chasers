@@ -85,10 +85,13 @@ struct SightingMapView: View {
                             .padding(.vertical, 14)
                     }
                     .disabled(!vm.canGenerateRoute)
+                    .tint(ui_orange)
                     .opacity(vm.canGenerateRoute ? 1 : 0.5)
                     .buttonStyle(.borderedProminent)
+                    .foregroundStyle(.black)
                     .padding(.horizontal)
                     .padding(.bottom, 8)
+                    
                 }
                 .background(.ultraThinMaterial)
             }

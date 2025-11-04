@@ -15,7 +15,8 @@ final class DashboardViewModel: ObservableObject, SightingsLoadable {
     // published information
     
     //user information
-    @Published var username: String = "Hawk"
+    @Published var username: String = "Hawk LastName"
+    @Published var user_id: String = "hawk0312"
     @Published var total_sightings: Int = 55
     @Published var total_species: Int = 6
     
@@ -56,7 +57,8 @@ final class DashboardViewModel: ObservableObject, SightingsLoadable {
         species_id: nil,
         start_time: nil,
         end_time: nil,
-        username: nil
+        username: nil,
+        user_id: nil
     )
     
     func call_loadSightings() async {

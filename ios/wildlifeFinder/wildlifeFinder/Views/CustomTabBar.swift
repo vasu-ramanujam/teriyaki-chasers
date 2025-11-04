@@ -28,6 +28,7 @@ struct TabBarButton: View {
                 Text(title)
                     .foregroundStyle(Color.white)
                     .padding(.bottom)
+                    .font(.system(size: 9))
             }
         }
     }
@@ -49,14 +50,17 @@ struct BottomTabBarView: View {
             .fill(Color(red: 36/255, green: 86/255, blue: 61/255))
             
             HStack (alignment: .bottom) {
-                TabBarButton(systemImageName: "map", title: "Map") { selectedTab = 0 }
-                TabBarButton(systemImageName: "point.bottomleft.forward.to.arrow.triangle.scurvepath.fill", title: "Route") { selectedTab = 1 }
+
+                TabBarButton(systemImageName: "map", title: "Sighting Map") { selectedTab = 0 }
+                    .offset(y: -5)
+                TabBarButton(systemImageName: "point.bottomleft.forward.to.arrow.triangle.scurvepath.fill", title: "Current Route") { selectedTab = 1 }
+                    .offset(y: -5)
 
                 Circle()
                 .fill(ui_green)
                 .stroke(.white, lineWidth: 1)
-                .frame(height: 90)
-                .offset(y: -50)
+                .frame(height: 80)
+                .offset(y: -10)
                 .overlay(alignment: .top) {
                     Button {
                         selectedTab = 2
@@ -66,13 +70,16 @@ struct BottomTabBarView: View {
                                 .foregroundColor(.white)
                                 .font(.system(size: 40))
                                 .padding()
+                            //Text("Add")
                         }
                     }
-                        .offset(y: -40)
+                        .offset(y: -5)
                 }
                 
-                TabBarButton(systemImageName: "magnifyingglass", title: "Search") { selectedTab = 3 }
-                TabBarButton(systemImageName: "house.fill", title: "User") { selectedTab = 4 }
+                TabBarButton(systemImageName: "magnifyingglass", title: "Animal Search") { selectedTab = 3 }
+                    .offset(y: -5)
+                TabBarButton(systemImageName: "house.fill", title: "User Dashboard") { selectedTab = 4 }
+                    .offset(y: -5)
 
             }
         }

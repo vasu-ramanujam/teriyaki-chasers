@@ -10,7 +10,7 @@ final class RouteViewModel: ObservableObject {
 
     func buildRoute(from waypoints: [Waypoint]) async {
         errorMessage = nil
-        guard waypoints.count >= 2 else {
+        guard waypoints.count >= 1 else {
             appRoute = nil
             return
         }
