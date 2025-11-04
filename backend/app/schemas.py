@@ -51,13 +51,15 @@ class SightingBase(BaseModel):
     is_private: bool = False
 
 class SightingCreate(SightingBase):
-    media_url: Optional[str] = None
+    media_url: Optional[str] = None  # Image/photo URL
+    audio_url: Optional[str] = None  # Audio recording URL
 
 class Sighting(SightingBase):
     id: str
     user_id: Optional[str] = None
     username: Optional[str] = None
-    media_thumb_url: Optional[str] = None
+    media_url: Optional[str] = None
+    audio_url: Optional[str] = None
     caption: Optional[str] = None
     created_at: datetime
     
@@ -78,10 +80,12 @@ class SightingList(BaseModel):
     items: List[Sighting]
 
 class SightingFilter(BaseModel):
-    area: str
+    area: Optional[str] = None  # Optional bounding box: west,south,east,north
     species_id: Optional[int] = None
     start_time: Optional[str] = None
     end_time: Optional[str] = None
+    username: Optional[str] = None  # Filter by username (may return multiple users if duplicates exist)
+    user_id: Optional[str] = None  # Filter by user_id (recommended - unique per user account)
 
 # Route schemas
 class RoutePoint(BaseModel):

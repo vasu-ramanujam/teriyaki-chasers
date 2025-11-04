@@ -20,4 +20,12 @@ Pods/
 # build stuff
 .venv*
 __pycache__*
+
+# uploads
+backend/uploads/
 backend/env/
+backend/*.db
+backend/*.pyc
+
+# environment files with secrets
+backend/.env

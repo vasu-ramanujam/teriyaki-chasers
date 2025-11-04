@@ -67,10 +67,12 @@ def init_database():
         db.flush()
         by_sci = {s.scientific_name: s for s in db.query(Species).all()}
         now = datetime.utcnow()
+        # Sample sightings with both user_id and username for testing filtering
         sample_sightings = [
-            {"sci": "Bubo virginianus",     "lat": 37.3340, "lon": -122.0090, "user": "Ada",   "cap": "Perched on the oak"},
-            {"sci": "Turdus migratorius",   "lat": 37.3332, "lon": -122.0101, "user": "Robin", "cap": "Early worm run"},
-            {"sci": "Buteo jamaicensis",    "lat": 37.3352, "lon": -122.0063, "user": "Hawk",  "cap": "Soaring over meadow"},
+            {"sci": "Bubo virginianus",     "lat": 37.3340, "lon": -122.0090, "user_id": "user_001", "user": "Ada",   "cap": "Perched on the oak"},
+            {"sci": "Turdus migratorius",   "lat": 37.3332, "lon": -122.0101, "user_id": "user_002", "user": "Robin", "cap": "Early worm run"},
+            {"sci": "Buteo jamaicensis",    "lat": 37.3352, "lon": -122.0063, "user_id": "user_001", "user": "Ada",   "cap": "Soaring over meadow"},  # Same user as first sighting
+            {"sci": "Turdus migratorius",   "lat": 37.3345, "lon": -122.0085, "user_id": "user_001", "user": "Ada",   "cap": "Another robin sighting"},  # Same user, different username
         ]
         for s in sample_sightings:
             db.add(Sighting(
@@ -78,6 +80,7 @@ def init_database():
                 lat=s["lat"], lon=s["lon"],
                 taken_at=now,
                 is_private=False,
+                user_id=s["user_id"],
                 username=s["user"],
                 caption=s["cap"],
                 media_url=None
