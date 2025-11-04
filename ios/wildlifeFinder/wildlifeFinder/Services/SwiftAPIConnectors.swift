@@ -70,7 +70,7 @@ extension SightingsLoadable {
     }
 }
 
-
+// ------------- gets species details ------------------
 
 
 @MainActor
