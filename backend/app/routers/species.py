@@ -79,27 +79,6 @@ def _extract_fields_from_summary(summary: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-async def _enrich_with_wikipedia(scientific_name: str) -> Dict[str, Any]:
-    """
-    First, try to search for summary with scientific_name.
-    If fail, search for title then get summary.
-    Return None when unable to get items.
-    """
-    # 1) use scientific_name as title
-    summary = await _fetch_wikipedia_summary_by_title(scientific_name)
-    if not summary:
-        # 2) use search api to find a more possible title
-        title = await _search_wikipedia_title(scientific_name)
-        if title:
-            summary = await _fetch_wikipedia_summary_by_title(title)
-
-    if summary:
-        return _extract_fields_from_summary(summary)
-
-    # return None when external failures
-    return {"english_name": None, "description": None, "other_sources": []}
-
-
 async def _enrich_with_wikipedia_with_image(name: str) -> Dict[str, Any]:
     summary = await _fetch_wikipedia_summary_by_title(name)
     if not summary:
@@ -141,45 +120,23 @@ async def search_species(
     species_list = query.all()
     return SpeciesSearch(items=species_list)
 
-@router.get("/{species_id}", response_model=SpeciesDetails)
+@router.get("/{name}", response_model=SpeciesDetails)
 async def get_species(
-    species_id: int,
+    name: str,
     db: Session = Depends(get_db)
 ):
-    """Get species details by ID with Wikipedia enrichment"""
-    species = db.query(SpeciesModel).filter(SpeciesModel.id == species_id).first()
-    if not species:
-        raise HTTPException(status_code=404, detail="Species not found")
+    """
+    Get species details by name (scientific or common name) with Wikipedia enrichment.
+    Looks up directly in Wikipedia using the provided name string.
+    """
+    # Use the name directly to lookup in Wikipedia (no database lookup needed)
+    wiki = await _enrich_with_wikipedia_with_image(name)
     
-    scientific_name = getattr(species, "scientific_name", None)
-    
-    # Enrich with Wikipedia data
-    wiki = await _enrich_with_wikipedia(scientific_name)
-    
+    # Return the species details with image
     return SpeciesDetails(
-        species=scientific_name,
-        english_name=wiki["english_name"],
-        description=wiki["description"],
-        other_sources=wiki["other_sources"],
+        species=name,
+        english_name=wiki.get("english_name"),
+        description=wiki.get("description"),
+        other_sources=wiki.get("other_sources", []),
+        main_image=wiki.get("main_image"),
     )
-
-
-@router.get("/{species_id}/img")
-async def get_species_with_img(
-    species_id: int,
-    db: Session = Depends(get_db),
-):
-    species = db.query(SpeciesModel).filter(SpeciesModel.id == species_id).first()
-    if not species:
-        raise HTTPException(status_code=404, detail="Species not found")
-
-    scientific_name = getattr(species, "scientific_name", None) or ""
-    wiki = await _enrich_with_wikipedia_with_image(scientific_name)
-
-    return {
-        "species": scientific_name,
-        "english_name": wiki.get("english_name"),
-        "description": wiki.get("description"),
-        "other_sources": wiki.get("other_sources", []),
-        "main_image": wiki.get("main_image"),
-    }

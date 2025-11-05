@@ -3,12 +3,11 @@
 Initialize the database with sample data
 """
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import sessionmaker
 from app.database import engine, Base
 from app.models import Species, Sighting
 import uuid
-
 def init_database():
     # Create all tables
     Base.metadata.create_all(bind=engine)
@@ -66,24 +65,44 @@ def init_database():
             db.add(species)
         db.flush()
         by_sci = {s.scientific_name: s for s in db.query(Species).all()}
-        now = datetime.utcnow()
-        # Sample sightings with both user_id and username for testing filtering
         sample_sightings = [
-            {"sci": "Bubo virginianus",     "lat": 37.3340, "lon": -122.0090, "user_id": "user_001", "user": "Ada",   "cap": "Perched on the oak"},
-            {"sci": "Turdus migratorius",   "lat": 37.3332, "lon": -122.0101, "user_id": "user_002", "user": "Robin", "cap": "Early worm run"},
-            {"sci": "Buteo jamaicensis",    "lat": 37.3352, "lon": -122.0063, "user_id": "user_001", "user": "Ada",   "cap": "Soaring over meadow"},  # Same user as first sighting
-            {"sci": "Turdus migratorius",   "lat": 37.3345, "lon": -122.0085, "user_id": "user_001", "user": "Ada",   "cap": "Another robin sighting"},  # Same user, different username
+            {
+                "sci": "Bubo virginianus",
+                "lat": 42.2804,
+                "lon": -83.7436,
+                "user": "Ada",
+                "cap": "Perched near the Diag",
+                "media_url": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Bubo_virginianus_-Great_Horned_Owl.JPG",
+                "taken_at": datetime(2025, 11, 4, 23, 23, tzinfo=timezone.utc)
+            },
+            {
+                "sci": "Turdus migratorius",
+                "lat": 42.2816,
+                "lon": -83.7481,
+                "user": "Robin",
+                "cap": "Early worm run by the Arb",
+                "media_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnPQnqDtQYt41FkzOkkeaDwzgJgqREvCRWfzLRU4_uSoZxpDs83MTYpPEIwqqKrhzmSsM2srR2kftPv46PB-SZkixbA_KIgpIpnDY6Ic8&s=10",
+                "taken_at": datetime(2025, 10, 28, 7, 45, tzinfo=timezone.utc)
+            },
+            {
+                "sci": "Buteo jamaicensis",
+                "lat": 42.2791,
+                "lon": -83.7392,
+                "user": "Hawk",
+                "cap": "Soaring over the Huron",
+                "media_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgO9RdL4piwhn7ybNxJ9H3_5gxssYXQOlW_CInZ3OqlGmkdiRdJVKQ1mkcKcgpd4otJUi801Wxt3CCfRzIxQei6nd9WXE5P5J2CWX_HO4&s=10",
+                "taken_at": datetime(2025, 10, 28, 7, 21, tzinfo=timezone.utc)
+            },
         ]
         for s in sample_sightings:
             db.add(Sighting(
                 species_id=by_sci[s["sci"]].id,
                 lat=s["lat"], lon=s["lon"],
-                taken_at=now,
+                taken_at=s["taken_at"],
                 is_private=False,
-                user_id=s["user_id"],
                 username=s["user"],
                 caption=s["cap"],
-                media_url=None
+                media_url=s.get("media_url")
             ))
         
         db.commit()
