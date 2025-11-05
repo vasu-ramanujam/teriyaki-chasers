@@ -32,9 +32,6 @@ struct UserDashboardView : View {
                     Text(vm.username)
                         .font(.headline)
                         .foregroundStyle(.white)
-                    Text(vm.user_id)
-                        .font(.caption)
-                        .foregroundStyle(.white)
                     Text("\(vm.total_sightings) sightings over \(vm.total_species) species")
                         .foregroundStyle(.white)
 

@@ -58,11 +58,11 @@ async def get_sightings(
     try:
         print("inside get sightings post req") # DEBUG
         
-        print(filter_data) #debug
-        print(filter_data.user_id)
         # Start with base query
         query = db.query(SightingModel)
         
+        print("hola\n\n")
+
         # Filter by area (bounding box) if provided
         if filter_data.area:
             try:
@@ -77,14 +77,9 @@ async def get_sightings(
                 )
             except (ValueError, AttributeError) as e:
                 raise HTTPException(status_code=400, detail=f"Invalid area format. Expected: west,south,east,north. Error: {str(e)}")
-        else:
         
-        # Filter by user_id if provided (recommended - unique per user)
-        if filter_data.user_id:
-            print("filtering by user id") #debug
-            query = query.filter(SightingModel.user_id == filter_data.user_id)
-            
-        print(query) #debug
+        print("hi\n\n")
+
         # Filter by username if provided (may match multiple users if duplicates exist)
         if filter_data.username:
             query = query.filter(SightingModel.username == filter_data.username)
@@ -104,6 +99,8 @@ async def get_sightings(
             except ValueError as e:
                 raise HTTPException(status_code=400, detail=f"Invalid end_time format: {str(e)}")
         
+        print(filter_data) #debug
+
         # Filter by species if provided
         if filter_data.species_id:
             query = query.filter(SightingModel.species_id == filter_data.species_id)
@@ -112,7 +109,6 @@ async def get_sightings(
         # Ensure at least one filter is provided
         if not any([
             filter_data.area,
-            filter_data.user_id,
             filter_data.username,
             filter_data.start_time,
             filter_data.end_time,
@@ -123,11 +119,16 @@ async def get_sightings(
                 detail="At least one filter parameter must be provided (area, user_id, username, start_time, end_time, or species_id)"
             )
         
+        
+        
         # Order by most recent and limit results
         query = query.order_by(SightingModel.taken_at.desc()).limit(100)
         
+        print(query)
+        print("wassup\n\n")
         # Debug: Log the query (optional, remove in production)
         sightings = query.all()
+        print(sightings)
         
         print(SightingList(items=sightings)) #debug
         return SightingList(items=sightings)

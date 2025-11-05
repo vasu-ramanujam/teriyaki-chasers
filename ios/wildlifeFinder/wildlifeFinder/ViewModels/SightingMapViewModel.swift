@@ -41,7 +41,6 @@ final class SightingMapViewModel: ObservableObject, SightingsLoadable {
             start_time: nil,
             end_time: nil,
             username: nil,
-            user_id: nil
         )
         await loadSightings(filter: filter)
     }

@@ -17,7 +17,6 @@ public struct APISpecies: Codable, Identifiable {
 
 public struct APISighting: Codable, Identifiable {
     public let id: String
-    public let user_id: String?
     public let username: String?
     public let species_id: Int
     public let lat: Double
@@ -54,8 +53,6 @@ public struct APISightingFilter: Codable {
     public let start_time: String?
     public let end_time: String?
     public let username: String?
-    public let user_id: String?
-
 }
 
 public struct APISpeciesSearch: Codable {
@@ -74,7 +71,7 @@ public struct APIFlashcardDetails: Codable {
     
 }
 public struct APIUserDetails: Codable {
-    public let user_id: String
+    public let username: String
     public let total_sightings: Int
     public let total_species: Int
     public let flashcards: [APIFlashcardDetails]
@@ -123,7 +120,7 @@ public class APIService: ObservableObject {
     
     //TODO: check if this works. new user code
     public func getUserStats() async throws -> APIUserDetails {
-        let url = URL(string: "\(baseURL)/user/003")! // TODO: replace with hardcoded user_id
+        let url = URL(string: "\(baseURL)/user/Hawk")! // TODO: replace with hardcoded user_id
         let (data, _) = try await session.data(from: url)
         return try JSONDecoder().decode(APIUserDetails.self, from: data)
     }
