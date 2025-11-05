@@ -81,7 +81,13 @@ extension APIService {
 public class APIService: ObservableObject {
     public static let shared = APIService()
     
-    private let baseURL = "http://localhost:8000/v1" // Update with your backend URL
+        private let baseURL: String = {
+        #if targetEnvironment(simulator)
+            return "http://127.0.0.1:8000/v1"
+        #else
+            return "http://catherinezs-macbook-pro-65.local:8000/v1"
+        #endif
+    }()
     private let session = URLSession.shared
     
     private init() {}

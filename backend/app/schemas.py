@@ -58,6 +58,7 @@ class Sighting(SightingBase):
     user_id: Optional[str] = None
     username: Optional[str] = None
     media_thumb_url: Optional[str] = None
+    media_url: Optional[str] = None
     caption: Optional[str] = None
     created_at: datetime
     
