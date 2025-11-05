@@ -8,8 +8,8 @@ class Species(Base):
     __tablename__ = "species"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    common_name = Column(String, nullable=False)
-    scientific_name = Column(String, nullable=False)
+    common_name = Column(String, nullable=True)
+    scientific_name = Column(String, nullable=True)
     habitat = Column(Text, nullable=True)
     diet = Column(Text, nullable=True)
     behavior = Column(Text, nullable=True)
@@ -24,7 +24,7 @@ class Sighting(Base):
     __tablename__ = "sightings"
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, nullable=True)  # NULL for anonymous
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     username = Column(String, nullable=True)  # User's display name
     species_id = Column(Integer, ForeignKey("species.id"), nullable=False)
     lat = Column(Float, nullable=False)  # Latitude
@@ -38,6 +38,7 @@ class Sighting(Base):
     # Relationships
     species = relationship("Species", back_populates="sightings")
     route_waypoints = relationship("RouteWaypoint", back_populates="sighting")
+    user = relationship("User", back_populates="sightings")
 
 class Route(Base):
     __tablename__ = "routes"
@@ -71,3 +72,10 @@ class RouteWaypoint(Base):
     route = relationship("Route", back_populates="waypoints")
     sighting = relationship("Sighting", back_populates="route_waypoints")
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, nullable=False)
+
+    sightings = relationship("Sighting", back_populates="user")
