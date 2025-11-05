@@ -85,6 +85,8 @@ class SightingFilter(BaseModel):
     species_id: Optional[int] = None
     start_time: Optional[str] = None
     end_time: Optional[str] = None
+    username: Optional[str] = None
+    user_id: Optional[str] = None
 
 # Route schemas
 class RoutePoint(BaseModel):

@@ -53,6 +53,24 @@ public struct APISightingFilter: Codable {
     public let species_id: Int?
     public let start_time: String?
     public let end_time: String?
+    public let username: String?
+    public let user_id: String?
+
+    public init(
+        area: String,
+        species_id: Int? = nil,
+        start_time: String? = nil,
+        end_time: String? = nil,
+        username: String? = nil,
+        user_id: String? = nil
+    ) {
+        self.area = area
+        self.species_id = species_id
+        self.start_time = start_time
+        self.end_time = end_time
+        self.username = username
+        self.user_id = user_id
+    }
 }
 
 public struct APISpeciesSearch: Codable {

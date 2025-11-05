@@ -100,6 +100,12 @@ async def get_sightings(
         # Filter by species if provided
         if filter_data.species_id:
             query = query.filter(SightingModel.species_id == filter_data.species_id)
+
+        if filter_data.username:
+            query = query.filter(SightingModel.username == filter_data.username)
+
+        if filter_data.user_id:
+            query = query.filter(SightingModel.user_id == filter_data.user_id)
         
         # Ensure at least one filter is provided
         if not any([

@@ -6,8 +6,8 @@ import SwiftUI
 final class SightingMapViewModel: ObservableObject, SightingsLoadable {
     // Region (Apple Park-ish mock coords so you see pins immediately)
     @Published var mapRegion = MKCoordinateRegion(
-        center: .init(latitude: 37.334, longitude: -122.009),
-        span: .init(latitudeDelta: 0.02, longitudeDelta: 0.02)
+        center: .init(latitude: 42.2808, longitude: -83.7430),
+        span: .init(latitudeDelta: 0.04, longitudeDelta: 0.04)
     )
 
     // Data
@@ -39,7 +39,9 @@ final class SightingMapViewModel: ObservableObject, SightingsLoadable {
             area: APIService.shared.createBoundingBox(center: mapRegion.center, span: mapRegion.span),
             species_id: nil,
             start_time: nil,
-            end_time: nil
+            end_time: nil,
+            username: nil,
+            user_id: nil
         )
         await loadSightings(filter: filter)
     }
