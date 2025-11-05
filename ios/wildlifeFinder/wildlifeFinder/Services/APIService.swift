@@ -55,6 +55,25 @@ public struct APISightingFilter: Codable {
     public let end_time: String?
     public let username: String?
     public let user_id: String?
+<<<<<<< HEAD
+=======
+
+    public init(
+        area: String,
+        species_id: Int? = nil,
+        start_time: String? = nil,
+        end_time: String? = nil,
+        username: String? = nil,
+        user_id: String? = nil
+    ) {
+        self.area = area
+        self.species_id = species_id
+        self.start_time = start_time
+        self.end_time = end_time
+        self.username = username
+        self.user_id = user_id
+    }
+>>>>>>> 52372bddde7227d3863994aba32bcb22e6992fa6
 }
 
 public struct APISpeciesSearch: Codable {
@@ -83,14 +102,9 @@ public struct APIUserDetails: Codable {
 
 
 // Identify DTOs
-public struct IdentificationCandidateDTO: Codable {
-    public let species_id: String
+public struct IdentifyResponse: Codable {
     public let label: String
-    public let score: Double
-}
-
-public struct IdentificationResultDTO: Codable {
-    public let candidates: [IdentificationCandidateDTO]
+    public let species_id: Int?
 }
 
 public struct APISpeciesDetails: Codable {
@@ -202,7 +216,7 @@ public class APIService: ObservableObject {
     }
     
     // MARK: - Identify API (photo/audio uploads)
-    public func identifyPhoto(imageData: Data) async throws -> IdentificationResultDTO {
+    public func identifyPhoto(imageData: Data) async throws -> IdentifyResponse {
         guard let url = URL(string: "\(baseURL)/identify/photo") else { throw URLError(.badURL) }
 
         var request = URLRequest(url: url)
@@ -220,10 +234,10 @@ public class APIService: ObservableObject {
         request.httpBody = body
 
         let (data, _) = try await session.data(for: request)
-        return try JSONDecoder().decode(IdentificationResultDTO.self, from: data)
+        return try JSONDecoder().decode(IdentifyResponse.self, from: data)
     }
 
-    public func identifyAudio(audioData: Data) async throws -> IdentificationResultDTO {
+    public func identifyAudio(audioData: Data) async throws -> IdentifyResponse {
         guard let url = URL(string: "\(baseURL)/identify/audio") else { throw URLError(.badURL) }
 
         var request = URLRequest(url: url)
@@ -240,7 +254,7 @@ public class APIService: ObservableObject {
         request.httpBody = body
 
         let (data, _) = try await session.data(for: request)
-        return try JSONDecoder().decode(IdentificationResultDTO.self, from: data)
+        return try JSONDecoder().decode(IdentifyResponse.self, from: data)
     }
 
     // MARK: - Create Sighting (multipart/form-data)
