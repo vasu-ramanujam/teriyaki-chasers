@@ -280,6 +280,12 @@ struct PostView: View {
             ZStack(alignment: .topTrailing) {
                 if let image = postVM.image {
                     Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 220)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .shadow(radius: 6)
                         .padding(.trailing)
                 } else {
                     Image(systemName: "photo")
