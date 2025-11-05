@@ -234,8 +234,12 @@ struct IdentifyView: View {
                 do {
                     if let image = postVM.image, let data = image.jpegData(compressionQuality: 0.85) {
                         let result = try await APIService.shared.identifyPhoto(imageData: data)
-                        if let top = result.candidates.sorted(by: { $0.score > $1.score }).first {
-                            let matches = try await APIService.shared.searchSpecies(query: top.label, limit: 1)
+                        if let speciesId = result.species_id {
+                            let species = try await APIService.shared.getSpecies(id: speciesId)
+                            postVM.animal = Species(from: species)
+                            postVM.speciesId = speciesId
+                        } else {
+                            let matches = try await APIService.shared.searchSpecies(query: result.label, limit: 1)
                             if let s = matches.first {
                                 postVM.animal = Species(from: s)
                                 postVM.speciesId = s.id
@@ -244,8 +248,12 @@ struct IdentifyView: View {
                     } else if let audioURL = postVM.audioURL {
                         let data = try Data(contentsOf: audioURL)
                         let result = try await APIService.shared.identifyAudio(audioData: data)
-                        if let top = result.candidates.sorted(by: { $0.score > $1.score }).first {
-                            let matches = try await APIService.shared.searchSpecies(query: top.label, limit: 1)
+                        if let speciesId = result.species_id {
+                            let species = try await APIService.shared.getSpecies(id: speciesId)
+                            postVM.animal = Species(from: species)
+                            postVM.speciesId = speciesId
+                        } else {
+                            let matches = try await APIService.shared.searchSpecies(query: result.label, limit: 1)
                             if let s = matches.first {
                                 postVM.animal = Species(from: s)
                                 postVM.speciesId = s.id
