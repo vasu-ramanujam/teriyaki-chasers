@@ -159,7 +159,7 @@ public class APIService: ObservableObject {
     }
     
     public func getSpecies(id: Int) async throws -> APISpecies {
-        let url = URL(string: "\(baseURL)/species/\(id)")!
+        let url = URL(string: "\(baseURL)/species/id/\(id)")!
         let (data, _) = try await session.data(from: url)
         return try JSONDecoder().decode(APISpecies.self, from: data)
     }
