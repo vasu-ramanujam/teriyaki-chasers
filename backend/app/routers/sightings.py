@@ -39,9 +39,7 @@ async def get_sighting(
             time=sighting.taken_at.isoformat(),  # Time in ISO format
             username=sighting.username or "Anonymous",  # User's display name
             is_private=sighting.is_private,  # Whether post is private
-            caption=sighting.caption,  # Optional caption
-            media_url=sighting.media_url,  # Optional S3 URL for image
-            audio_url=sighting.audio_url  # Optional S3 URL for audio
+            caption=sighting.caption  # Optional caption
         )
         
     except HTTPException:
