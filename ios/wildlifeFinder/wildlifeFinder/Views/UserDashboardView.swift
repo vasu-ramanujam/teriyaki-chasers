@@ -29,8 +29,11 @@ struct UserDashboardView : View {
                     .foregroundStyle(.white)
 
                 VStack(alignment: .leading){
-                    Text("\(vm.username)")
+                    Text(vm.username)
                         .font(.headline)
+                        .foregroundStyle(.white)
+                    Text(vm.user_id)
+                        .font(.caption)
                         .foregroundStyle(.white)
                     Text("\(vm.total_sightings) sightings over \(vm.total_species) species")
                         .foregroundStyle(.white)
@@ -74,8 +77,19 @@ struct UserDashboardView : View {
                 //add sighting pins here
                 ForEach(vm.sightings, id: \.id) {i in
                     
-                    NavigationLink(i.species.name) {
+                    NavigationLink{
                         SightingPinInformationView(sighting: i, origin: .other, waypointObj: .sighting(i))
+                    } label: {
+                        HStack{
+                            Text(i.species.name)
+                            Spacer()
+                            Text(i.createdAt.formatted(
+                                Date.FormatStyle()
+                                    .year(.twoDigits)
+                                    .month(.twoDigits)
+                                    .day(.defaultDigits)
+                            ))
+                        }
                     }
                 }
             }
@@ -93,7 +107,8 @@ struct UserDashboardView : View {
         .onAppear {
             Task {
                 vm.init_flashcards()
-                await vm.loadSightings()
+                await vm.call_loadSightings()
+                await vm.loadUserStats()
             }
         }
     }
@@ -106,7 +121,7 @@ struct UserDashboardView : View {
         var flashcard_info: userSpeciesStatistics
         
         //display different info based on flashcard_info
-        let image_url = "Caribbean_Flamingo"
+        //let image_url = "Caribbean_Flamingo"
         
         var body: some View {
             Button{
@@ -116,7 +131,7 @@ struct UserDashboardView : View {
                     Color(red: 255/255, green: 210/255, blue: 132/255)
                         .cornerRadius(10)
                     VStack{
-                        Image(image_url)
+                        Image(flashcard_info.image_url)
                             .resizable()
                             .scaledToFit()
                             .clipped()

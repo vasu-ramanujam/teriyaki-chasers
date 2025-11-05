@@ -37,7 +37,11 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
+<<<<<<< HEAD
+VIRTUAL_ENV="/Users/vasu/eecs498/teriyaki-chasers/backend/.venv"
+=======
 VIRTUAL_ENV="/Users/surface1/Desktop/teriyaki-chasers/backend/.venv"
+>>>>>>> master
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

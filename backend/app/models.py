@@ -31,7 +31,8 @@ class Sighting(Base):
     lon = Column(Float, nullable=False)  # Longitude
     taken_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     is_private = Column(Boolean, nullable=False, default=False)
-    media_url = Column(String, nullable=True)
+    media_url = Column(String, nullable=True)  # Image/photo URL
+    audio_url = Column(String, nullable=True)  # Audio recording URL
     caption = Column(Text, nullable=True)  # Optional caption
     created_at = Column(DateTime, default=datetime.utcnow)
     

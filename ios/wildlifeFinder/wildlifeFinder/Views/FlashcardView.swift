@@ -26,12 +26,13 @@ struct FlashcardView: View {
                 .resizable()
                 .scaledToFit()
                 .clipped()
+                .border(ui_green, width: 5)
                 .clipShape(RoundedRectangle(cornerRadius: 15))
                 .frame(maxWidth: 300, maxHeight: 200)
                 .padding(10)
             
             HStack{
-                Text("Description -- add once functions are consolidated. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. ")
+                Text("Description -- replace with flashcard view model . description ")
                 Spacer()
             }
             Text("")
@@ -49,6 +50,7 @@ struct FlashcardView: View {
             
         }
         .padding()
+        .background(Color(red: 255/255, green: 210/255, blue: 132/255))
         
     }
 }
