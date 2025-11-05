@@ -49,10 +49,12 @@ public struct APIRoutePoint: Codable {
 }
 
 public struct APISightingFilter: Codable {
-    public let area: String
+    public let area: String?
     public let species_id: Int?
     public let start_time: String?
     public let end_time: String?
+    public let username: String?  // May match multiple users if duplicates exist
+    public let user_id: String?    // Recommended - unique per user account
 }
 
 public struct APISpeciesSearch: Codable {

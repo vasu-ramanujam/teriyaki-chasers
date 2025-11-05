@@ -75,15 +75,19 @@ class SightingDetail(BaseModel):
     username: str  # User's display name
     is_private: bool  # Whether the post is private or public
     caption: Optional[str] = None  # Optional caption
+    media_url: Optional[str] = None  # Optional S3 URL for image/photo
+    audio_url: Optional[str] = None  # Optional S3 URL for audio recording
 
 class SightingList(BaseModel):
     items: List[Sighting]
 
 class SightingFilter(BaseModel):
-    area: str
+    area: Optional[str] = None  # Optional bounding box: west,south,east,north
     species_id: Optional[int] = None
     start_time: Optional[str] = None
     end_time: Optional[str] = None
+    username: Optional[str] = None  # Filter by username (may return multiple users if duplicates exist)
+    user_id: Optional[str] = None  # Filter by user_id (recommended - unique per user account)
 
 # Route schemas
 class RoutePoint(BaseModel):

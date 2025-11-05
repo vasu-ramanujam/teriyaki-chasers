@@ -35,6 +35,22 @@ This guide documents the AWS S3 setup for storing images and audio files for wil
 - **Access Key ID:** `AKIAU6GDWRVO4TV677EC`
 - **Secret Access Key:** (stored in `.env` file - DO NOT commit to git)
 
+### ⚠️ Important: Console Access Limitations
+
+The IAM user has permissions to access the specific S3 bucket directly, but **does not have permission to list all buckets**. This means:
+
+- ✅ **Direct bucket access works:** Use this direct link: https://s3.console.aws.amazon.com/s3/buckets/teriyaki-chasers-wildlife-media?region=us-east-2&tab=objects
+- ❌ **Bucket list page shows "Access Denied":** This is expected and normal - you cannot browse all buckets due to security restrictions
+- ✅ **All API operations work:** Upload, download, delete operations through the application work fine
+
+This is a security best practice - the IAM user only has the minimum permissions needed for the application to function.
+
+**Note about `s3:ListAllMyBuckets`:** Unfortunately, AWS IAM doesn't support filtering which buckets appear in the console. The `s3:ListAllMyBuckets` permission is all-or-nothing:
+- **With permission:** Shows ALL buckets in the AWS account (you can't filter to show only specific buckets)
+- **Without permission:** Shows "Access Denied" on the bucket list page (but direct bucket links still work)
+
+**Recommendation:** If you want to restrict visibility, stick with the direct bucket link approach and don't grant `s3:ListAllMyBuckets`. This ensures users can only access the specific bucket via the direct link, maintaining better security.
+
 ---
 
 ## 📦 S3 Bucket Configuration
@@ -149,6 +165,9 @@ The IAM user has the following permissions:
 
 ### Complete IAM Policy JSON
 
+**Note:** To enable viewing buckets in the S3 console list page, you need to add the `s3:ListAllMyBuckets` permission. See the updated policy below.
+
+**Current Policy (Minimal Permissions - Console list view disabled):**
 ```json
 {
     "Version": "2012-10-17",
@@ -177,6 +196,46 @@ The IAM user has the following permissions:
     ]
 }
 ```
+
+**Updated Policy (With Console List View Enabled):**
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowListAllBuckets",
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListAllMyBuckets"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "AllowS3BucketAccess",
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket",
+                "s3:HeadBucket"
+            ],
+            "Resource": "arn:aws:s3:::teriyaki-chasers-wildlife-media"
+        },
+        {
+            "Sid": "AllowS3UploadDelete",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:PutObjectAcl",
+                "s3:DeleteObject",
+                "s3:GetObject",
+                "s3:GetObjectAcl"
+            ],
+            "Resource": "arn:aws:s3:::teriyaki-chasers-wildlife-media/*"
+        }
+    ]
+}
+```
+
+**To update the policy, see:** `UPDATE_IAM_POLICY.md` for step-by-step instructions.
 
 ---
 

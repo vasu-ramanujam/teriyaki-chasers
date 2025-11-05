@@ -39,7 +39,9 @@ async def get_sighting(
             time=sighting.taken_at.isoformat(),  # Time in ISO format
             username=sighting.username or "Anonymous",  # User's display name
             is_private=sighting.is_private,  # Whether post is private
-            caption=sighting.caption  # Optional caption
+            caption=sighting.caption,  # Optional caption
+            media_url=sighting.media_url,  # Optional S3 URL for image
+            audio_url=sighting.audio_url  # Optional S3 URL for audio
         )
         
     except HTTPException:
@@ -52,39 +54,77 @@ async def get_sightings(
     filter_data: SightingFilter,
     db: Session = Depends(get_db)
 ):
-    """Get sightings filtered by area, species, and time range"""
+    """Get sightings filtered by area, species, time range, and/or username"""
     try:
-        # Parse area (assuming it's a bounding box format: west,south,east,north)
-        west, south, east, north = map(float, filter_data.area.split(','))
+        # Start with base query
+        query = db.query(SightingModel)
         
-        # Base query - filter by lat/lon bounding box
-        query = db.query(SightingModel).filter(
-            and_(
-                SightingModel.lat >= south,
-                SightingModel.lat <= north,
-                SightingModel.lon >= west,
-                SightingModel.lon <= east
-            )
-        )
+        # Filter by area (bounding box) if provided
+        if filter_data.area:
+            try:
+                west, south, east, north = map(float, filter_data.area.split(','))
+                query = query.filter(
+                    and_(
+                        SightingModel.lat >= south,
+                        SightingModel.lat <= north,
+                        SightingModel.lon >= west,
+                        SightingModel.lon <= east
+                    )
+                )
+            except (ValueError, AttributeError) as e:
+                raise HTTPException(status_code=400, detail=f"Invalid area format. Expected: west,south,east,north. Error: {str(e)}")
         
-        # Apply filters
+        # Filter by user_id if provided (recommended - unique per user)
+        if filter_data.user_id:
+            query = query.filter(SightingModel.user_id == filter_data.user_id)
+        
+        # Filter by username if provided (may match multiple users if duplicates exist)
+        if filter_data.username:
+            query = query.filter(SightingModel.username == filter_data.username)
+        
+        # Filter by time range if provided
         if filter_data.start_time:
-            start_dt = datetime.fromisoformat(filter_data.start_time.replace('Z', '+00:00'))
-            query = query.filter(SightingModel.taken_at >= start_dt)
+            try:
+                start_dt = datetime.fromisoformat(filter_data.start_time.replace('Z', '+00:00'))
+                query = query.filter(SightingModel.taken_at >= start_dt)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=f"Invalid start_time format: {str(e)}")
         
         if filter_data.end_time:
-            end_dt = datetime.fromisoformat(filter_data.end_time.replace('Z', '+00:00'))
-            query = query.filter(SightingModel.taken_at <= end_dt)
+            try:
+                end_dt = datetime.fromisoformat(filter_data.end_time.replace('Z', '+00:00'))
+                query = query.filter(SightingModel.taken_at <= end_dt)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=f"Invalid end_time format: {str(e)}")
         
+        # Filter by species if provided
         if filter_data.species_id:
             query = query.filter(SightingModel.species_id == filter_data.species_id)
         
-        # Order by most recent
+        # Ensure at least one filter is provided
+        if not any([
+            filter_data.area,
+            filter_data.user_id,
+            filter_data.username,
+            filter_data.start_time,
+            filter_data.end_time,
+            filter_data.species_id
+        ]):
+            raise HTTPException(
+                status_code=400,
+                detail="At least one filter parameter must be provided (area, user_id, username, start_time, end_time, or species_id)"
+            )
+        
+        # Order by most recent and limit results
         query = query.order_by(SightingModel.taken_at.desc()).limit(100)
         
+        # Debug: Log the query (optional, remove in production)
         sightings = query.all()
+        
         return SightingList(items=sightings)
         
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid filter format: {str(e)}")
 
@@ -94,7 +134,8 @@ async def create_sighting(
     lat: float = Form(...),
     lon: float = Form(...),
     is_private: bool = Form(False),
-    username: Optional[str] = Form(None),
+    user_id: Optional[str] = Form(None),  # Unique user identifier (recommended)
+    username: Optional[str] = Form(None),  # User's display name
     caption: Optional[str] = Form(None),
     photo: Optional[UploadFile] = File(None),
     audio: Optional[UploadFile] = File(None),
@@ -108,7 +149,8 @@ async def create_sighting(
         lat: Latitude
         lon: Longitude
         is_private: Whether the sighting is private
-        username: Username of the uploader
+        user_id: Unique user identifier (recommended for filtering)
+        username: User's display name
         caption: Optional caption for the sighting
         photo: Optional image file
         audio: Optional audio file
@@ -177,6 +219,7 @@ async def create_sighting(
             lon=lon,
             taken_at=datetime.utcnow(),
             is_private=is_private,
+            user_id=user_id,
             username=username,
             caption=caption,
             media_url=media_url,
