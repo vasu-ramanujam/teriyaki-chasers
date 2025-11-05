@@ -23,7 +23,8 @@ if database_url.startswith("postgresql"):
         echo=False,  # Set to True for SQL query logging
         connect_args={
             "connect_timeout": 10,
-            "options": "-c statement_timeout=30000"  # 30 second statement timeout
+            "options": "-c statement_timeout=30000",  # 30 second statement timeout
+            "sslmode": "require"  # Require SSL encryption for RDS
         }
     )
     logger.info("Initialized PostgreSQL database engine with connection pooling")
