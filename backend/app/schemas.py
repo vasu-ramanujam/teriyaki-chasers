@@ -139,3 +139,16 @@ class ErrorResponse(BaseModel):
     error: str
     code: str
 
+class FlashcardInfo(BaseModel):
+    species_name: str
+    first_seen: datetime
+    num_sightings: int
+
+class UserStats(BaseModel):
+    user_id: int
+    total_sightings: int
+    total_species: int
+    flashcards: List[FlashcardInfo]
+
+    class Config:
+        orm_mode = True

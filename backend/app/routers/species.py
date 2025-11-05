@@ -99,6 +99,33 @@ async def _enrich_with_wikipedia(scientific_name: str) -> Dict[str, Any]:
     # return None when external failures
     return {"english_name": None, "description": None, "other_sources": []}
 
+
+async def _enrich_with_wikipedia_with_image(name: str) -> Dict[str, Any]:
+    summary = await _fetch_wikipedia_summary_by_title(name)
+    if not summary:
+        title = await _search_wikipedia_title(name)
+        if title:
+            summary = await _fetch_wikipedia_summary_by_title(title)
+
+    if not summary:
+        return {
+            "english_name": None,
+            "description": None,
+            "other_sources": [],
+            "main_image": None,
+        }
+
+    data = _extract_fields_from_summary(summary)
+
+    main_image = None
+    orig = summary.get("originalimage")
+    if isinstance(orig, dict):
+        main_image = orig.get("source")
+
+    data["main_image"] = main_image
+    return data
+
+
 @router.get("/", response_model=SpeciesSearch)
 async def search_species(
     q: str = Query(..., description="Search query"),
@@ -136,3 +163,23 @@ async def get_species(
         other_sources=wiki["other_sources"],
     )
 
+
+@router.get("/{species_id}/img")
+async def get_species_with_img(
+    species_id: int,
+    db: Session = Depends(get_db),
+):
+    species = db.query(SpeciesModel).filter(SpeciesModel.id == species_id).first()
+    if not species:
+        raise HTTPException(status_code=404, detail="Species not found")
+
+    scientific_name = getattr(species, "scientific_name", None) or ""
+    wiki = await _enrich_with_wikipedia_with_image(scientific_name)
+
+    return {
+        "species": scientific_name,
+        "english_name": wiki.get("english_name"),
+        "description": wiki.get("description"),
+        "other_sources": wiki.get("other_sources", []),
+        "main_image": wiki.get("main_image"),
+    }
