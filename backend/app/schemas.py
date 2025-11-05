@@ -23,7 +23,7 @@ class Species(SpeciesBase):
         from_attributes = True
 
 class SpeciesDetail(BaseModel):
-    """Species detail response for GET /v1/species/{id}"""
+    """Species detail response for GET /v1/species/{name}"""
     species: str  # Scientific name
     english_name: str  # Common name
     description: Optional[str] = None
@@ -31,10 +31,11 @@ class SpeciesDetail(BaseModel):
 
 class SpeciesDetails(BaseModel):
     """Enhanced species details with Wikipedia integration"""
-    species: str  # scientific name
+    species: str  # scientific name or common name
     english_name: Optional[str] = None  # common name from Wikipedia
     description: Optional[str] = None  # description from Wikipedia
     other_sources: List[str] = []  # Wikipedia and Wikidata links
+    main_image: Optional[str] = None  # main image URL from Wikipedia
 
     class Config:
         from_attributes = True
@@ -137,3 +138,16 @@ class ErrorResponse(BaseModel):
     error: str
     code: str
 
+class FlashcardInfo(BaseModel):
+    species_name: str
+    first_seen: datetime
+    num_sightings: int
+
+class UserStats(BaseModel):
+    user_id: int
+    total_sightings: int
+    total_species: int
+    flashcards: List[FlashcardInfo]
+
+    class Config:
+        orm_mode = True

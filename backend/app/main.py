@@ -33,6 +33,7 @@ app.include_router(species.router, prefix="/v1/species", tags=["species"])
 app.include_router(sightings.router, prefix="/v1/sightings", tags=["sightings"])
 app.include_router(routing.router, prefix="/v1/route", tags=["routing"])
 app.include_router(identify.router, prefix="/v1/identify", tags=["identify"])
+app.include_router(identify.router, prefix="/v1/user", tags=["user"])
 
 @app.get("/")
 async def root():

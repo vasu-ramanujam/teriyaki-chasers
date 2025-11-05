@@ -1,4 +1,4 @@
-#!/Users/vasu/eecs498/teriyaki-chasers/backend/.venv/bin/python
+#!/Users/surface1/Desktop/teriyaki-chasers/backend/.venv/bin/python
 import sys
 from openai.cli import main
 if __name__ == '__main__':
