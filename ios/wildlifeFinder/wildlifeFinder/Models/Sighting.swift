@@ -45,7 +45,11 @@ public struct Sighting: Identifiable, Hashable {
         self.id = apiSighting.id
         self.species = species
         self.coordinate = CLLocationCoordinate2D(latitude: apiSighting.lat, longitude: apiSighting.lon)
-        self.createdAt = Self.parse(dateString: apiSighting.taken_at)
+        if let taken = apiSighting.taken_at {
+            self.createdAt = Self.parse(dateString: taken)
+        } else {
+            self.createdAt = Self.parse(dateString: apiSighting.created_at)
+        }
         self.note = apiSighting.caption
         self.username = apiSighting.username ?? "Anonymous"
         self.isPrivate = apiSighting.is_private

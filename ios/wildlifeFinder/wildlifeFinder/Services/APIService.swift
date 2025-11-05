@@ -22,7 +22,7 @@ public struct APISighting: Codable, Identifiable {
     public let species_id: Int
     public let lat: Double
     public let lon: Double
-    public let taken_at: String
+    public let taken_at: String?
     public let is_private: Bool
     public let media_url: String?
     public let caption: String?

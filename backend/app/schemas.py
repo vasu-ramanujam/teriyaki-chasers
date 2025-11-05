@@ -61,6 +61,7 @@ class Sighting(SightingBase):
     media_url: Optional[str] = None
     caption: Optional[str] = None
     created_at: datetime
+    taken_at: datetime
     
     class Config:
         from_attributes = True
