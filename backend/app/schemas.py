@@ -75,6 +75,8 @@ class SightingDetail(BaseModel):
     username: str  # User's display name
     is_private: bool  # Whether the post is private or public
     caption: Optional[str] = None  # Optional caption
+    media_url: Optional[str] = None  # Optional S3 URL for image/photo
+    audio_url: Optional[str] = None  # Optional S3 URL for audio recording
 
 class SightingList(BaseModel):
     items: List[Sighting]
