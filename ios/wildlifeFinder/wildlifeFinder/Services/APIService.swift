@@ -65,6 +65,23 @@ public struct APISightingList: Codable {
     public let items: [APISighting]
 }
 
+//user
+public struct APIFlashcardDetails: Codable {
+    public let species_name: String
+    public let first_seen: String
+    public let num_sightings: Int
+    
+}
+public struct APIUserDetails: Codable {
+    public let user_id: String
+    public let total_sightings: Int
+    public let total_species: Int
+    public let flashcards: [APIFlashcardDetails]
+}
+
+
+
+
 // Identify DTOs
 public struct IdentificationCandidateDTO: Codable {
     public let species_id: String
@@ -107,6 +124,14 @@ public class APIService: ObservableObject {
     private let session = URLSession.shared
     
     private init() {}
+    
+    //TODO: check if this works. new user code
+    public func getUserStats() async throws -> APIUserDetails {
+        let url = URL(string: "\(baseURL)/user/user_id")! // TODO: replace with hardcoded user_id
+        let (data, _) = try await session.data(from: url)
+        return try JSONDecoder().decode(APIUserDetails.self, from: data)
+    }
+    
     
     // MARK: - Species API
     public func searchSpecies(query: String, limit: Int = 10) async throws -> [APISpecies] {

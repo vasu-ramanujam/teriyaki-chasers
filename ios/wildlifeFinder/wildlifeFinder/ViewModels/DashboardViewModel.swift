@@ -49,8 +49,12 @@ final class DashboardViewModel: ObservableObject, SightingsLoadable {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
+    // required for sighting history
     @Published var sightings: [Sighting] = []
     @Published var species: [Species] = []
+    
+    //for flashcard / user aggregate stats
+    @Published var userStats: APIUserDetails?
     
     var dash_filter = APISightingFilter(
         area: APIService.shared.createBoundingBox(center:.init(latitude: 37.334, longitude: -122.009), span: .init(latitudeDelta: 0.02, longitudeDelta: 0.02)),
@@ -65,6 +69,24 @@ final class DashboardViewModel: ObservableObject, SightingsLoadable {
         await loadSightings(filter: dash_filter)
     }
     
+    
+    func loadUserStats() async {
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+
+        do {
+            // 1) fetch API stats
+            userStats = try await APIService.shared.getUserStats()
+            
+            //probably i should do more here
+            //TODO: more here?
+
+        } catch {
+            errorMessage = "Failed to load user details: \(error.localizedDescription)"
+            print("Error loading user details:", error)
+        }
+    }
     
 
 }
