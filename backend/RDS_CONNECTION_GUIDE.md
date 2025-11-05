@@ -20,7 +20,7 @@ RDS_HOST=wildlife-explorer-db.cda2ce0kia2k.us-east-2.rds.amazonaws.com
 RDS_PORT=5432
 RDS_DATABASE=animal_explorer
 RDS_USERNAME=wildlife_admin
-RDS_PASSWORD=your_password_here
+RDS_PASSWORD=wowCym-5cinpy-mywbud
 ```
 
 **Note:** Get the password from your team lead or `.env` file (never commit passwords to git!)
