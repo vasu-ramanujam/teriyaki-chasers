@@ -221,6 +221,25 @@ struct ARViewScreen: View {
                 .allowsHitTesting(true)
             
                 VStack() {
+                    HStack() {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color(.gray).opacity(1))
+                                .shadow(radius: 5)
+                                .frame(height: 60)
+                            Text("AR Mode")
+                        }
+                        
+                        Button("Switch to Map Mode") {
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
+                        .background(Color.blue.opacity(0.9))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                    }
+                    .padding(.top, 90)
+                    
                     Spacer()
                     // Popup overlay (indicating user has reached the waypoint
                     if showPopup, self.toggleDismiss {
