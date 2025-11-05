@@ -3,11 +3,11 @@ import MapKit
 import SwiftUI
 
 @MainActor
-final class SightingMapViewModel: ObservableObject, SightingsLoadable {
-    // Region (Apple Park-ish mock coords so you see pins immediately)
+final class SightingMapViewModel: ObservableObject {
+    // Region (Ann Arbor michigan mock coords so you see pins immediately)
     @Published var mapRegion = MKCoordinateRegion(
-        center: .init(latitude: 37.334, longitude: -122.009),
-        span: .init(latitudeDelta: 0.02, longitudeDelta: 0.02)
+        center: .init(latitude: 42.2808, longitude: -83.7430),
+        span: .init(latitudeDelta: 0.04, longitudeDelta: 0.04)
     )
 
     // Data
@@ -33,19 +33,64 @@ final class SightingMapViewModel: ObservableObject, SightingsLoadable {
     @Published var errorMessage: String?
 
     var canGenerateRoute: Bool { !selectedWaypoints.isEmpty }
-    
-    func call_loadSightings() async {
+
+    // MARK: - API Integration
+func loadSightings() async {
+    isLoading = true
+    errorMessage = nil
+    defer { isLoading = false }
+
+    do {
+        // 1) Build filter and fetch API sightings
         let filter = APISightingFilter(
             area: APIService.shared.createBoundingBox(center: mapRegion.center, span: mapRegion.span),
             species_id: nil,
             start_time: nil,
             end_time: nil,
-            username: nil,
-            user_id: nil
+            username: nil
         )
-        await loadSightings(filter: filter)
-    }
+        let apiSightings = try await APIService.shared.getSightings(filter: filter)
 
+        // 2) Prepare a species cache (seed with any already-loaded species)
+        var speciesById: [Int: Species] = Dictionary(uniqueKeysWithValues: self.species.map { ($0.id, $0) })
+
+        // 3) For each sighting, ensure we have its Species (using details endpoint)
+        for apiSighting in apiSightings {
+            let sid = apiSighting.species_id
+            if speciesById[sid] == nil {
+                let details = try await APIService.shared.getSpeciesDetails(id: sid)
+                let mapped = Species(
+                    id: sid,
+                    common_name: details.english_name ?? "Unknown",
+                    scientific_name: details.species,
+                    habitat: nil,
+                    diet: nil,
+                    behavior: nil,
+                    description: details.description,
+                    other_sources: details.other_sources,
+                    created_at: Date()
+                )
+                speciesById[sid] = mapped
+            }
+        }
+
+        // 4) Convert API sightings to app models using the resolved Species
+        let convertedSightings: [Sighting] = apiSightings.compactMap { api in
+            guard let sp = speciesById[api.species_id] else { return nil }
+            return Sighting(from: api, species: sp)
+        }
+
+        // 5) Commit state updates
+        self.species = Array(speciesById.values)
+        self.sightings = convertedSightings
+
+    } catch {
+        errorMessage = "Failed to load sightings: \(error.localizedDescription)"
+        print("Error loading sightings:", error)
+    }
+}
+
+    
     func searchSpecies(query: String) async {
         guard !query.isEmpty else {
             suggestions = []

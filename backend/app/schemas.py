@@ -51,17 +51,17 @@ class SightingBase(BaseModel):
     is_private: bool = False
 
 class SightingCreate(SightingBase):
-    media_url: Optional[str] = None  # Image/photo URL
-    audio_url: Optional[str] = None  # Audio recording URL
+    media_url: Optional[str] = None
 
 class Sighting(SightingBase):
     id: str
     user_id: Optional[str] = None
     username: Optional[str] = None
+    media_thumb_url: Optional[str] = None
     media_url: Optional[str] = None
-    audio_url: Optional[str] = None
     caption: Optional[str] = None
     created_at: datetime
+    taken_at: datetime
     
     class Config:
         from_attributes = True
@@ -75,19 +75,15 @@ class SightingDetail(BaseModel):
     username: str  # User's display name
     is_private: bool  # Whether the post is private or public
     caption: Optional[str] = None  # Optional caption
-    media_url: Optional[str] = None  # Optional S3 URL for image/photo
-    audio_url: Optional[str] = None  # Optional S3 URL for audio recording
 
 class SightingList(BaseModel):
     items: List[Sighting]
 
 class SightingFilter(BaseModel):
-    area: Optional[str] = None  # Optional bounding box: west,south,east,north
+    area: str
     species_id: Optional[int] = None
     start_time: Optional[str] = None
     end_time: Optional[str] = None
-    username: Optional[str] = None  # Filter by username (may return multiple users if duplicates exist)
-    user_id: Optional[str] = None  # Filter by user_id (recommended - unique per user account)
 
 # Route schemas
 class RoutePoint(BaseModel):
@@ -141,16 +137,3 @@ class ErrorResponse(BaseModel):
     error: str
     code: str
 
-class FlashcardInfo(BaseModel):
-    species_name: str
-    first_seen: datetime
-    num_sightings: int
-
-class UserStats(BaseModel):
-    user_id: int
-    total_sightings: int
-    total_species: int
-    flashcards: List[FlashcardInfo]
-
-    class Config:
-        orm_mode = True
