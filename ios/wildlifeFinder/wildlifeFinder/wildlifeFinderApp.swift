@@ -19,6 +19,7 @@ struct wildlifeFinderApp: App {
             ContentView()
                 .environmentObject(SightingMapViewModel())
                 .environmentObject(RouteViewModel())
+                .environmentObject(DashboardViewModel())
         }
     }
 }

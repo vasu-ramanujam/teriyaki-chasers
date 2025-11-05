@@ -39,7 +39,7 @@ struct ContentView: View {
             }
 
             NavigationStack {
-                Text("User Dashboard (stub)")
+                UserDashboardView()
             }
             .tabItem {
                 Image(systemName: "house.fill")
