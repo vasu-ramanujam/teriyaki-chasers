@@ -45,7 +45,7 @@ class Route(Base):
     __tablename__ = "routes"
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, nullable=True)
+    username = Column(String, nullable=True)
     start_lat = Column(Float, nullable=False)
     start_lon = Column(Float, nullable=False)
     end_lat = Column(Float, nullable=False)

@@ -144,7 +144,7 @@ async def create_sighting(
     lat: float = Form(...),
     lon: float = Form(...),
     is_private: bool = Form(False),
-    user_id: Optional[str] = Form(None),  # Unique user identifier (recommended)
+    #user_id: Optional[str] = Form(None),  # Unique user identifier (recommended)
     username: Optional[str] = Form(None),  # User's display name
     caption: Optional[str] = Form(None),
     photo: Optional[UploadFile] = File(None),
@@ -229,7 +229,7 @@ async def create_sighting(
             lon=lon,
             taken_at=datetime.utcnow(),
             is_private=is_private,
-            user_id=user_id,
+#            user_id=user_id,
             username=username,
             caption=caption,
             media_url=media_url,
