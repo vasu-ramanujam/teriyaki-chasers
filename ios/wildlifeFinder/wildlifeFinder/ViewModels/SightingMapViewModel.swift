@@ -39,9 +39,7 @@ final class SightingMapViewModel: ObservableObject, SightingsLoadable {
             area: APIService.shared.createBoundingBox(center: mapRegion.center, span: mapRegion.span),
             species_id: nil,
             start_time: nil,
-            end_time: nil,
-            username: nil,
-            user_id: nil
+            end_time: nil
         )
         await loadSightings(filter: filter)
     }

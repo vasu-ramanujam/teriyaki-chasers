@@ -71,6 +71,7 @@ def init_database():
                 "lat": 42.2804,
                 "lon": -83.7436,
                 "user": "Ada",
+                "user_id": str(uuid.uuid4()),
                 "cap": "Perched near the Diag",
                 "media_url": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Bubo_virginianus_-Great_Horned_Owl.JPG",
                 "taken_at": datetime(2025, 11, 4, 23, 23, tzinfo=timezone.utc)
@@ -80,6 +81,7 @@ def init_database():
                 "lat": 42.2816,
                 "lon": -83.7481,
                 "user": "Robin",
+                "user_id": str(uuid.uuid4()),
                 "cap": "Early worm run by the Arb",
                 "media_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnPQnqDtQYt41FkzOkkeaDwzgJgqREvCRWfzLRU4_uSoZxpDs83MTYpPEIwqqKrhzmSsM2srR2kftPv46PB-SZkixbA_KIgpIpnDY6Ic8&s=10",
                 "taken_at": datetime(2025, 10, 28, 7, 45, tzinfo=timezone.utc)
@@ -89,6 +91,7 @@ def init_database():
                 "lat": 42.2791,
                 "lon": -83.7392,
                 "user": "Hawk",
+                "user_id": str(uuid.uuid4()),
                 "cap": "Soaring over the Huron",
                 "media_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgO9RdL4piwhn7ybNxJ9H3_5gxssYXQOlW_CInZ3OqlGmkdiRdJVKQ1mkcKcgpd4otJUi801Wxt3CCfRzIxQei6nd9WXE5P5J2CWX_HO4&s=10",
                 "taken_at": datetime(2025, 10, 28, 7, 21, tzinfo=timezone.utc)
@@ -100,6 +103,7 @@ def init_database():
                 lat=s["lat"], lon=s["lon"],
                 taken_at=s["taken_at"],
                 is_private=False,
+                user_id=s["user_id"],
                 username=s["user"],
                 caption=s["cap"],
                 media_url=s.get("media_url")

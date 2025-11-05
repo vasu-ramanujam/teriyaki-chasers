@@ -22,7 +22,7 @@ public struct APISighting: Codable, Identifiable {
     public let species_id: Int
     public let lat: Double
     public let lon: Double
-    public let taken_at: String
+    public let taken_at: String?
     public let is_private: Bool
     public let media_url: String?
     public let audio_url: String?
@@ -49,12 +49,10 @@ public struct APIRoutePoint: Codable {
 }
 
 public struct APISightingFilter: Codable {
-    public let area: String?
+    public let area: String
     public let species_id: Int?
     public let start_time: String?
     public let end_time: String?
-    public let username: String?
-    public let user_id: String?
 }
 
 public struct APISpeciesSearch: Codable {
