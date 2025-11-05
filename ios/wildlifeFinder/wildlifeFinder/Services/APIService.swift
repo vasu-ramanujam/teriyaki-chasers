@@ -49,10 +49,12 @@ public struct APIRoutePoint: Codable {
 }
 
 public struct APISightingFilter: Codable {
-    public let area: String
+    public let area: String?
     public let species_id: Int?
     public let start_time: String?
     public let end_time: String?
+    public let username: String?
+    public let user_id: String?
 }
 
 public struct APISpeciesSearch: Codable {
@@ -125,7 +127,7 @@ public class APIService: ObservableObject {
     
     //TODO: check if this works. new user code
     public func getUserStats() async throws -> APIUserDetails {
-        let url = URL(string: "\(baseURL)/user/user_id")! // TODO: replace with hardcoded user_id
+        let url = URL(string: "\(baseURL)/user/003")! // TODO: replace with hardcoded user_id
         let (data, _) = try await session.data(from: url)
         return try JSONDecoder().decode(APIUserDetails.self, from: data)
     }
@@ -152,13 +154,16 @@ public class APIService: ObservableObject {
     }
     
     public func getSightings(filter: APISightingFilter) async throws -> [APISighting] {
+        
         let url = URL(string: "\(baseURL)/sightings/")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
+
         let jsonData = try JSONEncoder().encode(filter)
         request.httpBody = jsonData
+
 
         let (data, response) = try await session.data(for: request)
         if let http = response as? HTTPURLResponse {
@@ -166,6 +171,8 @@ public class APIService: ObservableObject {
         }
 
         let decoded = try JSONDecoder().decode(APISightingList.self, from: data)
+        
+        print(decoded.items)
         return decoded.items
     }
     

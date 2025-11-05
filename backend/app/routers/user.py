@@ -9,11 +9,12 @@ from app.schemas import UserStats, FlashcardInfo
 router = APIRouter(prefix="/v1", tags=["User"])
 
 @router.get("/user/{user_id}", response_model=UserStats)
-def get_user_stats_by_path(user_id: int, db: Session = Depends(get_db)):
+def get_user_stats_by_path(user_id: str, db: Session = Depends(get_db)):
     return _query_user_stats(user_id=user_id, db=db)
 
 
-def _query_user_stats(user_id: int, db: Session) -> UserStats:
+def _query_user_stats(user_id: str, db: Session) -> UserStats:
+    print(user_id) # DEBUG
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

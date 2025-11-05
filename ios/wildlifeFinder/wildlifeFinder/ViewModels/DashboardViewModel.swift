@@ -56,13 +56,14 @@ final class DashboardViewModel: ObservableObject, SightingsLoadable {
     //for flashcard / user aggregate stats
     @Published var userStats: APIUserDetails?
     
+    
     var dash_filter = APISightingFilter(
-        area: APIService.shared.createBoundingBox(center:.init(latitude: 37.334, longitude: -122.009), span: .init(latitudeDelta: 0.02, longitudeDelta: 0.02)),
+        area: nil,
         species_id: nil,
         start_time: nil,
         end_time: nil,
         username: nil,
-        user_id: nil
+        user_id: "003"
     )
     
     func call_loadSightings() async {

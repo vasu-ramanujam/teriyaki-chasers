@@ -81,10 +81,12 @@ class SightingList(BaseModel):
     items: List[Sighting]
 
 class SightingFilter(BaseModel):
-    area: str
+    area: Optional[str] = None
     species_id: Optional[int] = None
     start_time: Optional[str] = None
     end_time: Optional[str] = None
+    username: Optional[str] = None
+    user_id: Optional[str] = None
 
 # Route schemas
 class RoutePoint(BaseModel):
