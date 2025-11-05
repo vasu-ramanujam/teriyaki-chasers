@@ -95,13 +95,31 @@ public struct APIUserDetails: Codable {
     public let flashcards: [APIFlashcardDetails]
 }
 
-
-
-
 // Identify DTOs
 public struct IdentifyResponse: Codable {
     public let label: String
     public let species_id: Int?
+    public let wikiData: WikiData
+    
+    enum CodingKeys: String, CodingKey {
+            case label
+            case species_id
+            case wikiData = "wiki_data"
+        }
+}
+
+public struct WikiData: Codable {
+    let englishName: String
+    let description: String
+    let otherSources: [String]
+    let mainImage: String
+
+    enum CodingKeys: String, CodingKey {
+        case englishName = "english_name"
+        case description
+        case otherSources = "other_sources"
+        case mainImage = "main_image"
+    }
 }
 
 public struct APISpeciesDetails: Codable {
@@ -127,7 +145,7 @@ public class APIService: ObservableObject {
         #if targetEnvironment(simulator)
             return "http://127.0.0.1:8000/v1"
         #else
-            return "http://catherinezs-macbook-pro-65.local:8000/v1"
+            return "http://Owens-MacBook-Air-9.local:8000/v1"
         #endif
     }()
 

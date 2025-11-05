@@ -202,7 +202,7 @@ struct IdentifyView: View {
                 ProgressView("Identifying...")
                     .navigationBarBackButtonHidden(true)
             } else {
-                if let animal = postVM.animal {
+                if let animal = postVM.animal, let imgUrl = postVM.animalImgUrl {
                     Text("You found: \(animal.common_name)!")
                         .font(.largeTitle) // Start with a large font size
                         .lineLimit(1) // Ensure the text stays on a single line
@@ -212,7 +212,7 @@ struct IdentifyView: View {
                         .padding(.trailing)
                         .navigationBarBackButtonHidden(true)
 
-                    SpeciesView(species: animal)
+                    SpeciesView(species: animal, imgUrl: imgUrl)
                     
                     NavigationLink("Post Sighting", value: "post")
                     .foregroundStyle(.black)
@@ -238,6 +238,7 @@ struct IdentifyView: View {
                             let species = try await APIService.shared.getSpecies(id: speciesId)
                             postVM.animal = Species(from: species)
                             postVM.speciesId = speciesId
+                            postVM.animalImgUrl = URL(string: result.wikiData.mainImage)
                         } else {
                             let matches = try await APIService.shared.searchSpecies(query: result.label, limit: 1)
                             if let s = matches.first {

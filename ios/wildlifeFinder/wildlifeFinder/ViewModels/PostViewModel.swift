@@ -15,6 +15,7 @@ public final class PostViewModel: ObservableObject {
     @Published var isPublic = false
     @Published var speciesId: Int?
     @Published var animal: Species?
+    @Published var animalImgUrl: URL?
     
     func identifySightings() async throws {
         
