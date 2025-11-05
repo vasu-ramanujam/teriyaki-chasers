@@ -41,7 +41,7 @@ struct ARViewContainer: UIViewRepresentable {
             self.parent = parent
         }
         
-        // destructor
+        // destructor, stops the subscriber from running
         deinit {
             updateCancellable?.cancel()
         }
@@ -59,7 +59,7 @@ struct ARViewContainer: UIViewRepresentable {
         }
         
         // Check if camera is near the currentWaypoint
-        func isCameraNearEntity(_ arView: ARView, entity: Entity, threshold: Float = 0.5) -> Bool {
+        func isCameraNearEntity(_ arView: ARView, entity: Entity, threshold: Float = 1) -> Bool {
             guard let cameraTransform = arView.session.currentFrame?.camera.transform else {
                 return false
             }
@@ -71,7 +71,7 @@ struct ARViewContainer: UIViewRepresentable {
             
             let entityPosition = entity.position(relativeTo: nil)
             let distance = simd_distance(cameraPosition, entityPosition)
-//            print("Distance to \(parent.currentWaypoint?.title ?? "none"): \(distance)")
+            // print("Distance to \(parent.currentWaypoint?.title ?? "none"): \(distance)")
             return distance < threshold
         }
     }
@@ -101,7 +101,7 @@ struct ARViewContainer: UIViewRepresentable {
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)))
         arView.addGestureRecognizer(tapGesture)
         
-        arView.debugOptions = [.showFeaturePoints]
+        // arView.debugOptions = [.showFeaturePoints]
         for waypoint in waypoints {
             let x = Float.random(in: -1.5...1.5)
             // let y = Float.random(in: 0...1)
@@ -145,7 +145,7 @@ struct ARViewContainer: UIViewRepresentable {
             
             // Find the entity corresponding to the current waypoint
             if let targetEntity = arView.scene.findEntity(named: currentWaypoint.title) {
-                if context.coordinator.isCameraNearEntity(arView, entity: targetEntity, threshold: 0.5) {
+                if context.coordinator.isCameraNearEntity(arView, entity: targetEntity, threshold: 1) {
                     // print("✅ Camera is near current waypoint: \(currentWaypoint.title)")
                     // Tell SwiftUI the waypoint was reached, set reachedWaypoint to current one
                     DispatchQueue.main.async {
@@ -188,13 +188,16 @@ struct ARViewContainer: UIViewRepresentable {
 }
 
 struct ARViewScreen: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var selectedWaypoint: Waypoint? = nil
     @State private var currentWaypoint: Waypoint? = nil
     
     @State private var reachedWaypoint: Waypoint? = nil
     @State private var showPopup: Bool = false
+    @State private var toggleDismiss: Bool = true
     
     @State private var arrowRotation: Double = 0.0
+    
     
     var waypoints: [Waypoint]
     
@@ -217,26 +220,13 @@ struct ARViewScreen: View {
                 .edgesIgnoringSafeArea(.all)
                 .allowsHitTesting(true)
             
-                VStack {
+                VStack() {
                     Spacer()
-                    Image(systemName: "location.north.fill")
-                        .resizable()
-                        .frame(width: 60, height: 60)
-                        .foregroundColor(.blue)
-                        .rotationEffect(.degrees(arrowRotation))
-                        .padding(.bottom, 180) // push above the popup + tab bar
-                }
-            
-                // Popup overlay
-                if showPopup {
-                    VStack {
-                        Spacer()
+                    // Popup overlay (indicating user has reached the waypoint
+                    if showPopup, self.toggleDismiss {
                         VStack(spacing: 12) {
                             if let waypoint = reachedWaypoint {
                                 Text("✅ Reached \(waypoint.title)")
-                                    .font(.headline)
-                            } else {
-                                Text("🎉 All waypoints reached!")
                                     .font(.headline)
                             }
                             if let waypoint = reachedWaypoint,
@@ -253,11 +243,16 @@ struct ARViewScreen: View {
                                 .background(Color.blue.opacity(0.9))
                                 .foregroundColor(.white)
                                 .cornerRadius(10)
+                            } else {
+                                Text("🎉 Route completed!")
+                                    .font(.headline)
                             }
-                            
+                            // TODO: determine if dismiss should stop route or continue
+                            // right now, when users click on dismiss and is near the waypoint, the pop up will keep reappearing
                             Button("Dismiss") {
                                 reachedWaypoint = nil
                                 showPopup = false
+                                self.toggleDismiss = false
                             }
                             .padding(.horizontal, 20)
                             .padding(.vertical, 8)
@@ -266,18 +261,45 @@ struct ARViewScreen: View {
                             .cornerRadius(10)
                         }
                         .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(.systemBackground).opacity(0.95))
-                                .shadow(radius: 5)
-                        )
-                        .padding(.bottom, 72)
-                        .padding(.horizontal)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .animation(.spring(), value: showPopup)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(Color(.systemBackground).opacity(0.95))
+                                    .shadow(radius: 5)
+                            )
+                            .padding(.bottom, 72)
+                            .padding(.horizontal)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                            .animation(.spring(), value: showPopup)
+                    } else {
+                        VStack {
+                            ZStack {
+                                Circle()
+                                    .fill(.black)
+                                    .opacity(0.75)
+                                    .frame(width: 125, height: 125)
+                                    .padding(.bottom, 40)
+                                
+                                Image(systemName: "location.north.fill")
+                                    .resizable()
+                                    .frame(width: 60, height: 60)
+                                    .foregroundColor(.blue)
+                                    .rotationEffect(.degrees(arrowRotation))
+                                    .padding(.bottom, 40) // push above the popup + tab bar
+                            }
+                                                        
+                            Button("End Route") {
+                                dismiss()
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 8)
+                            .background(Color.red.opacity(0.9))
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                            .padding(.bottom, 96)
+                        }
                     }
-                    .edgesIgnoringSafeArea(.bottom)
                 }
+                .edgesIgnoringSafeArea(.bottom)
         }
         .sheet(item: $selectedWaypoint) { waypoint in
             switch waypoint {
