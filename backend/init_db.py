@@ -72,7 +72,7 @@ def init_database():
                 "lon": -83.7436,
                 "user": "Ada",
                 "cap": "Perched near the Diag",
-                "media_url": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Bubo_virginianus_-Great_Horned_Owl.JPG",
+                "media_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Bubo_virginianus_06.jpg/500px-Bubo_virginianus_06.jpg",
                 "taken_at": datetime(2025, 11, 4, 23, 23, tzinfo=timezone.utc)
             },
             {
