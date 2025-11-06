@@ -52,8 +52,8 @@ extension SightingsLoadable {
                         behavior: nil,
                         description: details.description,
                         other_sources: details.other_sources,
+                        created_at: testDate ?? Date(),
                         main_image: nil
-                        created_at: testDate ?? Date()
                     )
                     speciesById[sid] = mapped
                 }

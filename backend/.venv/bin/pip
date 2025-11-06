@@ -1,4 +1,4 @@
-#!/Users/surface1/Desktop/eecs498/teriyaki-chasers/backend/.venv/bin/python
+#!/Users/vasu/eecs498/teriyaki-chasers/backend/.venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
