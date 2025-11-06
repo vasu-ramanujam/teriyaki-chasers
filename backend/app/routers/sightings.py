@@ -56,12 +56,10 @@ async def get_sightings(
 ):
     """Get sightings filtered by area, species, time range, and/or username"""
     try:
-        print("inside get sightings post req") # DEBUG
         
         # Start with base query
         query = db.query(SightingModel)
         
-        print("hola\n\n")
 
         # Filter by area (bounding box) if provided
         if filter_data.area:
@@ -78,7 +76,6 @@ async def get_sightings(
             except (ValueError, AttributeError) as e:
                 raise HTTPException(status_code=400, detail=f"Invalid area format. Expected: west,south,east,north. Error: {str(e)}")
         
-        print("hi\n\n")
 
         # Filter by username if provided (may match multiple users if duplicates exist)
         if filter_data.username:
@@ -124,13 +121,10 @@ async def get_sightings(
         # Order by most recent and limit results
         query = query.order_by(SightingModel.taken_at.desc()).limit(100)
         
-        print(query)
-        print("wassup\n\n")
+
         # Debug: Log the query (optional, remove in production)
         sightings = query.all()
-        print(sightings)
         
-        print(SightingList(items=sightings)) #debug
         return SightingList(items=sightings)
         
     except HTTPException:
@@ -159,7 +153,6 @@ async def create_sighting(
         lat: Latitude
         lon: Longitude
         is_private: Whether the sighting is private
-        user_id: Unique user identifier (recommended for filtering)
         username: User's display name
         caption: Optional caption for the sighting
         photo: Optional image file

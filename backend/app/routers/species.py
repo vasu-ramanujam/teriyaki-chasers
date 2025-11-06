@@ -120,6 +120,17 @@ async def search_species(
     species_list = query.all()
     return SpeciesSearch(items=species_list)
 
+@router.get("/id/{species_id}", response_model=Species)
+async def get_species_by_id(
+    species_id: int,
+    db: Session = Depends(get_db)
+):
+    species = db.query(SpeciesModel).filter(SpeciesModel.id == species_id).first()
+    if not species:
+        raise HTTPException(status_code=404, detail="Species not found")
+    return species
+
+
 @router.get("/{name}", response_model=SpeciesDetails)
 async def get_species(
     name: str,

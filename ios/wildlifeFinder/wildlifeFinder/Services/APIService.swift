@@ -120,7 +120,8 @@ public class APIService: ObservableObject {
     
     //TODO: check if this works. new user code
     public func getUserStats() async throws -> APIUserDetails {
-        let url = URL(string: "\(baseURL)/user/Hawk")! // TODO: replace with hardcoded user_id
+        let user_loggedin = "Hawk"
+        let url = URL(string: "\(baseURL)/user/\(user_loggedin)")! // TODO: replace with hardcoded user_id
         let (data, _) = try await session.data(from: url)
         return try JSONDecoder().decode(APIUserDetails.self, from: data)
     }
@@ -141,7 +142,7 @@ public class APIService: ObservableObject {
     }
     
     public func getSpecies(id: Int) async throws -> APISpecies {
-        let url = URL(string: "\(baseURL)/species/\(id)")!
+        let url = URL(string: "\(baseURL)/species/id/\(id)")!
         let (data, _) = try await session.data(from: url)
         return try JSONDecoder().decode(APISpecies.self, from: data)
     }
