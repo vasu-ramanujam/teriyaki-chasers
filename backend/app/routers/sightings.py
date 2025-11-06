@@ -240,6 +240,5 @@ async def create_sighting(
         raise
     except Exception as e:
         db.rollback()
-        print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
