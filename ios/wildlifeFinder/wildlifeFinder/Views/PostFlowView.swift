@@ -187,7 +187,7 @@ struct IdentifyView: View {
     @Binding var path: NavigationPath
 
     var body: some View {
-        VStack {
+        ScrollView {
             HStack {
                 Button("< Back") {
                     dismiss()
@@ -281,6 +281,8 @@ struct PostView: View {
             ZStack(alignment: .topTrailing) {
                 if let image = postVM.image {
                     Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
                         .padding(.trailing)
                 } else {
                     Image(systemName: "photo")
