@@ -179,6 +179,7 @@ async def create_sighting(
             
             if settings.aws_s3_bucket_name:
                 # Use S3
+                print("using aws")
                 media_url = await s3_service.upload_file(
                     file_content=photo_content,
                     file_name=photo_filename,
