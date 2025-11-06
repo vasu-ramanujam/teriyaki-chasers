@@ -10,9 +10,19 @@ import SwiftUI
 struct FlashcardView: View {
     
     //@EnvironmentObject private var vm: DashboardViewModel
-    var info: userSpeciesStatistics
+    var info: APIFlashcardDetails
     
     let image_url = "Caribbean_Flamingo"
+    
+    func computed_date() -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+        print(info.first_seen)
+        guard let date = dateFormatter.date(from:info.first_seen) else {
+            return "Date unwrappable"
+        }
+        return date.formatted(date: .numeric, time: .omitted)
+    }
     
     var body: some View{
         VStack{
@@ -38,8 +48,8 @@ struct FlashcardView: View {
             Text("")
             HStack{
                 VStack(alignment: .leading){
-                    Text("First discovered: \(info.first_visited.formatted(date: .numeric, time: .omitted))")
-                    Text("You've seen this species \(info.times_sighted) time\(info.times_sighted == 1 ? "" : "s").")
+                    Text("First discovered: \(computed_date())")
+                    Text("You've seen this species \(info.num_sightings) time\(info.num_sightings == 1 ? "" : "s").")
                 }
                 Spacer()
             }

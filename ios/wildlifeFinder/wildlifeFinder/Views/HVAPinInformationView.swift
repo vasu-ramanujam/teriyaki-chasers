@@ -128,7 +128,6 @@ struct HVAPinInformationView: View {
                 start_time: nil,
                 end_time: nil,
                 username: nil,
-                user_id: nil
             )
             
             let apiSightings = try await APIService.shared.getSightings(filter: filter)

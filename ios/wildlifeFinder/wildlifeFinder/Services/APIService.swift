@@ -17,7 +17,6 @@ public struct APISpecies: Codable, Identifiable {
 
 public struct APISighting: Codable, Identifiable {
     public let id: String
-    public let user_id: String?
     public let username: String?
     public let species_id: Int
     public let lat: Double
@@ -49,28 +48,11 @@ public struct APIRoutePoint: Codable {
 }
 
 public struct APISightingFilter: Codable {
-    public let area: String
+    public let area: String?
     public let species_id: Int?
     public let start_time: String?
     public let end_time: String?
     public let username: String?
-    public let user_id: String?
-
-    public init(
-        area: String,
-        species_id: Int? = nil,
-        start_time: String? = nil,
-        end_time: String? = nil,
-        username: String? = nil,
-        user_id: String? = nil
-    ) {
-        self.area = area
-        self.species_id = species_id
-        self.start_time = start_time
-        self.end_time = end_time
-        self.username = username
-        self.user_id = user_id
-    }
 }
 
 public struct APISpeciesSearch: Codable {
@@ -82,14 +64,18 @@ public struct APISightingList: Codable {
 }
 
 //user
-public struct APIFlashcardDetails: Codable {
+public struct APIFlashcardDetails: Codable, Identifiable {
     public let species_name: String
     public let first_seen: String
     public let num_sightings: Int
     
+    public var id: String {
+        species_name
+    }
+    
 }
 public struct APIUserDetails: Codable {
-    public let user_id: String
+    public let username: String
     public let total_sightings: Int
     public let total_species: Int
     public let flashcards: [APIFlashcardDetails]
@@ -156,9 +142,12 @@ public class APIService: ObservableObject {
     
     //TODO: check if this works. new user code
     public func getUserStats() async throws -> APIUserDetails {
-        let url = URL(string: "\(baseURL)/user/user_id")! // TODO: replace with hardcoded user_id
+        let user_loggedin = "Hawk"
+        let url = URL(string: "\(baseURL)/user/\(user_loggedin)")! // TODO: replace with hardcoded user_id
         let (data, _) = try await session.data(from: url)
         return try JSONDecoder().decode(APIUserDetails.self, from: data)
+        
+        //return try JSONDecoder().decode(APIUserDetails.self, from: data)
     }
     
     
@@ -183,13 +172,16 @@ public class APIService: ObservableObject {
     }
     
     public func getSightings(filter: APISightingFilter) async throws -> [APISighting] {
+        
         let url = URL(string: "\(baseURL)/sightings/")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
+
         let jsonData = try JSONEncoder().encode(filter)
         request.httpBody = jsonData
+
 
         let (data, response) = try await session.data(for: request)
         if let http = response as? HTTPURLResponse {
@@ -197,6 +189,8 @@ public class APIService: ObservableObject {
         }
 
         let decoded = try JSONDecoder().decode(APISightingList.self, from: data)
+        
+        print(decoded.items)
         return decoded.items
     }
     

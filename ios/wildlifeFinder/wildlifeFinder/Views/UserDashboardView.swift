@@ -14,7 +14,7 @@ struct UserDashboardView : View {
     
     //mock data
 
-    @State var selected_flashcard: userSpeciesStatistics?
+    @State var selected_flashcard: APIFlashcardDetails?
     
     
     var body: some View {
@@ -32,10 +32,7 @@ struct UserDashboardView : View {
                     Text(vm.username)
                         .font(.headline)
                         .foregroundStyle(.white)
-                    Text(vm.user_id)
-                        .font(.caption)
-                        .foregroundStyle(.white)
-                    Text("\(vm.total_sightings) sightings over \(vm.total_species) species")
+                    Text("\(vm.userStats.total_sightings) sightings over \(vm.userStats.total_species) species")
                         .foregroundStyle(.white)
 
                 }
@@ -55,8 +52,7 @@ struct UserDashboardView : View {
                 
                 ScrollView(.horizontal){
                     HStack{
-                        ForEach(vm.discoveredSpecies, id: \.id) {item in
-
+                        ForEach(vm.userStats.flashcards, id: \.species_name) {item in
                             FlashcardPreview(flashcard: $selected_flashcard, flashcard_info: item)
                         }
                     }
@@ -116,9 +112,9 @@ struct UserDashboardView : View {
     
     private struct FlashcardPreview: View {
         
-        @Binding var flashcard: userSpeciesStatistics?
+        @Binding var flashcard: APIFlashcardDetails?
         
-        var flashcard_info: userSpeciesStatistics
+        var flashcard_info: APIFlashcardDetails
         
         //display different info based on flashcard_info
         //let image_url = "Caribbean_Flamingo"
@@ -131,7 +127,7 @@ struct UserDashboardView : View {
                     Color(red: 255/255, green: 210/255, blue: 132/255)
                         .cornerRadius(10)
                     VStack{
-                        Image(flashcard_info.image_url)
+                        Image("Caribbean_Flamingo")
                             .resizable()
                             .scaledToFit()
                             .clipped()

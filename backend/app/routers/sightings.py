@@ -56,9 +56,11 @@ async def get_sightings(
 ):
     """Get sightings filtered by area, species, time range, and/or username"""
     try:
+        
         # Start with base query
         query = db.query(SightingModel)
         
+
         # Filter by area (bounding box) if provided
         if filter_data.area:
             try:
@@ -74,10 +76,7 @@ async def get_sightings(
             except (ValueError, AttributeError) as e:
                 raise HTTPException(status_code=400, detail=f"Invalid area format. Expected: west,south,east,north. Error: {str(e)}")
         
-        # Filter by user_id if provided (recommended - unique per user)
-        if filter_data.user_id:
-            query = query.filter(SightingModel.user_id == filter_data.user_id)
-        
+
         # Filter by username if provided (may match multiple users if duplicates exist)
         if filter_data.username:
             query = query.filter(SightingModel.username == filter_data.username)
@@ -97,20 +96,16 @@ async def get_sightings(
             except ValueError as e:
                 raise HTTPException(status_code=400, detail=f"Invalid end_time format: {str(e)}")
         
+        print(filter_data) #debug
+
         # Filter by species if provided
         if filter_data.species_id:
             query = query.filter(SightingModel.species_id == filter_data.species_id)
 
-        if filter_data.username:
-            query = query.filter(SightingModel.username == filter_data.username)
-
-        if filter_data.user_id:
-            query = query.filter(SightingModel.user_id == filter_data.user_id)
         
         # Ensure at least one filter is provided
         if not any([
             filter_data.area,
-            filter_data.user_id,
             filter_data.username,
             filter_data.start_time,
             filter_data.end_time,
@@ -121,9 +116,12 @@ async def get_sightings(
                 detail="At least one filter parameter must be provided (area, user_id, username, start_time, end_time, or species_id)"
             )
         
+        
+        
         # Order by most recent and limit results
         query = query.order_by(SightingModel.taken_at.desc()).limit(100)
         
+
         # Debug: Log the query (optional, remove in production)
         sightings = query.all()
         
@@ -140,7 +138,7 @@ async def create_sighting(
     lat: float = Form(...),
     lon: float = Form(...),
     is_private: bool = Form(False),
-    user_id: Optional[str] = Form(None),  # Unique user identifier (recommended)
+    #user_id: Optional[str] = Form(None),  # Unique user identifier (recommended)
     username: Optional[str] = Form(None),  # User's display name
     caption: Optional[str] = Form(None),
     photo: Optional[UploadFile] = File(None),
@@ -155,7 +153,6 @@ async def create_sighting(
         lat: Latitude
         lon: Longitude
         is_private: Whether the sighting is private
-        user_id: Unique user identifier (recommended for filtering)
         username: User's display name
         caption: Optional caption for the sighting
         photo: Optional image file
@@ -225,7 +222,7 @@ async def create_sighting(
             lon=lon,
             taken_at=datetime.utcnow(),
             is_private=is_private,
-            user_id=user_id,
+#            user_id=user_id,
             username=username,
             caption=caption,
             media_url=media_url,

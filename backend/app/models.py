@@ -24,8 +24,8 @@ class Sighting(Base):
     __tablename__ = "sightings"
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    username = Column(String, nullable=True)  # User's display name
+    #user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    username = Column(String, ForeignKey("users.username"), nullable=False)  # User's display name
     species_id = Column(Integer, ForeignKey("species.id"), nullable=False)
     lat = Column(Float, nullable=False)  # Latitude
     lon = Column(Float, nullable=False)  # Longitude
@@ -45,7 +45,7 @@ class Route(Base):
     __tablename__ = "routes"
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, nullable=True)
+    username = Column(String, nullable=True)
     start_lat = Column(Float, nullable=False)
     start_lon = Column(Float, nullable=False)
     end_lat = Column(Float, nullable=False)
@@ -76,7 +76,7 @@ class RouteWaypoint(Base):
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, nullable=False)
+    #id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, primary_key=True, index=True, unique=True, nullable=False)
 
     sightings = relationship("Sighting", back_populates="user")

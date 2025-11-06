@@ -37,7 +37,7 @@ public struct Sighting: Identifiable, Hashable {
     public let coordinate: CLLocationCoordinate2D
     public let createdAt: Date
     public let note: String?
-    public let username: String
+    public let username: String?
     public let isPrivate: Bool
     public let media_url: String?
     public let audio_url: String?

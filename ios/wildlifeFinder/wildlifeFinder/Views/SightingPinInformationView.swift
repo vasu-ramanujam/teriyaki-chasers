@@ -109,7 +109,7 @@ func MediaView() -> some View {
             MediaView()
             
             HStack{
-                Text("Posted by: \(pinvm.currentSighting.isPrivate ? "Anonymous" : pinvm.currentSighting.username)")
+                Text("Posted by: \(pinvm.currentSighting.isPrivate ? "Anonymous" : pinvm.currentSighting.username ?? "Anonymous")")
                 Spacer()
                 Text("\(pinvm.currentSighting.createdAt.formatted(date: .numeric, time: .shortened))")
             }
