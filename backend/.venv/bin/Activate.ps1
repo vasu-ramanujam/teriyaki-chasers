@@ -197,7 +197,7 @@ else {
         $Prompt = $pyvenvCfg['prompt'];
     }
     else {
-        Write-Verbose "  Setting prompt based on parent's directory's name. (Is the directory name passed to venv module when creating the virutal environment)"
+        Write-Verbose "  Setting prompt based on parent's directory's name. (Is the directory name passed to venv module when creating the virtual environment)"
         Write-Verbose "  Got leaf-name of $VenvDir='$(Split-Path -Path $venvDir -Leaf)'"
         $Prompt = Split-Path -Path $venvDir -Leaf
     }
@@ -213,8 +213,6 @@ deactivate -nondestructive
 # Now set the environment variable VIRTUAL_ENV, used by many tools to determine
 # that there is an activated venv.
 $env:VIRTUAL_ENV = $VenvDir
-
-$env:VIRTUAL_ENV_PROMPT = $Prompt
 
 if (-not $Env:VIRTUAL_ENV_DISABLE_PROMPT) {
 
