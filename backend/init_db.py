@@ -44,20 +44,6 @@ def init_database():
                 habitat="Open country, woodlands, and urban areas",
                 diet="Small mammals, birds, reptiles",
                 behavior="Soaring hunter with distinctive red tail"
-            ),
-            Species(
-                common_name="White-tailed Deer",
-                scientific_name="Odocoileus virginianus",
-                habitat="Forests, fields, and suburban areas",
-                diet="Grasses, leaves, twigs, acorns",
-                behavior="Most active at dawn and dusk"
-            ),
-            Species(
-                common_name="Eastern Gray Squirrel",
-                scientific_name="Sciurus carolinensis",
-                habitat="Urban parks and woodlands",
-                diet="Nuts, seeds, fruits, and insects",
-                behavior="Diurnal, excellent climbers and jumpers"
             )
         ]
         

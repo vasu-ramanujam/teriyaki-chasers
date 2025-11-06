@@ -37,16 +37,14 @@ class Settings(BaseSettings):
     
     def get_database_url(self) -> str:
         """Build database URL, preferring RDS if configured"""
-        # Use RDS credentials directly from documentation (hardcoded for now)
-        # RDS Configuration from RDS_CONNECTION_GUIDE.md
-        rds_host = "wildlife-explorer-db.cda2ce0kia2k.us-east-2.rds.amazonaws.com"
-        rds_port = 5432
-        rds_database = "animal_explorer"
-        rds_username = "wildlife_admin"
-        rds_password = "wowCym-5cinpy-mywbud"
-        
-        # Build RDS connection string
-        return f"postgresql+psycopg2://{rds_username}:{rds_password}@{rds_host}:{rds_port}/{rds_database}"
+        # If RDS credentials are provided, build RDS connection string
+        if all([self.rds_host, self.rds_database, self.rds_username, self.rds_password]):
+            return (
+                f"postgresql+psycopg2://{self.rds_username}:{self.rds_password}"
+                f"@{self.rds_host}:{self.rds_port}/{self.rds_database}"
+            )
+        # Otherwise use the database_url (could be SQLite or manually configured PostgreSQL)
+        return self.database_url
     
     class Config:
         env_file = ".env"
