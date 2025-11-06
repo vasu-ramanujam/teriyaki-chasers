@@ -39,7 +39,10 @@ class Settings(BaseSettings):
         """Build database URL, preferring RDS if configured"""
         # If RDS credentials are provided, build RDS connection string
         if all([self.rds_host, self.rds_database, self.rds_username, self.rds_password]):
-            return f"postgresql+psycopg2://{self.rds_username}:{self.rds_password}@{self.rds_host}:{self.rds_port}/{self.rds_database}"
+            return (
+                f"postgresql+psycopg2://{self.rds_username}:{self.rds_password}"
+                f"@{self.rds_host}:{self.rds_port}/{self.rds_database}"
+            )
         # Otherwise use the database_url (could be SQLite or manually configured PostgreSQL)
         return self.database_url
     

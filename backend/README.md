@@ -104,6 +104,16 @@ python reset_db.py
 python init_db.py
 ```
 
+### Switching Between Local SQLite and RDS PostgreSQL
+- `.env` should contain your default local settings (e.g. `DATABASE_URL=sqlite:///animal_explorer.db`).
+- When you need to run against the cloud database, create a **local** `.env.rds` file with your RDS credentials (kept out of git).
+- Use the helper script to load both files and run a command in one step:
+  ```bash
+  ./scripts/load-env.sh python init_db.py      # seed whichever database is active
+  ./scripts/load-env.sh python run.py          # start the API with the loaded env vars
+  ```
+- Without `.env.rds` present, the script only exports the values from `.env`, keeping the workflow purely local.
+
 ## 🔧 Configuration
 
 ### Environment Variables
