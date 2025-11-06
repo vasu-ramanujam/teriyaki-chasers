@@ -6,7 +6,7 @@ from app.database import get_db
 from app.models import User, Sighting, Species
 from app.schemas import UserStats, FlashcardInfo
 
-router = APIRouter(prefix="/v1", tags=["User"])
+router = APIRouter()
 
 @router.get("/user/{user_id}", response_model=UserStats)
 def get_user_stats_by_path(user_id: int, db: Session = Depends(get_db)):
