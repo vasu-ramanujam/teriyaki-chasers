@@ -24,41 +24,41 @@ def init_database():
         
         # Add sample species
         sample_species = [
-#            Species(
-#                common_name="Great Horned Owl",
-#                scientific_name="Bubo virginianus",
-#                habitat="Forests, deserts, and urban areas",
-#                diet="Small mammals, birds, reptiles",
-#                behavior="Nocturnal hunter with excellent hearing"
-#            ),
-#            Species(
-#                common_name="American Robin",
-#                scientific_name="Turdus migratorius",
-#                habitat="Gardens, parks, and woodlands",
-#                diet="Earthworms, insects, berries",
-#                behavior="Active during day, known for early morning singing"
-#            ),
-#            Species(
-#                common_name="Red-tailed Hawk",
-#                scientific_name="Buteo jamaicensis",
-#                habitat="Open country, woodlands, and urban areas",
-#                diet="Small mammals, birds, reptiles",
-#                behavior="Soaring hunter with distinctive red tail"
-#            ),
-#            Species(
-#                common_name="White-tailed Deer",
-#                scientific_name="Odocoileus virginianus",
-#                habitat="Forests, fields, and suburban areas",
-#                diet="Grasses, leaves, twigs, acorns",
-#                behavior="Most active at dawn and dusk"
-#            ),
-#            Species(
-#                common_name="Eastern Gray Squirrel",
-#                scientific_name="Sciurus carolinensis",
-#                habitat="Urban parks and woodlands",
-#                diet="Nuts, seeds, fruits, and insects",
-#                behavior="Diurnal, excellent climbers and jumpers"
-#            )
+           Species(
+               common_name="Great Horned Owl",
+               scientific_name="Bubo virginianus",
+               habitat="Forests, deserts, and urban areas",
+               diet="Small mammals, birds, reptiles",
+               behavior="Nocturnal hunter with excellent hearing"
+           ),
+           Species(
+               common_name="American Robin",
+               scientific_name="Turdus migratorius",
+               habitat="Gardens, parks, and woodlands",
+               diet="Earthworms, insects, berries",
+               behavior="Active during day, known for early morning singing"
+           ),
+           Species(
+               common_name="Red-tailed Hawk",
+               scientific_name="Buteo jamaicensis",
+               habitat="Open country, woodlands, and urban areas",
+               diet="Small mammals, birds, reptiles",
+               behavior="Soaring hunter with distinctive red tail"
+           ),
+           Species(
+               common_name="White-tailed Deer",
+               scientific_name="Odocoileus virginianus",
+               habitat="Forests, fields, and suburban areas",
+               diet="Grasses, leaves, twigs, acorns",
+               behavior="Most active at dawn and dusk"
+           ),
+           Species(
+               common_name="Eastern Gray Squirrel",
+               scientific_name="Sciurus carolinensis",
+               habitat="Urban parks and woodlands",
+               diet="Nuts, seeds, fruits, and insects",
+               behavior="Diurnal, excellent climbers and jumpers"
+           )
         ]
         
         for species in sample_species:
