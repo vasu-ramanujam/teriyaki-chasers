@@ -44,10 +44,23 @@ struct RouteStackView: View {
                 }
                 .disabled(routeVM.appRoute == nil)
             }
+            // TODO: add "Current Route" text back to navTitle, remove second ToolbarItem
             .navigationTitle("Current Route")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Start") { /* hook to Directions later */ }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink {
+                        ARViewScreen(waypoints: waypoints)
+                            .edgesIgnoringSafeArea(.all)
+                    } label: {
+                        Image(systemName: "arkit")
+                            .font(.title2)
+                            .padding(6)
+                            .background(.thinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
                 }
             }
         }

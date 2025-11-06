@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16
+    container_name: wildlife-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: animal_explorer
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: wildlife-api
+    command: >
+      bash -c "
+      sleep 5 && 
+      python init_db.py &&
+      python run.py
+      "
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./.env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:password@db:5432/animal_explorer
+
+volumes:
+  db_data:
+

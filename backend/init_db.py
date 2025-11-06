@@ -65,6 +65,7 @@ def init_database():
             db.add(species)
         db.flush()
         by_sci = {s.scientific_name: s for s in db.query(Species).all()}
+<<<<<<< HEAD
         sample_sightings = [
             {
                 "sci": "Bubo virginianus",
@@ -93,6 +94,18 @@ def init_database():
                 "media_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgO9RdL4piwhn7ybNxJ9H3_5gxssYXQOlW_CInZ3OqlGmkdiRdJVKQ1mkcKcgpd4otJUi801Wxt3CCfRzIxQei6nd9WXE5P5J2CWX_HO4&s=10",
                 "taken_at": datetime(2025, 10, 28, 7, 21, tzinfo=timezone.utc)
             },
+=======
+        now = datetime.utcnow()
+        # sample lat, longs at the dude
+        # "lat": 42.2911208, "lon": -83.7159276
+        # "lat": 42.2912344, "lon": -83.7159963
+        # "lat": 42.2912455, "lon": -83.7159920
+
+        sample_sightings = [
+            {"sci": "Bubo virginianus",     "lat": 42.2776062, "lon": -83.7315065, "user": "Ada",   "cap": "Perched on the oak"},
+            {"sci": "Turdus migratorius",   "lat": 42.2777608, "lon": -83.7315565, "user": "Robin", "cap": "Early worm run"},
+            {"sci": "Buteo jamaicensis",    "lat": 42.2777565, "lon": -83.7316044, "user": "Hawk",  "cap": "Soaring over meadow"},
+>>>>>>> origin/arview
         ]
         for s in sample_sightings:
             db.add(Sighting(
