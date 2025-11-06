@@ -23,7 +23,6 @@ public final class SightingPinInformationViewModel: ObservableObject , GetsSpeci
         self.imageURL = URL(string: s.media_url ?? "")
         self.soundURL = nil
         
-        let _ = print(s.media_url)
     }
     func call_loadSpeciesDetails() async {
         await loadSpeciesDetails(currentSpecies: currentSighting.species)

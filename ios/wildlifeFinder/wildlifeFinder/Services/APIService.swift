@@ -131,7 +131,7 @@ public class APIService: ObservableObject {
         #if targetEnvironment(simulator)
             return "http://127.0.0.1:8000/v1"
         #else
-            return "http://Owens-MacBook-Air-9.local:8000/v1"
+            return "http://catherinezs-macbook-pro-65.local:8000/v1"
         #endif
     }()
 
@@ -190,7 +190,6 @@ public class APIService: ObservableObject {
 
         let decoded = try JSONDecoder().decode(APISightingList.self, from: data)
         
-        print(decoded.items)
         return decoded.items
     }
     

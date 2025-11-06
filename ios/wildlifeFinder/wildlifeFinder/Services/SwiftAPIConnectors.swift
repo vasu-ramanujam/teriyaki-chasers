@@ -91,13 +91,18 @@ extension GetsSpeciesDetails {
         defer { isLoading = false }
 
         let id = currentSpecies.id
+        
+        var some_details: Species?
 
         do {
             // Try the richer, canonical species endpoint first
+            
             if let apiSpecies = try? await APIService.shared.getSpecies(id: id) {
-                self.speciesDetails = Species(from: apiSpecies)
-                return
+                some_details = Species(from: apiSpecies)
+                //self.speciesDetails = Species(from: apiSpecies)
+                //return
             }
+             
 
             // Fallback: supplement existing species with details payload
             let details = try await APIService.shared.getSpeciesDetails(id: id)
@@ -105,14 +110,14 @@ extension GetsSpeciesDetails {
             let base = currentSpecies
             self.speciesDetails = Species(
                 id: id,
-                common_name: details.english_name ?? base.common_name,
-                scientific_name: details.species,
-                habitat: base.habitat,
-                diet: base.diet,
-                behavior: base.behavior,
-                description: details.description ?? base.description,
-                other_sources: details.other_sources,
-                created_at: base.created_at
+                common_name: details.english_name ?? some_details?.common_name ?? base.common_name,
+                scientific_name: some_details?.scientific_name ?? details.species,
+                habitat: some_details?.habitat ?? base.habitat,
+                diet: some_details?.diet ?? base.diet,
+                behavior: some_details?.behavior ?? base.behavior,
+                description: details.description ?? some_details?.description ?? base.description,
+                other_sources: some_details?.other_sources ?? details.other_sources,
+                created_at: some_details?.created_at ?? base.created_at
             )
         } catch {
             self.errorMessage = "Failed to load species details: \(error.localizedDescription)"
