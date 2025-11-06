@@ -139,9 +139,10 @@ class ErrorResponse(BaseModel):
     code: str
 
 class FlashcardInfo(BaseModel):
-    species_name: str
+    species_id: int
     first_seen: datetime
     num_sightings: int
+    species_name: str
 
 class UserStats(BaseModel):
     username: str
@@ -151,3 +152,6 @@ class UserStats(BaseModel):
 
     class Config:
         orm_mode = True
+
+class ImageLink(BaseModel):
+    link: str

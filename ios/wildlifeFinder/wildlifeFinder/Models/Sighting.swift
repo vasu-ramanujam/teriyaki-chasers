@@ -13,6 +13,7 @@ public struct Species: Identifiable, Hashable {
     public let description: String?
     public let other_sources: [String]?
     public let created_at: Date
+    public let main_image: String?
     
     // Computed properties for UI compatibility
     public var name: String { common_name }
@@ -28,6 +29,20 @@ public struct Species: Identifiable, Hashable {
         self.description = apiSpecies.description
         self.other_sources = apiSpecies.other_sources
         self.created_at = ISO8601DateFormatter().date(from: apiSpecies.created_at) ?? Date()
+        self.main_image = apiSpecies.main_image
+    }
+    
+    public init(sp_id: Int) {
+        self.id = sp_id
+        self.common_name = ""
+        self.scientific_name = ""
+        self.habitat = ""
+        self.diet = ""
+        self.behavior = ""
+        self.description = ""
+        self.other_sources = []
+        self.created_at = Date()
+        self.main_image = ""
     }
 }
 

@@ -13,6 +13,8 @@ public struct APISpecies: Codable, Identifiable {
     public let description: String?
     public let other_sources: [String]?
     public let created_at: String
+    public let main_image: String?
+
 }
 
 public struct APISighting: Codable, Identifiable {
@@ -65,12 +67,13 @@ public struct APISightingList: Codable {
 
 //user
 public struct APIFlashcardDetails: Codable, Identifiable {
+    public let species_id: Int
     public let species_name: String
     public let first_seen: String
     public let num_sightings: Int
     
-    public var id: String {
-        species_name
+    public var id: Int {
+        species_id
     }
     
 }
@@ -79,6 +82,10 @@ public struct APIUserDetails: Codable {
     public let total_sightings: Int
     public let total_species: Int
     public let flashcards: [APIFlashcardDetails]
+}
+
+public struct ImageLink: Codable {
+    public let link: String
 }
 
 // Identify DTOs
@@ -113,6 +120,7 @@ public struct APISpeciesDetails: Codable {
     public let english_name: String?
     public let description: String?
     public let other_sources: [String]?
+    public let main_image: String?
 }
 extension APIService {
     public func getSpeciesDetails(id: Int) async throws -> APISpeciesDetails {
@@ -140,11 +148,20 @@ public class APIService: ObservableObject {
     
     private init() {}
     
+    public func getWikiImage(name: String) async throws -> ImageLink {
+        let url = URL(string: "\(baseURL)/species/\(name)/image")! 
+        
+        let (data, _) = try await session.data(from: url)
+        let _ = print(data)
+        return try JSONDecoder().decode(ImageLink.self, from: data)
+    }
+    
     //TODO: check if this works. new user code
     public func getUserStats() async throws -> APIUserDetails {
         let user_loggedin = "Hawk"
         let url = URL(string: "\(baseURL)/user/\(user_loggedin)")! // TODO: replace with hardcoded user_id
         let (data, _) = try await session.data(from: url)
+        print("ofc its a json decoder error")
         return try JSONDecoder().decode(APIUserDetails.self, from: data)
         
         //return try JSONDecoder().decode(APIUserDetails.self, from: data)
@@ -167,6 +184,12 @@ public class APIService: ObservableObject {
     
     public func getSpecies(id: Int) async throws -> APISpecies {
         let url = URL(string: "\(baseURL)/species/id/\(id)")!
+        let (data, _) = try await session.data(from: url)
+        return try JSONDecoder().decode(APISpecies.self, from: data)
+    }
+    
+    public func getSpeciesFromName(name: String) async throws -> APISpecies {
+        let url = URL(string: "\(baseURL)/identify/species/\(name)")!
         let (data, _) = try await session.data(from: url)
         return try JSONDecoder().decode(APISpecies.self, from: data)
     }
@@ -198,6 +221,8 @@ public class APIService: ObservableObject {
         let (data, _) = try await session.data(from: url)
         return try JSONDecoder().decode(APISighting.self, from: data)
     }
+    
+    
     
     // MARK: - Route API
     public func createRoute(start: CLLocationCoordinate2D, end: CLLocationCoordinate2D) async throws -> APIRoute {

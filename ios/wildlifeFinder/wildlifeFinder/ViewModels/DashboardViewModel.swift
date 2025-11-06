@@ -10,7 +10,7 @@ import SwiftUI
 import MapKit
 
 @MainActor
-final class DashboardViewModel: ObservableObject, SightingsLoadable {
+final class DashboardViewModel: ObservableObject, SightingsLoadable, GetsSpeciesDetails {
     
     // published information
     
@@ -25,20 +25,8 @@ final class DashboardViewModel: ObservableObject, SightingsLoadable {
     // flashcard information
     
     // mock data
-    @Published var discoveredSpecies: [userSpeciesStatistics] = []
     
     func init_flashcards() {
-        let date_formatter = DateFormatter()
-        date_formatter.dateFormat = "yyyy-MM-dd"
-        // do API call
-        discoveredSpecies = [
-            userSpeciesStatistics(species_name: "Flamingo", first_visited: date_formatter.date(from: "2025-09-28")!, times_sighted: 10),
-            userSpeciesStatistics(species_name: "Panda", first_visited: date_formatter.date(from: "2024-08-08")!, times_sighted: 2),
-            userSpeciesStatistics(species_name: "Beluga Whale", first_visited: date_formatter.date(from: "2025-01-24")!, times_sighted: 7),
-            userSpeciesStatistics(species_name: "Penguin", first_visited: date_formatter.date(from: "2024-12-27")!, times_sighted: 15),
-            userSpeciesStatistics(species_name: "Octopus", first_visited: date_formatter.date(from: "2025-05-25")!, times_sighted: 17),
-            userSpeciesStatistics(species_name: "Giraffe", first_visited: date_formatter.date(from: "2024-12-02")!, times_sighted: 4)
-        ]
         
     }
     
@@ -54,8 +42,7 @@ final class DashboardViewModel: ObservableObject, SightingsLoadable {
     
     //for flashcard / user aggregate stats
     @Published var userStats: APIUserDetails = APIUserDetails(username: "", total_sightings: 0, total_species: 0, flashcards: [])
-    
-    
+        
     var dash_filter = APISightingFilter(
         area: nil,
         species_id: nil,
@@ -69,41 +56,46 @@ final class DashboardViewModel: ObservableObject, SightingsLoadable {
         print("load sightings done successfully")
     }
     
+    @Published var FlashcardImages: [String: String] = [:]
+
+    
+    //var selected_flashcard: APIFlashcardDetails?
+    
+    var speciesDetails: Species? // aka the species to show
+    
+    
+    func call_loadSpeciesDetails(current_flash: APIFlashcardDetails?) async {
+        guard let current_flash else {
+            return
+        }
+        await loadSpeciesDetails(currentSpecies: Species(sp_id: current_flash.species_id))
+    }
+    
     
     func loadUserStats() async {
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
-        
-        print("inside loadUserStats async function")
-
         do {
             // 1) fetch API stats
-            userStats = try await APIService.shared.getUserStats()
-            
-            //probably i should do more here
-            //TODO: more here?
+            userStats = try await APIService.shared.getUserStats() // this is the line thats giving error
 
         } catch {
             errorMessage = "Failed to load user details: \(error.localizedDescription)"
             print("Error loading user details:", error)
         }
+        
+        userStats.flashcards.forEach { flashcard in
+            Task {
+                let image_link = try await APIService.shared.getWikiImage(name: flashcard.species_name)
+                FlashcardImages[flashcard.species_name] = image_link.link
+                let _ = print(image_link.link)
+            }
+        }
+        
     }
     
 
 }
 
 
-
-//edit based on API endpoint and put modified model into models
-
-struct userSpeciesStatistics: Identifiable {
-    let species_name: String
-    let first_visited: Date
-    let times_sighted: Int
-    let image_url: String = "Caribbean_Flamingo"
-    
-    var id: String {
-            species_name
-        }
-}

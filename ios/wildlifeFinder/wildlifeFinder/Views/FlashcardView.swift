@@ -9,10 +9,14 @@ import SwiftUI
 
 struct FlashcardView: View {
     
-    //@EnvironmentObject private var vm: DashboardViewModel
+    @EnvironmentObject private var vm: DashboardViewModel
+    
+    // I HAVE ACCESS TO vm.SpeciesDetails as well as info
+    
+    
     var info: APIFlashcardDetails
     
-    let image_url = "Caribbean_Flamingo"
+    //let image_url = "Caribbean_Flamingo"
     
     func computed_date() -> String {
         let dateFormatter = DateFormatter()
@@ -24,43 +28,74 @@ struct FlashcardView: View {
         return date.formatted(date: .numeric, time: .omitted)
     }
     
-    var body: some View{
-        VStack{
-            
-            Text(info.species_name)
-                .font(.title)
-                .padding()
-
-            
-            Image(image_url)
-                .resizable()
-                .scaledToFit()
-                .clipped()
-                .border(ui_green, width: 5)
-                .clipShape(RoundedRectangle(cornerRadius: 15))
-                .frame(maxWidth: 300, maxHeight: 200)
-                .padding(10)
-            
-            HStack{
-                Text("Description -- replace with flashcard view model . description ")
-                Spacer()
+    @ViewBuilder
+    func MediaUnwrap() -> some View {
+        if let url = URL(string: (vm.speciesDetails?.main_image!)!)/*URL(string: "Caribbean_Flamingo")*/ {
+            AsyncImage(url: url) { image in
+                image
+                    .resizable()
+                    .scaledToFit()
+            } placeholder: {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .overlay(ProgressView())
             }
-            Text("")
-            HStack{
-                VStack(alignment: .leading){
-                    Text("First discovered: \(computed_date())")
-                    Text("You've seen this species \(info.num_sightings) time\(info.num_sightings == 1 ? "" : "s").")
-                }
-                Spacer()
+            .containerRelativeFrame(.horizontal) { size, axis in
+                size * 0.93
             }
-            
-            
-            
-            Spacer()
-            
+        } else {
+            Rectangle()
+                .frame(maxWidth: .infinity, maxHeight: 100)
+                .background(Color.gray.opacity(0.3))
         }
-        .padding()
-        .background(Color(red: 255/255, green: 210/255, blue: 132/255))
-        
     }
+    
+    @ViewBuilder
+    func unwrap_View() -> some View {
+        if vm.speciesDetails != nil {
+            VStack{
+                
+                Text(vm.speciesDetails!.name)
+                    .font(.title)
+                    .padding()
+                
+                // TODO: insert image
+                MediaUnwrap()
+
+                Text(vm.description)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .lineLimit(nil)
+                    .padding(.top, 5)
+                //SpeciesView(species: vm.speciesDetails!, imgUrl: URL(string: "Caribbean_Flamingo")!)
+                
+                Text("")
+                HStack{
+                    VStack(alignment: .leading){
+                        Text("First discovered: \(computed_date())")
+                        Text("You've seen this species \(info.num_sightings) time\(info.num_sightings == 1 ? "" : "s").")
+                    }
+                    Spacer()
+                }
+                
+                
+                
+                Spacer()
+                
+            }
+            .padding()
+            .background(Color(red: 255/255, green: 210/255, blue: 132/255))
+            
+            
+            
+            
+            
+        } else {
+            Text("Unable to load species data.")
+        }
+    }
+    
+    var body: some View{
+        unwrap_View()
+    }
+      
 }

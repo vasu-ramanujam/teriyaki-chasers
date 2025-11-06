@@ -46,7 +46,8 @@ extension SightingsLoadable {
                         behavior: nil,
                         description: details.description,
                         other_sources: details.other_sources,
-                        created_at: Date()
+                        created_at: Date(),
+                        main_image: nil
                     )
                     speciesById[sid] = mapped
                 }
@@ -79,7 +80,7 @@ protocol GetsSpeciesDetails : AnyObject{
     var errorMessage: String? { get set }
     var speciesDetails: Species? {get set}
     var description: LocalizedStringKey {get}
-    func call_loadSpeciesDetails() async
+    func call_loadSpeciesDetails(current_flash: APIFlashcardDetails?) async
 
 }
 
@@ -117,7 +118,8 @@ extension GetsSpeciesDetails {
                 behavior: some_details?.behavior ?? base.behavior,
                 description: details.description ?? some_details?.description ?? base.description,
                 other_sources: some_details?.other_sources ?? details.other_sources,
-                created_at: some_details?.created_at ?? base.created_at
+                created_at: some_details?.created_at ?? base.created_at,
+                main_image: some_details?.main_image ?? details.main_image ?? base.main_image
             )
         } catch {
             self.errorMessage = "Failed to load species details: \(error.localizedDescription)"

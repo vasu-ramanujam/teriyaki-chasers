@@ -24,7 +24,7 @@ public final class SightingPinInformationViewModel: ObservableObject , GetsSpeci
         self.soundURL = nil
         
     }
-    func call_loadSpeciesDetails() async {
+    func call_loadSpeciesDetails(current_flash: APIFlashcardDetails? = nil) async {
         await loadSpeciesDetails(currentSpecies: currentSighting.species)
     }
 
@@ -50,7 +50,8 @@ extension Species {
         behavior: String?,
         description: String?,
         other_sources: [String]?,
-        created_at: Date
+        created_at: Date,
+        main_image: String?
     ) {
         self.id = id
         self.common_name = common_name
@@ -61,5 +62,6 @@ extension Species {
         self.description = description
         self.other_sources = other_sources
         self.created_at = created_at
+        self.main_image = main_image
     }
 }

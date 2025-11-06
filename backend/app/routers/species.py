@@ -5,7 +5,7 @@ from typing import List, Optional, Dict, Any
 import httpx
 from app.database import get_db
 from app.models import Species as SpeciesModel
-from app.schemas import Species, SpeciesSearch, SpeciesDetail, SpeciesDetails
+from app.schemas import Species, SpeciesSearch, SpeciesDetail, SpeciesDetails, ImageLink
 
 router = APIRouter()
 
@@ -163,7 +163,7 @@ async def get_species(
     scientific_name = getattr(species, "scientific_name", None)
     
     # Enrich with Wikipedia data
-    wiki = await _enrich_with_wikipedia(scientific_name)
+    wiki = await _enrich_with_wikipedia_with_image(scientific_name)
     
     # Return the species details with image
     return SpeciesDetails(
@@ -171,4 +171,15 @@ async def get_species(
         english_name=wiki["english_name"],
         description=wiki["description"],
         other_sources=wiki["other_sources"],
+        main_image=wiki["main_image"]  # main image URL from Wikipedia
+
     )
+
+@router.get("/{species_name}/image", response_model=ImageLink)
+async def get_wiki_image_from_name(
+    species_name: str
+):
+    """Get species image link by name from wiki"""
+    data = await _enrich_with_wikipedia_with_image(species_name)
+    return ImageLink(link=data["main_image"])
+    
