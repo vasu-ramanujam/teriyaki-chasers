@@ -79,9 +79,14 @@ extension Sighting {
         fallback.calendar = Calendar(identifier: .iso8601)
         fallback.locale = Locale(identifier: "en_US_POSIX")
         fallback.timeZone = TimeZone(secondsFromGMT: 0)
-        fallback.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        fallback.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
         if let parsed = fallback.date(from: dateString) {
             return parsed
+        } else {
+            fallback.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+            if let parsed = fallback.date(from: dateString) {
+                return parsed
+            }
         }
 
         return Date()
