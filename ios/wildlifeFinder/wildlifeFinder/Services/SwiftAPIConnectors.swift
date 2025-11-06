@@ -35,6 +35,12 @@ extension SightingsLoadable {
             // 3) For each sighting, ensure we have its Species (using details endpoint)
             for apiSighting in apiSightings {
                 let sid = apiSighting.species_id
+//                guard let taken_at = apiSighting.created_at else { return }
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+                formatter.timeZone = TimeZone.current
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                let testDate = formatter.date(from: apiSighting.created_at)
                 if speciesById[sid] == nil {
                     let details = try await APIService.shared.getSpeciesDetails(id: sid)
                     let mapped = Species(
@@ -46,8 +52,8 @@ extension SightingsLoadable {
                         behavior: nil,
                         description: details.description,
                         other_sources: details.other_sources,
-                        created_at: Date(),
                         main_image: nil
+                        created_at: testDate ?? Date()
                     )
                     speciesById[sid] = mapped
                 }

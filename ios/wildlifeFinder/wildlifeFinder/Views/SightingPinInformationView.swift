@@ -36,23 +36,38 @@ struct SightingPinInformationView: View {
     
     @ViewBuilder
 func MediaUnwrap() -> some View {
-    if let url = pinvm.imageURL {
-        AsyncImage(url: url) { image in
-            image
-                .resizable()
-                .scaledToFit()
-        } placeholder: {
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .overlay(ProgressView())
+    if let url = pinvm.imageURL, url.scheme == "https" {
+        AsyncImage(url: url) { phase in
+            switch phase {
+            case .empty:
+                // Placeholder while the image is loading
+                ProgressView()
+            case .success(let image):
+                // Display the loaded image
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            case .failure:
+                // Display an error or placeholder if loading fails
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.red)
+            @unknown default:
+                // Handle future cases
+                EmptyView()
+            }
         }
         .containerRelativeFrame(.horizontal) { size, axis in
             size * 0.93
         }
     } else {
-        Rectangle()
-            .frame(maxWidth: .infinity, maxHeight: 100)
-            .opacity(0)
+        if let url = pinvm.imageURL {
+            if let imageData = try? Data(contentsOf: url) {
+                let image = UIImage(data: imageData)!
+                Image(uiImage: image)
+                    .frame(maxWidth: .infinity, maxHeight: 100)
+                    .opacity(0)
+            }
+        }
     }
 }
 
