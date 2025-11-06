@@ -33,17 +33,62 @@ final class SightingMapViewModel: ObservableObject, SightingsLoadable {
     @Published var errorMessage: String?
 
     var canGenerateRoute: Bool { !selectedWaypoints.isEmpty }
+    private static let isoNoFrac: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime]
+        f.timeZone = TimeZone(secondsFromGMT: 0)
+        return f
+    }()
+
+    // Clamp the search window if the camera span is gigantic
+    private func clampedSpan(for span: MKCoordinateSpan) -> MKCoordinateSpan {
+        let maxDelta: CLLocationDegrees = 2.0    // ~ a large city/metro area
+        let minDelta: CLLocationDegrees = 0.02   // ~ 1–2 km
+        let lat = min(max(span.latitudeDelta,  minDelta), maxDelta)
+        let lon = min(max(span.longitudeDelta, minDelta), maxDelta)
+        return MKCoordinateSpan(latitudeDelta: lat, longitudeDelta: lon)
+    }
+
+    func recenterOnUser() {
+        let c = LocationManagerViewModel.shared.coordinate
+        mapRegion = MKCoordinateRegion(center: c, span: clampedSpan(for: mapRegion.span))
+    }
+    func centerOnFirstValidLocationAndLoad() async {
+        let deadline = Date().addingTimeInterval(3.0) // wait up to ~3s for GPS
+        while Date() < deadline {
+            let c = LocationManagerViewModel.shared.coordinate
+            if abs(c.latitude) > .ulpOfOne || abs(c.longitude) > .ulpOfOne {
+                recenterOnUser()
+                await call_loadSightings()
+                return
+            }
+            try? await Task.sleep(nanoseconds: 150_000_000)
+        }
+        // Fallback: keep default Ann Arbor center, but still load pins for the 24h window
+        await call_loadSightings()
+    }
+
+
     
     func call_loadSightings() async {
+        let now = Date()
+        let start = now.addingTimeInterval(-24 * 60 * 60)
+        let startISO = Self.isoNoFrac.string(from: start)
+        let endISO = Self.isoNoFrac.string(from: now)
+
+        let clamped = clampedSpan(for: mapRegion.span)
+        let area = APIService.shared.createBoundingBox(center: mapRegion.center, span: clamped)
+
         let filter = APISightingFilter(
-            area: APIService.shared.createBoundingBox(center: mapRegion.center, span: mapRegion.span),
+            area: area,
             species_id: nil,
-            start_time: nil,
-            end_time: nil,
-            username: nil,
+            start_time: startISO,
+            end_time: endISO,
+            username: nil
         )
         await loadSightings(filter: filter)
     }
+
 
     func searchSpecies(query: String) async {
         guard !query.isEmpty else {
@@ -61,8 +106,11 @@ final class SightingMapViewModel: ObservableObject, SightingsLoadable {
     }
 
     var filteredSightings: [Sighting] {
-        guard let species = selectedSpecies, !species.isEmpty else { return sightings }
-        return sightings.filter { $0.species.name.localizedCaseInsensitiveContains(species) }
+        let now = Date()
+        let cutoff = now.addingTimeInterval(-24 * 60 * 60)
+        let timeFiltered = sightings.filter { $0.createdAt >= cutoff && $0.createdAt <= now }
+        guard let species = selectedSpecies, !species.isEmpty else { return timeFiltered }
+        return timeFiltered.filter { $0.species.name.localizedCaseInsensitiveContains(species) }
     }
 
     func updateSuggestions() {

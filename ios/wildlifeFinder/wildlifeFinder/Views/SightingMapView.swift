@@ -99,9 +99,10 @@ struct SightingMapView: View {
         .onAppear {
             // Load real data instead of mock
             Task {
-                await vm.call_loadSightings()
+                // Wait briefly for GPS; then center & load last-24h sightings
+                await vm.centerOnFirstValidLocationAndLoad()
+                cameraPosition = .region(vm.mapRegion)
             }
-            cameraPosition = .region(vm.mapRegion)
         }
         .sheet(item: $selectedSighting) { item in
             SightingPinInformationView(
