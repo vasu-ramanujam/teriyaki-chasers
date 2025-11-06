@@ -1,11 +1,13 @@
 import os
 import base64
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.database import get_db
 from app.routers.species import _enrich_with_wikipedia_with_image
+from app.models import Species
 
 router = APIRouter()
 
@@ -22,6 +24,42 @@ DEFAULT_UA = "WildlifeExplorer/1.0 (contact: ios-app)"
 def _require_api_key():
     if not OPENAI_API_KEY:
         raise HTTPException(status_code=500, detail="Missing OPENAI_API_KEY environment variable")
+
+
+def _get_or_create_species(db: Session, label: str, wiki_data: Optional[Dict[str, Any]]) -> Optional[int]:
+    """Ensure we have a Species row for the identified label and return its id."""
+
+    if not label:
+        return None
+
+    species = (
+        db.query(Species)
+        .filter(func.lower(Species.common_name) == label.lower())
+        .first()
+    )
+    if species:
+        return species.id
+
+    scientific = label
+    description = None
+    other_sources = None
+
+    if wiki_data:
+        scientific = wiki_data.get("species") or scientific
+        description = wiki_data.get("description")
+        other_sources = wiki_data.get("other_sources")
+
+    species = Species(
+        common_name=label,
+        scientific_name=scientific,
+        description=description,
+        other_sources=other_sources,
+    )
+
+    db.add(species)
+    db.commit()
+    db.refresh(species)
+    return species.id
 
 # ------------------ OpenAI ------------------
 
@@ -104,7 +142,8 @@ async def identify_photo(
         img = await photo.read()
         label = await _identify_species_from_image(img)
         wiki_data = await _enrich_with_wikipedia_with_image(label)
-        return {"label": label, "wiki_data": wiki_data}
+        species_id = _get_or_create_species(db, label, wiki_data)
+        return {"label": label, "species_id": species_id, "wiki_data": wiki_data}
     except HTTPException:
         raise
     except Exception as e:
@@ -131,7 +170,8 @@ async def identify_audio(
         buf = await audio.read()
         label = await _identify_species_from_audio(buf, fmt_hint=fmt_hint)
         wiki_data = await _enrich_with_wikipedia_with_image(label)
-        return {"label": label, "wiki_data": wiki_data}
+        species_id = _get_or_create_species(db, label, wiki_data)
+        return {"label": label, "species_id": species_id, "wiki_data": wiki_data}
     except HTTPException:
         raise
     except Exception as e:

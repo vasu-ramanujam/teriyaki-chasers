@@ -56,11 +56,12 @@ class SightingCreate(SightingBase):
 
 class Sighting(SightingBase):
     id: str
-    user_id: Optional[str] = None
     username: Optional[str] = None
     media_thumb_url: Optional[str] = None
+    media_url: Optional[str] = None
     caption: Optional[str] = None
     created_at: datetime
+    taken_at: datetime
     
     class Config:
         from_attributes = True
@@ -79,10 +80,11 @@ class SightingList(BaseModel):
     items: List[Sighting]
 
 class SightingFilter(BaseModel):
-    area: str
+    area: Optional[str] = None
     species_id: Optional[int] = None
     start_time: Optional[str] = None
     end_time: Optional[str] = None
+    username: Optional[str] = None
 
 # Route schemas
 class RoutePoint(BaseModel):
@@ -142,7 +144,7 @@ class FlashcardInfo(BaseModel):
     num_sightings: int
 
 class UserStats(BaseModel):
-    user_id: int
+    username: str
     total_sightings: int
     total_species: int
     flashcards: List[FlashcardInfo]

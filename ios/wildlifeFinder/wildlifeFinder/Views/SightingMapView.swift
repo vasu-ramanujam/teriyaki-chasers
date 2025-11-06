@@ -53,13 +53,14 @@ struct SightingMapView: View {
                 Spacer()
 
                 VStack(spacing: 10) {
+                    
                     HStack(spacing: 8) {
                         ToggleChip(title: "Sighting Pin", isOn: $vm.showSightings)
                         ToggleChip(title: "High Volume Area", isOn: $vm.showHotspots)
                         Spacer()
                         Button { 
                             Task {
-                                await vm.loadSightings()
+                                await vm.call_loadSightings()
                             }
                         } label: { 
                             Image(systemName: "arrow.clockwise")
@@ -69,6 +70,7 @@ struct SightingMapView: View {
                         .disabled(vm.isLoading)
                     }
                     .padding(.horizontal)
+                    .padding(.top, 7)
 
                     Button {
                         showRouteSheet = true
@@ -83,10 +85,13 @@ struct SightingMapView: View {
                             .padding(.vertical, 14)
                     }
                     .disabled(!vm.canGenerateRoute)
+                    .tint(ui_orange)
                     .opacity(vm.canGenerateRoute ? 1 : 0.5)
                     .buttonStyle(.borderedProminent)
+                    .foregroundStyle(.black)
                     .padding(.horizontal)
                     .padding(.bottom, 8)
+                    
                 }
                 .background(.ultraThinMaterial)
             }
@@ -94,7 +99,7 @@ struct SightingMapView: View {
         .onAppear {
             // Load real data instead of mock
             Task {
-                await vm.loadSightings()
+                await vm.call_loadSightings()
             }
             cameraPosition = .region(vm.mapRegion)
         }
@@ -223,3 +228,4 @@ private struct hotspotSheetInfo: Identifiable {
     let hotspot: Hotspot
     let waypoint: Waypoint
 }
+

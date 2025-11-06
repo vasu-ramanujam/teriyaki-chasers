@@ -17,14 +17,14 @@ public struct APISpecies: Codable, Identifiable {
 
 public struct APISighting: Codable, Identifiable {
     public let id: String
-    public let user_id: String?
     public let username: String?
     public let species_id: Int
     public let lat: Double
     public let lon: Double
-    public let taken_at: String
+    public let taken_at: String?
     public let is_private: Bool
     public let media_url: String?
+    public let audio_url: String?
     public let caption: String?
     public let created_at: String
 }
@@ -48,10 +48,11 @@ public struct APIRoutePoint: Codable {
 }
 
 public struct APISightingFilter: Codable {
-    public let area: String
+    public let area: String?
     public let species_id: Int?
     public let start_time: String?
     public let end_time: String?
+    public let username: String?
 }
 
 public struct APISpeciesSearch: Codable {
@@ -60,6 +61,29 @@ public struct APISpeciesSearch: Codable {
 
 public struct APISightingList: Codable {
     public let items: [APISighting]
+}
+
+//user
+public struct APIFlashcardDetails: Codable {
+    public let species_name: String
+    public let first_seen: String
+    public let num_sightings: Int
+    
+}
+public struct APIUserDetails: Codable {
+    public let username: String
+    public let total_sightings: Int
+    public let total_species: Int
+    public let flashcards: [APIFlashcardDetails]
+}
+
+
+
+
+// Identify DTOs
+public struct IdentifyResponse: Codable {
+    public let label: String
+    public let species_id: Int?
 }
 
 public struct APISpeciesDetails: Codable {
@@ -80,10 +104,28 @@ extension APIService {
 public class APIService: ObservableObject {
     public static let shared = APIService()
     
-    private let baseURL = "http://localhost:8000/v1" // Update with your backend URL
+    // APIService.swift
+    private let baseURL: String = {
+        #if targetEnvironment(simulator)
+            return "http://127.0.0.1:8000/v1"
+        #else
+            return "http://catherinezs-macbook-pro-65.local:8000/v1"
+        #endif
+    }()
+
+
     private let session = URLSession.shared
     
     private init() {}
+    
+    //TODO: check if this works. new user code
+    public func getUserStats() async throws -> APIUserDetails {
+        let user_loggedin = "Hawk"
+        let url = URL(string: "\(baseURL)/user/\(user_loggedin)")! // TODO: replace with hardcoded user_id
+        let (data, _) = try await session.data(from: url)
+        return try JSONDecoder().decode(APIUserDetails.self, from: data)
+    }
+    
     
     // MARK: - Species API
     public func searchSpecies(query: String, limit: Int = 10) async throws -> [APISpecies] {
@@ -100,24 +142,32 @@ public class APIService: ObservableObject {
     }
     
     public func getSpecies(id: Int) async throws -> APISpecies {
-        let url = URL(string: "\(baseURL)/species/\(id)")!
+        let url = URL(string: "\(baseURL)/species/id/\(id)")!
         let (data, _) = try await session.data(from: url)
         return try JSONDecoder().decode(APISpecies.self, from: data)
     }
     
-    // MARK: - Sightings API
     public func getSightings(filter: APISightingFilter) async throws -> [APISighting] {
+        
         let url = URL(string: "\(baseURL)/sightings/")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
+
         let jsonData = try JSONEncoder().encode(filter)
         request.httpBody = jsonData
+
+
+        let (data, response) = try await session.data(for: request)
+        if let http = response as? HTTPURLResponse {
+            print("POST \(url.absoluteString) → \(http.statusCode)")
+        }
+
+        let decoded = try JSONDecoder().decode(APISightingList.self, from: data)
         
-        let (data, _) = try await session.data(for: request)
-        let response = try JSONDecoder().decode(APISightingList.self, from: data)
-        return response.items
+        print(decoded.items)
+        return decoded.items
     }
     
     public func getSighting(id: String) async throws -> APISighting {
@@ -143,6 +193,91 @@ public class APIService: ObservableObject {
         
         let (data, _) = try await session.data(for: request)
         return try JSONDecoder().decode(APIRoute.self, from: data)
+    }
+    
+    // MARK: - Identify API (photo/audio uploads)
+    public func identifyPhoto(imageData: Data) async throws -> IdentifyResponse {
+        guard let url = URL(string: "\(baseURL)/identify/photo") else { throw URLError(.badURL) }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+
+        // multipart/form-data body
+        let boundary = "Boundary-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"photo\"; filename=\"photo.jpg\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        request.httpBody = body
+
+        let (data, _) = try await session.data(for: request)
+        return try JSONDecoder().decode(IdentifyResponse.self, from: data)
+    }
+
+    public func identifyAudio(audioData: Data) async throws -> IdentifyResponse {
+        guard let url = URL(string: "\(baseURL)/identify/audio") else { throw URLError(.badURL) }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        let boundary = "Boundary-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"audio\"; filename=\"audio.m4a\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: audio/m4a\r\n\r\n".data(using: .utf8)!)
+        body.append(audioData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        request.httpBody = body
+
+        let (data, _) = try await session.data(for: request)
+        return try JSONDecoder().decode(IdentifyResponse.self, from: data)
+    }
+
+    // MARK: - Create Sighting (multipart/form-data)
+    public func createSighting(
+        speciesId: Int,
+        coordinate: CLLocationCoordinate2D,
+        isPublic: Bool,
+        caption: String?,
+        username: String?,
+        imageJPEGData: Data
+    ) async throws -> APISighting {
+        guard let url = URL(string: "\(baseURL)/sightings/create") else { throw URLError(.badURL) }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+
+        let boundary = "Boundary-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        var body = Data()
+        func addField(name: String, value: String) {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            body.append("\(value)\r\n".data(using: .utf8)!)
+        }
+
+        addField(name: "species_id", value: String(speciesId))
+        addField(name: "lat", value: String(coordinate.latitude))
+        addField(name: "lon", value: String(coordinate.longitude))
+        addField(name: "is_private", value: isPublic ? "false" : "true")
+        if let username, !username.isEmpty { addField(name: "username", value: username) }
+        if let caption, !caption.isEmpty { addField(name: "caption", value: caption) }
+
+        // Photo part
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"photo\"; filename=\"photo.jpg\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(imageJPEGData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        request.httpBody = body
+
+        let (data, _) = try await session.data(for: request)
+        return try JSONDecoder().decode(APISighting.self, from: data)
     }
     
     // MARK: - Helper Methods

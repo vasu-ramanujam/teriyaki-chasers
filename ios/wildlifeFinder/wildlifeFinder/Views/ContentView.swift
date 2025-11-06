@@ -3,49 +3,50 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject private var vm: SightingMapViewModel
+    @State private var selectedTab = 0
 
     var body: some View {
-        TabView {
-            NavigationStack {
-                SightingMapView()
-            }
-            .tabItem {
-                Image(systemName: "map")
-                Text("Sighting Map")
-            }
-
-            NavigationStack {
-                RouteStackView(waypoints: Array(vm.selectedWaypoints))
-            }
-            .tabItem {
-                Image(systemName: "point.bottomleft.forward.to.arrow.triangle.scurvepath.fill")
-                Text("Current Route")
-            }
-
-            NavigationStack {
-                Text("Post Sighting (stub)")
-            }
-            .tabItem {
-                Image(systemName: "plus")
-                Text("Add")
-            }
-
-            NavigationStack {
-                Text("Animal Search (stub)")
-            }
-            .tabItem {
-                Image(systemName: "magnifyingglass")
-                Text("Animal Search")
-            }
-
-            NavigationStack {
-                Text("User Dashboard (stub)")
-            }
-            .tabItem {
-                Image(systemName: "house.fill")
-                Text("User Dashboard")
-            }
-        }
+        TabView(selection: $selectedTab) {
+                    Tab(value: 0) {
+                        // SightingMapView()
+                        NavigationStack {
+                            SightingMapView()
+                        }
+                        
+                    }
+                    
+                    Tab(value: 1) {
+                        // route view or wtv
+                        NavigationStack {
+                            RouteStackView(waypoints: Array(vm.selectedWaypoints))
+                        }
+                    }
+                    
+                    Tab(value: 2) {
+                        // go to choose add pic / sound
+                        NavigationStack {
+                            PostFlowView()
+                        }
+                    }
+                    
+                    Tab(value: 3) {
+                        // animal search
+                        NavigationStack {
+                            Text("Animal Search (stub)")
+                        }
+                    }
+                    
+                    Tab(value: 4) {
+                        // user dashboard
+                        NavigationStack {
+                            UserDashboardView()
+                        }
+                    }
+                }
+                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                .safeAreaInset(edge: .bottom){
+                    BottomTabBarView(selectedTab: $selectedTab)
+                }.ignoresSafeArea()
     }
 }
 

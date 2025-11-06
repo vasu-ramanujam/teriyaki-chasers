@@ -37,19 +37,54 @@ public struct Sighting: Identifiable, Hashable {
     public let coordinate: CLLocationCoordinate2D
     public let createdAt: Date
     public let note: String?
-    public let username: String
+    public let username: String?
     public let isPrivate: Bool
     public let media_url: String?
+    public let audio_url: String?
     
     public init(from apiSighting: APISighting, species: Species) {
         self.id = apiSighting.id
         self.species = species
         self.coordinate = CLLocationCoordinate2D(latitude: apiSighting.lat, longitude: apiSighting.lon)
-        self.createdAt = ISO8601DateFormatter().date(from: apiSighting.taken_at) ?? Date()
+        if let taken = apiSighting.taken_at {
+            self.createdAt = Self.parse(dateString: taken)
+        } else {
+            self.createdAt = Self.parse(dateString: apiSighting.created_at)
+        }
         self.note = apiSighting.caption
         self.username = apiSighting.username ?? "Anonymous"
         self.isPrivate = apiSighting.is_private
         self.media_url = apiSighting.media_url
+        self.audio_url = apiSighting.audio_url
+    }
+}
+
+extension Sighting {
+    private static func parse(dateString: String) -> Date {
+        // First try ISO8601 with fractional seconds (FastAPI default)
+        let isoFractional = ISO8601DateFormatter()
+        isoFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let parsed = isoFractional.date(from: dateString) {
+            return parsed
+        }
+
+        // Fallback to standard ISO8601 without fractional seconds
+        let iso = ISO8601DateFormatter()
+        if let parsed = iso.date(from: dateString) {
+            return parsed
+        }
+
+        // Final fallback for bare sqlite-style strings "yyyy-MM-dd HH:mm:ss"
+        let fallback = DateFormatter()
+        fallback.calendar = Calendar(identifier: .iso8601)
+        fallback.locale = Locale(identifier: "en_US_POSIX")
+        fallback.timeZone = TimeZone(secondsFromGMT: 0)
+        fallback.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        if let parsed = fallback.date(from: dateString) {
+            return parsed
+        }
+
+        return Date()
     }
 }
 
