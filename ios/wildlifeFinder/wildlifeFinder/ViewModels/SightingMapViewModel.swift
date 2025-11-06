@@ -7,7 +7,7 @@ final class SightingMapViewModel: ObservableObject, SightingsLoadable {
     // Region (Apple Park-ish mock coords so you see pins immediately)
     @Published var mapRegion = MKCoordinateRegion(
         center: .init(latitude: 42.2808, longitude: -83.7430),
-        span: .init(latitudeDelta: 0.04, longitudeDelta: 0.04)
+        span: .init(latitudeDelta: 0.1, longitudeDelta: 0.1)
     )
 
     // Data

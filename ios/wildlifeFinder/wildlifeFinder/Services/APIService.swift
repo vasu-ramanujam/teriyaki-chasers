@@ -289,6 +289,7 @@ public class APIService: ObservableObject {
         addField(name: "lat", value: String(coordinate.latitude))
         addField(name: "lon", value: String(coordinate.longitude))
         addField(name: "is_private", value: isPublic ? "false" : "true")
+        addField(name: "username", value: "Teriyaki")
         if let username, !username.isEmpty { addField(name: "username", value: username) }
         if let caption, !caption.isEmpty { addField(name: "caption", value: caption) }
 
