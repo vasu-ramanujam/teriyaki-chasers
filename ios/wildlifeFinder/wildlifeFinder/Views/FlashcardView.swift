@@ -61,25 +61,20 @@ struct FlashcardView: View {
                 
                 // TODO: insert image
                 MediaUnwrap()
-
-                Text(vm.description)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .lineLimit(nil)
-                    .padding(.top, 5)
-                //SpeciesView(species: vm.speciesDetails!, imgUrl: URL(string: "Caribbean_Flamingo")!)
-                
-                Text("")
-                HStack{
-                    VStack(alignment: .leading){
-                        Text("First discovered: \(computed_date())")
-                        Text("You've seen this species \(info.num_sightings) time\(info.num_sightings == 1 ? "" : "s").")
+                ScrollView{
+                    HStack{
+                        VStack(alignment: .leading){
+                            Text("First discovered: \(computed_date())")
+                            Text("You've seen this species \(info.num_sightings) time\(info.num_sightings == 1 ? "" : "s").")
+                        }
+                        Spacer()
                     }
-                    Spacer()
+                    Text(vm.description)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .lineLimit(nil)
+                        .padding(.top, 5)                    
+                    
                 }
-                
-                
-                
-                Spacer()
                 
             }
             .padding()
