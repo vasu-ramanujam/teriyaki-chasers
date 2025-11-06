@@ -66,8 +66,8 @@ public struct Sighting: Identifiable, Hashable {
         } else {
             self.createdAt = Self.parse(dateString: apiSighting.created_at)
         }
-        self.note = apiSighting.caption
-        self.username = apiSighting.username ?? "Anonymous"
+        self.note = apiSighting.is_private ? nil : apiSighting.caption
+        self.username = apiSighting.is_private ? nil : (apiSighting.username ?? "Anonymous")
         self.isPrivate = apiSighting.is_private
         self.media_url = apiSighting.media_url
         self.audio_url = apiSighting.audio_url
