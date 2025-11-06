@@ -190,7 +190,6 @@ public class APIService: ObservableObject {
 
         let decoded = try JSONDecoder().decode(APISightingList.self, from: data)
         
-        print(decoded.items)
         return decoded.items
     }
     

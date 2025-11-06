@@ -96,7 +96,6 @@ async def get_sightings(
             except ValueError as e:
                 raise HTTPException(status_code=400, detail=f"Invalid end_time format: {str(e)}")
         
-        print(filter_data) #debug
 
         # Filter by species if provided
         if filter_data.species_id:
