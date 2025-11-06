@@ -15,7 +15,7 @@ final class DashboardViewModel: ObservableObject, SightingsLoadable {
     // published information
     
     //user information
-    @Published var username: String = "Hawk LastName"
+    @Published var username: String = "Hawk"
     @Published var total_sightings: Int = 55
     @Published var total_species: Int = 6
     
@@ -53,7 +53,7 @@ final class DashboardViewModel: ObservableObject, SightingsLoadable {
     @Published var species: [Species] = []
     
     //for flashcard / user aggregate stats
-    @Published var userStats: APIUserDetails?
+    @Published var userStats: APIUserDetails = APIUserDetails(username: "", total_sightings: 0, total_species: 0, flashcards: [])
     
     
     var dash_filter = APISightingFilter(
@@ -66,6 +66,7 @@ final class DashboardViewModel: ObservableObject, SightingsLoadable {
     
     func call_loadSightings() async {
         await loadSightings(filter: dash_filter)
+        print("load sightings done successfully")
     }
     
     
@@ -73,6 +74,8 @@ final class DashboardViewModel: ObservableObject, SightingsLoadable {
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
+        
+        print("inside loadUserStats async function")
 
         do {
             // 1) fetch API stats

@@ -64,10 +64,14 @@ public struct APISightingList: Codable {
 }
 
 //user
-public struct APIFlashcardDetails: Codable {
+public struct APIFlashcardDetails: Codable, Identifiable {
     public let species_name: String
     public let first_seen: String
     public let num_sightings: Int
+    
+    public var id: String {
+        species_name
+    }
     
 }
 public struct APIUserDetails: Codable {
@@ -124,6 +128,8 @@ public class APIService: ObservableObject {
         let url = URL(string: "\(baseURL)/user/\(user_loggedin)")! // TODO: replace with hardcoded user_id
         let (data, _) = try await session.data(from: url)
         return try JSONDecoder().decode(APIUserDetails.self, from: data)
+        
+        //return try JSONDecoder().decode(APIUserDetails.self, from: data)
     }
     
     

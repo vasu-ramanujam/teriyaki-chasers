@@ -8,45 +8,45 @@ from app.schemas import UserStats, FlashcardInfo
 
 router = APIRouter() #prefix="/v1", tags=["user"])
 
-@router.get("/{user_id}", response_model=UserStats)
-def get_user_stats_by_path(user_id: str, db: Session = Depends(get_db)):
+@router.get("/{username}", response_model=UserStats)
+def get_user_stats_by_path(username: str, db: Session = Depends(get_db)):
     print("sup")
-    return _query_user_stats(user_id=user_id, db=db)
+    return _query_user_stats(username=username, db=db)
 
 
-def _query_user_stats(user_id: str, db: Session) -> UserStats:
+def _query_user_stats(username: str, db: Session) -> UserStats:
     #usre_id is actually the username!!!!
     
     
-    print("user_id: " + user_id) # DEBUG
+    print("username: " + username) # DEBUG
     #user = db.query(User).filter(User. == user_id).first()
     #print("user: " + user) # DEBUG
 
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    #if not user:
+    #    raise HTTPException(status_code=404, detail="User not found")
 
     total_sightings = (
         db.query(func.count(Sighting.id))
-        .filter(Sighting.username == user_id)
+        .filter(Sighting.username == username)
         .scalar()
     ) or 0
 
     total_species = (
         db.query(func.count(func.distinct(Sighting.species_id)))
-        .filter(Sighting.username == user_id)
+        .filter(Sighting.username == username)
         .scalar()
     ) or 0
 
     rows = (
         db.query(
-            Species.name.label("species_name"),
-            func.min(Sighting.timestamp).label("first_seen"),
+            Species.common_name.label("species_name"),
+            func.min(Sighting.created_at).label("first_seen"),
             func.count(Sighting.id).label("num_sightings"),
         )
         .join(Species, Sighting.species_id == Species.id)
-        .filter(Sighting.username == user_id)
-        .group_by(Species.id, Species.name)
-        .order_by(Species.name.asc())
+        .filter(Sighting.username == username)
+        .group_by(Species.id, Species.common_name)
+        .order_by(Species.common_name.asc())
         .all()
     )
 
@@ -60,7 +60,7 @@ def _query_user_stats(user_id: str, db: Session) -> UserStats:
     ]
 
     return UserStats(
-        username=user_id,
+        username=username,
         total_sightings=total_sightings,
         total_species=total_species,
         flashcards=flashcards,
