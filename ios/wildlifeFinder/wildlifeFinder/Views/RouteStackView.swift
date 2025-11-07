@@ -2,8 +2,8 @@ import SwiftUI
 import MapKit
 
 struct RouteStackView: View {
-    @EnvironmentObject private var routeVM: RouteViewModel
-    @EnvironmentObject private var vm: SightingMapViewModel
+    @Environment(RouteViewModel.self) private var routeVM
+    @Environment(SightingMapViewModel.self) private var vm
     let waypoints: [Waypoint]
     var body: some View {
         NavigationStack {

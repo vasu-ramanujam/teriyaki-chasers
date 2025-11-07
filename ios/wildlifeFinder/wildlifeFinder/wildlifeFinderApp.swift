@@ -10,6 +10,9 @@ import SwiftUI
 @main
 struct wildlifeFinderApp: App {
     @State private var bonjourKick = BonjourKick()
+    @State private var sightingMapViewModel = SightingMapViewModel()
+    @State private var routeViewModel = RouteViewModel()
+    @State private var dashboardViewModel = DashboardViewModel()
     // start collecting GPS info
     init() {
         bonjourKick.start()
@@ -19,9 +22,9 @@ struct wildlifeFinderApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(SightingMapViewModel())
-                .environmentObject(RouteViewModel())
-                .environmentObject(DashboardViewModel())
+                .environment(sightingMapViewModel)
+                .environment(routeViewModel)
+                .environment(dashboardViewModel)
         }
     }
 }

@@ -1,13 +1,15 @@
 import Foundation
 import AVFoundation
+import Observation
 
-final class AudioRecorder: NSObject, ObservableObject {
-    private var recorder: AVAudioRecorder?
-    private var timer: Timer?
+@Observable
+final class AudioRecorder: NSObject {
+    @ObservationIgnored private var recorder: AVAudioRecorder?
+    @ObservationIgnored private var timer: Timer?
     
-    @Published var isRecording = false
-    @Published var recordedURL: URL?
-    @Published var elapsed: TimeInterval = 0
+    var isRecording = false
+    var recordedURL: URL?
+    var elapsed: TimeInterval = 0
     
     func requestPermission() async throws {
         try await withCheckedThrowingContinuation { cont in

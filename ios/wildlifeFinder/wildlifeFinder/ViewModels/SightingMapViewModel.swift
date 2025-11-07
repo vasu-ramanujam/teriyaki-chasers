@@ -1,36 +1,38 @@
 import Foundation
 import MapKit
 import SwiftUI
+import Observation
 
 @MainActor
-final class SightingMapViewModel: ObservableObject, SightingsLoadable {
+@Observable
+final class SightingMapViewModel: SightingsLoadable {
     // Region (Apple Park-ish mock coords so you see pins immediately)
-    @Published var mapRegion = MKCoordinateRegion(
+    var mapRegion = MKCoordinateRegion(
         center: .init(latitude: 42.2808, longitude: -83.7430),
         span: .init(latitudeDelta: 0.1, longitudeDelta: 0.1)
     )
 
     // Data
-    @Published var sightings: [Sighting] = []
-    @Published var hotspots: [Hotspot] = []
-    @Published var species: [Species] = []
+    var sightings: [Sighting] = []
+    var hotspots: [Hotspot] = []
+    var species: [Species] = []
 
     // Toggles (chips in your UI)
-    @Published var showSightings = true
-    @Published var showHotspots = false
+    var showSightings = true
+    var showHotspots = false
 
     // Search + suggestions
-    @Published var searchText: String = ""
-    @Published var selectedSpecies: String? = nil
-    @Published var suggestions: [String] = []
+    var searchText: String = ""
+    var selectedSpecies: String? = nil
+    var suggestions: [String] = []
 
     // Selection
-    @Published var selectedPin: Waypoint? = nil
-    @Published var selectedWaypoints: Set<Waypoint> = []
+    var selectedPin: Waypoint? = nil
+    var selectedWaypoints: Set<Waypoint> = []
     
     // Loading and error states
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+    var isLoading = false
+    var errorMessage: String?
 
     var canGenerateRoute: Bool { !selectedWaypoints.isEmpty }
     private static let isoNoFrac: ISO8601DateFormatter = {
@@ -66,6 +68,7 @@ final class SightingMapViewModel: ObservableObject, SightingsLoadable {
         }
         // Fallback: keep default Ann Arbor center, but still load pins for the 24h window
         await call_loadSightings()
+        
     }
 
 

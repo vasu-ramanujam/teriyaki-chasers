@@ -3,7 +3,7 @@ import MapKit
 
 struct HVAPinInformationView: View {
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject private var vm: SightingMapViewModel
+    @Environment(SightingMapViewModel.self) private var vm
     
     let hotspotObj: Waypoint
     

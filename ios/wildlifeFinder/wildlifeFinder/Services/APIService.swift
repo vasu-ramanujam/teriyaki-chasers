@@ -131,7 +131,7 @@ extension APIService {
 }
 
 // MARK: - API Service
-public class APIService: ObservableObject {
+public class APIService {
     public static let shared = APIService()
     
     // APIService.swift

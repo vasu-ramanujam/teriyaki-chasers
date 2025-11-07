@@ -6,16 +6,18 @@
 //
 import Foundation
 import UIKit
+import Observation
 
 @MainActor
-public final class PostViewModel: ObservableObject {
-    @Published var image: UIImage?
-    @Published var audioURL: URL?
-    @Published var caption: String = ""
-    @Published var isPublic = false
-    @Published var speciesId: Int?
-    @Published var animal: Species?
-    @Published var animalImgUrl: URL?
+@Observable
+public final class PostViewModel {
+    var image: UIImage?
+    var audioURL: URL?
+    var caption: String = ""
+    var isPublic = false
+    var speciesId: Int?
+    var animal: Species?
+    var animalImgUrl: URL?
     
     func identifySightings() async throws {
         

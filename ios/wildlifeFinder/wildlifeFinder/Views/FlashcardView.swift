@@ -9,7 +9,7 @@ import SwiftUI
 
 struct FlashcardView: View {
     
-    @EnvironmentObject private var vm: DashboardViewModel
+    @Environment(DashboardViewModel.self) private var vm
     
     // I HAVE ACCESS TO vm.SpeciesDetails as well as info
     

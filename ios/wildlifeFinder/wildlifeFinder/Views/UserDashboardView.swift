@@ -10,7 +10,7 @@ import SwiftUI
 
 struct UserDashboardView : View {
     // state/env variables
-    @EnvironmentObject private var vm: DashboardViewModel
+    @Environment(DashboardViewModel.self) private var vm
     
     //mock data
 
@@ -117,7 +117,7 @@ struct UserDashboardView : View {
     
     
     private struct FlashcardPreview: View {
-        @EnvironmentObject private var vm: DashboardViewModel
+        @Environment(DashboardViewModel.self) private var vm
         
         @Binding var flashcard: APIFlashcardDetails?
         

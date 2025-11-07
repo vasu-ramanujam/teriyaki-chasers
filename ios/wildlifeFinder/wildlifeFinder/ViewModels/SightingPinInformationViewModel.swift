@@ -1,19 +1,21 @@
 import Foundation
 import SwiftUI
+import Observation
 
 @MainActor
-public final class SightingPinInformationViewModel: ObservableObject , GetsSpeciesDetails{
+@Observable
+public final class SightingPinInformationViewModel: GetsSpeciesDetails{
 
     // MARK: - Published state
-    @Published private(set) var currentSighting: Sighting
-    @Published private(set) var origin: where_from
-    @Published var speciesDetails: Species?
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+    private(set) var currentSighting: Sighting
+    private(set) var origin: where_from
+    var speciesDetails: Species?
+    var isLoading = false
+    var errorMessage: String?
 
     // Media (camelCase)
-    @Published private(set) var imageURL: URL?
-    @Published private(set) var soundURL: URL?
+    private(set) var imageURL: URL?
+    private(set) var soundURL: URL?
 
     // MARK: - Init
     public init(s: Sighting, o: where_from) {

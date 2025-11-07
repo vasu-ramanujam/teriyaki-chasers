@@ -2,7 +2,7 @@ import SwiftUI
 
 struct AudioRecordingView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var recorder = AudioRecorder()
+    @State private var recorder = AudioRecorder()
     @State private var hasPermission = false
     @State private var showPermissionAlert = false
     

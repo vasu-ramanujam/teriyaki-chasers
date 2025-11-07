@@ -59,7 +59,7 @@ def init_database():
                 "user": "Ada",
                 "cap": "Perched near the Diag",
                 "media_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Bubo_virginianus_06.jpg/500px-Bubo_virginianus_06.jpg",
-                "taken_at": datetime(2025, 11, 5, 23, 23, tzinfo=timezone.utc)
+                "taken_at": datetime(2025, 11, 7, 5, 23, tzinfo=timezone.utc)
             },
             {
                 "sci": "Turdus migratorius",
@@ -68,7 +68,7 @@ def init_database():
                 "user": "Robin",
                 "cap": "Early worm run by the Arb",
                 "media_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnPQnqDtQYt41FkzOkkeaDwzgJgqREvCRWfzLRU4_uSoZxpDs83MTYpPEIwqqKrhzmSsM2srR2kftPv46PB-SZkixbA_KIgpIpnDY6Ic8&s=10",
-                "taken_at": datetime(2025, 11, 5, 23, 45, tzinfo=timezone.utc)
+                "taken_at": datetime(2025, 11, 7, 5, 40, tzinfo=timezone.utc)
             },
             {
                 "sci": "Buteo jamaicensis",
@@ -77,7 +77,7 @@ def init_database():
                 "user": "Hawk",
                 "cap": "Soaring over the Huron",
                 "media_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgO9RdL4piwhn7ybNxJ9H3_5gxssYXQOlW_CInZ3OqlGmkdiRdJVKQ1mkcKcgpd4otJUi801Wxt3CCfRzIxQei6nd9WXE5P5J2CWX_HO4&s=10",
-                "taken_at": datetime(2025, 11, 6, 7, 21, tzinfo=timezone.utc)
+                "taken_at": datetime(2025, 11, 7, 4, 21, tzinfo=timezone.utc)
             },
         ]
         for s in sample_sightings:

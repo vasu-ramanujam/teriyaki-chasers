@@ -3,16 +3,16 @@ import SwiftUI
 struct SightingPinInformationView: View {
     @Environment(\.dismiss) var dismiss
     @State var showSoundAlert = false
-    @EnvironmentObject private var vm: SightingMapViewModel
+    @Environment(SightingMapViewModel.self) private var vm
     
-    @StateObject var pinvm: SightingPinInformationViewModel
+    @State private var pinvm: SightingPinInformationViewModel
     @State private var isShowingError = false
     @State private var localErrorMessage = ""
     var sightingObj: Waypoint
     
     init(sighting: Sighting, origin: where_from, waypointObj: Waypoint) {
         self.sightingObj = waypointObj
-        self._pinvm = StateObject(wrappedValue: SightingPinInformationViewModel(s: sighting, o: origin))
+        self._pinvm = State(initialValue: SightingPinInformationViewModel(s: sighting, o: origin))
     }
     
     func routeButtonText() -> String {

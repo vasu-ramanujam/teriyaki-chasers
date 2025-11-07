@@ -2,7 +2,7 @@ import SwiftUI
 import MapKit
 
 struct SightingMapView: View {
-    @EnvironmentObject private var vm: SightingMapViewModel
+    @Environment(SightingMapViewModel.self) private var model
 
     // iOS 17 map camera
     @State private var cameraPosition: MapCameraPosition = .automatic
@@ -17,9 +17,10 @@ struct SightingMapView: View {
     @State private var selectedHotspot: hotspotSheetInfo?
 
     // RouteViewModel stuff
-    @EnvironmentObject private var routeVM: RouteViewModel
+    @Environment(RouteViewModel.self) private var routeVM
 
     var body: some View {
+        @Bindable var vm = model
         ZStack(alignment: .bottom) {
             mapLayer
 
@@ -29,22 +30,22 @@ struct SightingMapView: View {
                     text: $vm.searchText,
                     placeholder: "Search",
                     onSubmit: {
-                        vm.selectedSpecies = vm.searchText.isEmpty ? nil : vm.searchText
-                        vm.suggestions = []
+                        model.selectedSpecies = model.searchText.isEmpty ? nil : model.searchText
+                        model.suggestions = []
                     },
-                    onChange: { _ in vm.updateSuggestions() },
-                    onClear: { vm.clearFilter() },
-                    suggestions: vm.suggestions,
+                    onChange: { _ in model.updateSuggestions() },
+                    onClear: { model.clearFilter() },
+                    suggestions: model.suggestions,
                     onPickSuggestion: { pick in
-                        vm.searchText = pick
-                        vm.selectedSpecies = pick
-                        vm.suggestions = []
+                        model.searchText = pick
+                        model.selectedSpecies = pick
+                        model.suggestions = []
                     }
                 )
                 .padding(.horizontal)
 
                 HStack {
-                    Text(vm.selectedSpecies == nil ? "No filters applied." : "Filtered by species: \(vm.selectedSpecies!)")
+                    Text(model.selectedSpecies == nil ? "No filters applied." : "Filtered by species: \(model.selectedSpecies!)")
                         .font(.callout).foregroundStyle(.secondary)
                     Spacer()
                 }
@@ -60,14 +61,14 @@ struct SightingMapView: View {
                         Spacer()
                         Button { 
                             Task {
-                                await vm.call_loadSightings()
+                                await model.call_loadSightings()
                             }
                         } label: { 
                             Image(systemName: "arrow.clockwise")
-                                .foregroundColor(vm.isLoading ? .orange : .primary)
+                                .foregroundColor(model.isLoading ? .orange : .primary)
                         }
                         .buttonStyle(.bordered)
-                        .disabled(vm.isLoading)
+                        .disabled(model.isLoading)
                     }
                     .padding(.horizontal)
                     .padding(.top, 7)
@@ -76,7 +77,7 @@ struct SightingMapView: View {
                         showRouteSheet = true
                         
                         Task {
-                            await routeVM.buildRoute(from: Array(vm.selectedWaypoints))
+                            await routeVM.buildRoute(from: Array(model.selectedWaypoints))
                         }
                     } label: {
                         Text("Generate Route")
@@ -84,9 +85,9 @@ struct SightingMapView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
                     }
-                    .disabled(!vm.canGenerateRoute)
+                    .disabled(!model.canGenerateRoute)
                     .tint(ui_orange)
-                    .opacity(vm.canGenerateRoute ? 1 : 0.5)
+                    .opacity(model.canGenerateRoute ? 1 : 0.5)
                     .buttonStyle(.borderedProminent)
                     .foregroundStyle(.black)
                     .padding(.horizontal)
@@ -100,8 +101,8 @@ struct SightingMapView: View {
             // Load real data instead of mock
             Task {
                 // Wait briefly for GPS; then center & load last-24h sightings
-                await vm.centerOnFirstValidLocationAndLoad()
-                cameraPosition = .region(vm.mapRegion)
+                await model.centerOnFirstValidLocationAndLoad()
+                cameraPosition = .region(model.mapRegion)
             }
         }
         .sheet(item: $selectedSighting) { item in
@@ -115,11 +116,11 @@ struct SightingMapView: View {
             HVAPinInformationView(hotspotObj: item.waypoint)
         }
         .sheet(isPresented: $showRouteSheet) {
-            RouteStackView(waypoints: Array(vm.selectedWaypoints))
+            RouteStackView(waypoints: Array(model.selectedWaypoints))
         }
         .toolbar(.hidden, for: .navigationBar)
         .overlay {
-            if vm.isLoading {
+            if model.isLoading {
                 VStack {
                     ProgressView("Loading sightings...")
                         .padding()
@@ -128,29 +129,29 @@ struct SightingMapView: View {
                 }
             }
         }
-        .alert("Error", isPresented: .constant(vm.errorMessage != nil)) {
-            Button("OK") { vm.errorMessage = nil }
+        .alert("Error", isPresented: .constant(model.errorMessage != nil)) {
+            Button("OK") { model.errorMessage = nil }
         } message: {
-            Text(vm.errorMessage ?? "")
+            Text(model.errorMessage ?? "")
         }
     }
 
     private var mapLayer: some View {
         Map(position: $cameraPosition) {
-            if vm.showSightings {
-                ForEach(vm.filteredSightings) { s in
+            if model.showSightings {
+                ForEach(model.filteredSightings) { s in
                     Annotation("\(s.species.name)", coordinate: s.coordinate) {
                         PinButton(icon: "mappin.circle.fill", color: .green) {
                             selectedSighting = sightingSheetInfo(sighting: s,
                                                                  waypoint: .sighting(s))
                         }
                         .contextMenu {
-                            Button(vm.selectedWaypoints.contains(.sighting(s)) ? "Remove from route" : "Add to route") {
-                                vm.toggleWaypoint(.sighting(s))
+                            Button(model.selectedWaypoints.contains(.sighting(s)) ? "Remove from route" : "Add to route") {
+                                model.toggleWaypoint(.sighting(s))
                             }
                         }
                         .overlay(alignment: .topTrailing) {
-                            if vm.selectedWaypoints.contains(.sighting(s)) {
+                            if model.selectedWaypoints.contains(.sighting(s)) {
                                 Image(systemName: "checkmark.circle.fill")
                                     .symbolRenderingMode(.multicolor)
                                     .offset(x: 8, y: -8)
@@ -160,20 +161,20 @@ struct SightingMapView: View {
                 }
             }
 
-            if vm.showHotspots {
-                ForEach(vm.hotspots) { h in
+            if model.showHotspots {
+                ForEach(model.hotspots) { h in
                     Annotation(h.name, coordinate: h.coordinate) {
                         PinButton(icon: "flame.circle.fill", color: .orange) {
                             selectedHotspot = hotspotSheetInfo(hotspot: h,
                                                                  waypoint: .hotspot(h))
                         }
                         .contextMenu {
-                            Button(vm.selectedWaypoints.contains(.hotspot(h)) ? "Remove from route" : "Add to route") {
-                                vm.toggleWaypoint(.hotspot(h))
+                            Button(model.selectedWaypoints.contains(.hotspot(h)) ? "Remove from route" : "Add to route") {
+                                model.toggleWaypoint(.hotspot(h))
                             }
                         }
                         .overlay(alignment: .topTrailing) {
-                            if vm.selectedWaypoints.contains(.hotspot(h)) {
+                            if model.selectedWaypoints.contains(.hotspot(h)) {
                                 Image(systemName: "checkmark.circle.fill")
                                     .symbolRenderingMode(.multicolor)
                                     .offset(x: 8, y: -8)

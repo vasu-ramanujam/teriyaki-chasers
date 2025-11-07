@@ -2,7 +2,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @EnvironmentObject private var vm: SightingMapViewModel
+    @Environment(SightingMapViewModel.self) private var vm
     @State private var selectedTab = 0
 
     var body: some View {
@@ -52,4 +52,7 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environment(SightingMapViewModel())
+        .environment(RouteViewModel())
+        .environment(DashboardViewModel())
 }

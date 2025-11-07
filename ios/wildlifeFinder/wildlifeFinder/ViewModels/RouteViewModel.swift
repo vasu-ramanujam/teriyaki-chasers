@@ -1,11 +1,13 @@
 import Foundation
 import MapKit
+import Observation
 
 @MainActor
-final class RouteViewModel: ObservableObject {
-    @Published var appRoute: AppRoute?
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+@Observable
+final class RouteViewModel {
+    var appRoute: AppRoute?
+    var isLoading = false
+    var errorMessage: String?
 
 
     func buildRoute(from waypoints: [Waypoint]) async {

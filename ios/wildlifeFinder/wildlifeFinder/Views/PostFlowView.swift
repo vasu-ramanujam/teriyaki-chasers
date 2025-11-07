@@ -5,10 +5,11 @@
 //  Created by Owen Davis on 10/28/25.
 //
 import SwiftUI
+import Observation
 
 struct PostFlowView: View {
     @State private var path = NavigationPath()
-    @StateObject private var postVM = PostViewModel()
+    @State private var postVM = PostViewModel()
     
     var body: some View {
         NavigationStack(path: $path) {
@@ -25,13 +26,18 @@ struct PostFlowView: View {
 }
 
 struct InitialView: View {
-    @StateObject var postVM: PostViewModel
+    @Bindable var postVM: PostViewModel
     @Binding var path: NavigationPath
     @State private var showCamera = false
     @State private var showRecorder = false
     
     private let accentGreen = Color(red: 35/255.0, green: 86/255.0, blue: 61/255.0)
     private let accentOrange = Color(red: 241/255.0, green: 154/255.0, blue: 62/255.0)
+    
+    init(postVM: PostViewModel, path: Binding<NavigationPath>) {
+        self._postVM = Bindable(postVM)
+        self._path = path
+    }
     
     var body: some View {
         ScrollView {
@@ -183,9 +189,14 @@ struct buttonBackground: View {
 struct IdentifyView: View {
     @Environment(\.dismiss) var dismiss
     @State private var isLoading: Bool = false
-    @StateObject var postVM: PostViewModel
+    @Bindable var postVM: PostViewModel
     @Binding var path: NavigationPath
 
+    init(postVM: PostViewModel, path: Binding<NavigationPath>) {
+        self._postVM = Bindable(postVM)
+        self._path = path
+    }
+    
     var body: some View {
         ScrollView {
             HStack {
@@ -271,11 +282,16 @@ struct IdentifyView: View {
 }
 
 struct PostView: View {
-    @StateObject var postVM: PostViewModel
+    @Bindable var postVM: PostViewModel
     @Binding var path: NavigationPath
     @State private var isPosting = false
     @State private var postError: String?
 
+    init(postVM: PostViewModel, path: Binding<NavigationPath>) {
+        self._postVM = Bindable(postVM)
+        self._path = path
+    }
+    
     var body: some View {
         VStack {
             ZStack(alignment: .topTrailing) {

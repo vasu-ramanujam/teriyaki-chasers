@@ -7,19 +7,21 @@
 
 import Foundation
 import SwiftUI
+import Observation
 import MapKit
 
 @MainActor
-final class DashboardViewModel: ObservableObject, SightingsLoadable, GetsSpeciesDetails {
+@Observable
+final class DashboardViewModel: SightingsLoadable, GetsSpeciesDetails {
     
     // published information
     
     //user information
-    @Published var username: String = "Hawk"
-    @Published var total_sightings: Int = 55
-    @Published var total_species: Int = 6
+    var username: String = "Hawk"
+    var total_sightings: Int = 55
+    var total_species: Int = 6
     
-    @Published var sighting_history: [Sighting] = []
+    var sighting_history: [Sighting] = []
 
     
     // flashcard information
@@ -33,15 +35,15 @@ final class DashboardViewModel: ObservableObject, SightingsLoadable, GetsSpecies
     // get sightings
     // code from sightingmapviewmodel
     
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+    var isLoading = false
+    var errorMessage: String?
     
     // required for sighting history
-    @Published var sightings: [Sighting] = []
-    @Published var species: [Species] = []
+    var sightings: [Sighting] = []
+    var species: [Species] = []
     
     //for flashcard / user aggregate stats
-    @Published var userStats: APIUserDetails = APIUserDetails(username: "", total_sightings: 0, total_species: 0, flashcards: [])
+    var userStats: APIUserDetails = APIUserDetails(username: "", total_sightings: 0, total_species: 0, flashcards: [])
         
     var dash_filter = APISightingFilter(
         area: nil,
@@ -56,7 +58,7 @@ final class DashboardViewModel: ObservableObject, SightingsLoadable, GetsSpecies
         print("load sightings done successfully")
     }
     
-    @Published var FlashcardImages: [String: String] = [:]
+    var FlashcardImages: [String: String] = [:]
 
     
     //var selected_flashcard: APIFlashcardDetails?
