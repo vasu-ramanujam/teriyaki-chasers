@@ -30,20 +30,23 @@ class Settings(BaseSettings):
     birdweather_api_key: Optional[str] = None
     
     # AWS S3 Configuration
+    # Load from environment variables - never hardcode credentials!
     aws_access_key_id: Optional[str] = None
     aws_secret_access_key: Optional[str] = None
     aws_region: str = "us-east-2"
-    aws_s3_bucket_name: Optional[str] = None
+    aws_s3_bucket_name: Optional[str] = "teriyaki-chasers-wildlife-media"
     
     def get_database_url(self) -> str:
         """Build database URL, preferring RDS if configured"""
-        # Use RDS credentials directly from documentation (hardcoded for now)
-        # RDS Configuration from RDS_CONNECTION_GUIDE.md
-        rds_host = "wildlife-explorer-db.cda2ce0kia2k.us-east-2.rds.amazonaws.com"
-        rds_port = 5432
-        rds_database = "animal_explorer"
-        rds_username = "wildlife_admin"
-        rds_password = "wowCym-5cinpy-mywbud"
+        # Use RDS credentials from environment variables or settings
+        rds_host = self.rds_host or "wildlife-explorer-db.cda2ce0kia2k.us-east-2.rds.amazonaws.com"
+        rds_port = self.rds_port
+        rds_database = self.rds_database or "animal_explorer"
+        rds_username = self.rds_username or "wildlife_admin"
+        rds_password = self.rds_password
+        
+        if not rds_password:
+            raise ValueError("RDS password must be provided via environment variable or .env file")
         
         # Build RDS connection string
         return f"postgresql+psycopg2://{rds_username}:{rds_password}@{rds_host}:{rds_port}/{rds_database}"
