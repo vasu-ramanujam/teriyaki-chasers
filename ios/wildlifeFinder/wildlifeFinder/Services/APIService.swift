@@ -1,6 +1,8 @@
 import Foundation
 import CoreLocation
 import MapKit
+import Alamofire
+
 
 // MARK: - API Models
 public struct APISpecies: Codable, Identifiable {
@@ -243,46 +245,44 @@ public class APIService {
         return try JSONDecoder().decode(APIRoute.self, from: data)
     }
     
-    // MARK: - Identify API (photo/audio uploads)
     public func identifyPhoto(imageData: Data) async throws -> IdentifyResponse {
-        guard let url = URL(string: "\(baseURL)/identify/photo") else { throw URLError(.badURL) }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-
-        // multipart/form-data body
-        let boundary = "Boundary-\(UUID().uuidString)"
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        var body = Data()
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"photo\"; filename=\"photo.jpg\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
-        body.append(imageData)
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
-        request.httpBody = body
-
-        let (data, _) = try await session.data(for: request)
-        return try JSONDecoder().decode(IdentifyResponse.self, from: data)
+        let url = "\(baseURL)/identify/photo"
+        
+        return try await AF.upload(
+            multipartFormData: { form in
+                form.append(
+                    imageData,
+                    withName: "photo",
+                    fileName: "photo.jpg",
+                    mimeType: "image/jpeg"
+                )
+            },
+            to: url,
+            method: .post
+        )
+        .validate()
+        .serializingDecodable(IdentifyResponse.self)
+        .value
     }
 
     public func identifyAudio(audioData: Data) async throws -> IdentifyResponse {
-        guard let url = URL(string: "\(baseURL)/identify/audio") else { throw URLError(.badURL) }
+        let url = "\(baseURL)/identify/audio"
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        
-        let boundary = "Boundary-\(UUID().uuidString)"
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        var body = Data()
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"audio\"; filename=\"audio.m4a\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: audio/m4a\r\n\r\n".data(using: .utf8)!)
-        body.append(audioData)
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
-        request.httpBody = body
-
-        let (data, _) = try await session.data(for: request)
-        return try JSONDecoder().decode(IdentifyResponse.self, from: data)
+        return try await AF.upload(
+            multipartFormData: { form in
+                form.append(
+                    audioData,
+                    withName: "audio",
+                    fileName: "audio.m4a",
+                    mimeType: "audio/m4a"
+                )
+            },
+            to: url,
+            method: .post
+        )
+        .validate()
+        .serializingDecodable(IdentifyResponse.self)
+        .value
     }
 
     // MARK: - Create Sighting (multipart/form-data)
@@ -294,39 +294,34 @@ public class APIService {
         username: String?,
         imageJPEGData: Data
     ) async throws -> APISighting {
-        guard let url = URL(string: "\(baseURL)/sightings/create") else { throw URLError(.badURL) }
+        let url = "\(baseURL)/sightings/create"
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-
-        let boundary = "Boundary-\(UUID().uuidString)"
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-
-        var body = Data()
-        func addField(name: String, value: String) {
-            body.append("--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
-            body.append("\(value)\r\n".data(using: .utf8)!)
-        }
-
-        addField(name: "species_id", value: String(speciesId))
-        addField(name: "lat", value: String(coordinate.latitude))
-        addField(name: "lon", value: String(coordinate.longitude))
-        addField(name: "is_private", value: isPublic ? "false" : "true")
-        addField(name: "username", value: "Hawk")
-        if let username, !username.isEmpty { addField(name: "username", value: username) }
-        if let caption, !caption.isEmpty { addField(name: "caption", value: caption) }
-
-        // Photo part
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"photo\"; filename=\"photo.jpg\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
-        body.append(imageJPEGData)
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
-        request.httpBody = body
-
-        let (data, _) = try await session.data(for: request)
-        return try JSONDecoder().decode(APISighting.self, from: data)
+        return try await AF.upload(
+            multipartFormData: { form in
+                form.append(Data("\(speciesId)".utf8), withName: "species_id")
+                form.append(Data("\(coordinate.latitude)".utf8), withName: "lat")
+                form.append(Data("\(coordinate.longitude)".utf8), withName: "lon")
+                form.append(Data((isPublic ? "false" : "true").utf8), withName: "is_private")
+                form.append(
+                    Data((username?.isEmpty == false ? username! : "Hawk").utf8),
+                    withName: "username"
+                )
+                if let caption, !caption.isEmpty {
+                    form.append(Data(caption.utf8), withName: "caption")
+                }
+                form.append(
+                    imageJPEGData,
+                    withName: "photo",
+                    fileName: "photo.jpg",
+                    mimeType: "image/jpeg"
+                )
+            },
+            to: url,
+            method: .post
+        )
+        .validate()
+        .serializingDecodable(APISighting.self)
+        .value
     }
     
     // MARK: - Helper Methods
