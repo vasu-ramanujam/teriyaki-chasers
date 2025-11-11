@@ -48,7 +48,9 @@ struct RouteStackView: View {
             .navigationTitle("Current Route")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Start") { /* hook to Directions later */ }
+                    NavigationLink("Start Directions") {
+                        DirectionsView(waypoints: waypoints)
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {

@@ -9,6 +9,7 @@ public struct RouteLeg: Identifiable, Hashable {
     public var distance: CLLocationDistance?
     public var expectedTravelTime: TimeInterval?
     public var polyline: MKPolyline?
+    public var steps: [MKRoute.Step]?
 
     public init(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D) {
         self.from = from

@@ -72,6 +72,28 @@ public struct Sighting: Identifiable, Hashable {
         self.media_url = apiSighting.media_url
         self.audio_url = apiSighting.audio_url
     }
+    
+    public init(
+        id: String,
+        species: Species,
+        coordinate: CLLocationCoordinate2D,
+        createdAt: Date,
+        note: String?,
+        username: String?,
+        isPrivate: Bool,
+        media_url: String?,
+        audio_url: String?
+    ) {
+        self.id = id
+        self.species = species
+        self.coordinate = coordinate
+        self.createdAt = createdAt
+        self.note = note
+        self.username = username
+        self.isPrivate = isPrivate
+        self.media_url = media_url
+        self.audio_url = audio_url
+    }
 }
 
 extension Sighting {
