@@ -14,19 +14,16 @@ struct DirectionsView: View {
     @State private var currentLeg: RouteLeg?
     @State private var routeFinished: Bool = false
     @State private var position: MapCameraPosition = .userLocation(followsHeading: true, fallback: .automatic)
-    @Binding var waypoints: [Waypoint]
     @State private var showSteps = false
     
-    private var nearWaypoint: Bool {
-        return withinThreeMeters(LocationManagerViewModel.shared.coordinate, waypoints[0].coordinate)
-    }
+    @State private var nearWaypoint: Bool = false
     
     @State private var userToWaypointLine: MKPolyline?
 
     var body: some View {
         VStack {
             Map(position: $position) {
-                ForEach(waypoints) { wp in
+                ForEach(vm.selectedWaypoints) { wp in
                     Marker(wp.title, coordinate: wp.coordinate)
                 }
                 
@@ -68,11 +65,15 @@ struct DirectionsView: View {
                 .padding(.horizontal)
             }
         }
+        .sheet(isPresented: $nearWaypoint) {
+            DestinationPopup()
+        }
         .onAppear {
             fetchCurrentPoly()
         }
         .onChange(of: LocationManagerViewModel.shared.eqCoord) {
             fetchCurrentPoly()
+            nearWaypoint = withinThreeMeters(LocationManagerViewModel.shared.coordinate, vm.selectedWaypoints[0].coordinate)
         }
     }
     
@@ -104,6 +105,21 @@ struct DirectionsView: View {
                     .listStyle(.plain)
                     .navigationTitle("Steps")
                     .navigationBarTitleDisplayMode(.inline)
+                }
+            }
+        }
+    }
+    
+    struct DestinationPopup: View {
+        var body: some View {
+            ZStack {
+                Color.black
+                    .opacity(0.5)
+                VStack {
+                    Text("Destination reached")
+                        .font(.headline)
+                    Text("You have reached your destination")
+                        .font(.caption)
                 }
             }
         }
@@ -145,7 +161,7 @@ struct DirectionsView: View {
     func fetchCurrentPoly() {
         let request = MKDirections.Request()
         request.source = MKMapItem(placemark: MKPlacemark(coordinate: LocationManagerViewModel.shared.coordinate))
-        guard let first = waypoints.first else { return }
+        guard let first = vm.selectedWaypoints.first else { return }
         request.destination = MKMapItem(placemark: MKPlacemark(coordinate: first.coordinate))
         request.transportType = .walking
         

@@ -189,6 +189,7 @@ struct ARViewContainer: UIViewRepresentable {
 
 struct ARViewScreen: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(SightingMapViewModel.self) private var vm
     @State private var selectedWaypoint: Waypoint? = nil
     @State private var currentWaypoint: Waypoint? = nil
     
@@ -198,12 +199,9 @@ struct ARViewScreen: View {
     
     @State private var arrowRotation: Double = 0.0
     
-    
-    var waypoints: [Waypoint]
-    
     var body: some View {
         ZStack {
-            ARViewContainer(waypoints: waypoints,
+            ARViewContainer(waypoints: vm.selectedWaypoints,
                             onReachedWaypoint: { waypoint in
                                  reachedWaypoint = waypoint
                                  showPopup = true
@@ -214,7 +212,7 @@ struct ARViewScreen: View {
                 .onAppear {
                     // Only set once when screen appears
                     if currentWaypoint == nil {
-                        currentWaypoint = waypoints.first
+                        currentWaypoint = vm.selectedWaypoints.first
                     }
                 }
                 .edgesIgnoringSafeArea(.all)
@@ -249,11 +247,11 @@ struct ARViewScreen: View {
                                     .font(.headline)
                             }
                             if let waypoint = reachedWaypoint,
-                               let currentIndex = waypoints.firstIndex(of: waypoint),
-                               currentIndex + 1 < waypoints.count {
+                               let currentIndex = vm.selectedWaypoints.firstIndex(of: waypoint),
+                               currentIndex + 1 < vm.selectedWaypoints.count {
                                 Button("Next Waypoint") {
                                     // Move to next waypoint
-                                    self.currentWaypoint = waypoints[currentIndex + 1]
+                                    self.currentWaypoint = vm.selectedWaypoints[currentIndex + 1]
                                     reachedWaypoint = nil
                                     showPopup = false
                                 }

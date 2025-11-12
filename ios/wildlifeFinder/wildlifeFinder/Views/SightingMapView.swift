@@ -116,7 +116,7 @@ struct SightingMapView: View {
             HVAPinInformationView(hotspotObj: item.waypoint)
         }
         .sheet(isPresented: $showRouteSheet) {
-            RouteStackView(waypoints: Array(model.selectedWaypoints))
+            RouteStackView()
         }
         .toolbar(.hidden, for: .navigationBar)
         .overlay {
