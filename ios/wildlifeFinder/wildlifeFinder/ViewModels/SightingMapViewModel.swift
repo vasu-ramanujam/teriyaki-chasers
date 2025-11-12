@@ -137,7 +137,7 @@ final class SightingMapViewModel: SightingsLoadable {
         else { selectedWaypoints.append(wp) }
     }
     
-    // // MARK: - Legacy mock method (remove after testing)
+     // MARK: - Legacy mock method (remove after testing)
 //     func loadMock() {
 //         // Keep this for fallback during development
 //         let flamingo = Species(id: 1, common_name: "flamingo", scientific_name: "Phoenicopterus ruber", habitat: nil, diet: nil, behavior: nil, description: nil, other_sources: nil, created_at: Date(), main_image: nil)

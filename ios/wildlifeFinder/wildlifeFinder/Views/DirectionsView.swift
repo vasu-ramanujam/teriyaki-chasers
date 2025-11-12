@@ -11,13 +11,9 @@ struct DirectionsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(RouteViewModel.self) private var routeVM
     @Environment(SightingMapViewModel.self) private var vm
-    @State private var currentLeg: RouteLeg?
-    @State private var routeFinished: Bool = false
     @State private var position: MapCameraPosition = .userLocation(followsHeading: true, fallback: .automatic)
     @State private var showSteps = false
-    
     @State private var nearWaypoint: Bool = false
-    
     @State private var userToWaypointLine: MKPolyline?
 
     var body: some View {
@@ -63,17 +59,46 @@ struct DirectionsView: View {
                     dismiss()
                 }
                 .padding(.horizontal)
+                
+                if vm.selectedWaypoints.count > 1 {
+                    Button("Next Waypoint!") {
+                        nextWaypoint()
+                    }
+                    .padding(.horizontal)
+                }
             }
         }
         .sheet(isPresented: $nearWaypoint) {
-            DestinationPopup()
+            VStack {
+                Text("Waypoint reached")
+                    .font(.headline)
+                Text("You have reached your destination")
+                    .font(.caption)
+                    .padding(.bottom)
+                
+                // display next or end options
+                if vm.selectedWaypoints.count > 1 {
+                    Button("Next Waypoint!") {
+                        nextWaypoint()
+                    }
+                } else {
+                    Button("End Navigation") {
+                        vm.selectedWaypoints = []
+                        routeVM.appRoute = nil
+                        dismiss()
+                    }
+                }
+            }
         }
         .onAppear {
             fetchCurrentPoly()
         }
         .onChange(of: LocationManagerViewModel.shared.eqCoord) {
             fetchCurrentPoly()
-            nearWaypoint = withinThreeMeters(LocationManagerViewModel.shared.coordinate, vm.selectedWaypoints[0].coordinate)
+            
+            if !vm.selectedWaypoints.isEmpty {
+                nearWaypoint = withinRange(LocationManagerViewModel.shared.coordinate, vm.selectedWaypoints[0].coordinate)
+            }
         }
     }
     
@@ -110,32 +135,19 @@ struct DirectionsView: View {
         }
     }
     
-    struct DestinationPopup: View {
-        var body: some View {
-            ZStack {
-                Color.black
-                    .opacity(0.5)
-                VStack {
-                    Text("Destination reached")
-                        .font(.headline)
-                    Text("You have reached your destination")
-                        .font(.caption)
-                }
-            }
-        }
-    }
-    
-    private func nextWaypoint() {
-        guard let leg = currentLeg else { return }
-        guard let idx = routeVM.appRoute?.legs.firstIndex(of: leg) else { return }
+    func nextWaypoint() {
+        guard !vm.selectedWaypoints.isEmpty else { dismiss(); return }
         
-        routeVM.appRoute?.legs.remove(at: idx)
+        routeVM.appRoute?.legs.removeFirst()
+        vm.selectedWaypoints.removeFirst()
         
-        if routeVM.appRoute?.legs.isEmpty ?? true {
-            routeFinished = true
-        } else {
-            currentLeg = routeVM.appRoute?.legs.first
+        if vm.selectedWaypoints.isEmpty {
+            routeVM.appRoute = nil
+            userToWaypointLine = nil
+            dismiss()
         }
+        
+        nearWaypoint = false
     }
    
     // return a locale friendly distance
@@ -151,11 +163,13 @@ struct DirectionsView: View {
         return formatter.string(from: userLocale.measurementSystem == .metric ? meterVal : yardVal)
     }
     
-    private func withinThreeMeters(_ a: CLLocationCoordinate2D, _ b: CLLocationCoordinate2D) -> Bool {
+    private func withinRange(_ a: CLLocationCoordinate2D, _ b: CLLocationCoordinate2D) -> Bool {
+        let threshold: Double = 10
+        
         let loc1 = CLLocation(latitude: a.latitude, longitude: a.longitude)
         let loc2 = CLLocation(latitude: b.latitude, longitude: b.longitude)
         
-        return loc1.distance(from: loc2) <= 3
+        return loc1.distance(from: loc2) <= threshold
     }
     
     func fetchCurrentPoly() {
