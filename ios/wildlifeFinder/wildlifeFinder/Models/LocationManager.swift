@@ -13,6 +13,16 @@ struct Location: Decodable {
     var speed: CLLocationSpeed
 }
 
+struct EquatableCoord: Equatable {
+    let coordiate: CLLocationCoordinate2D
+    static func ==(lhs: EquatableCoord, rhs: EquatableCoord) -> Bool {
+        let latMatch = lhs.coordiate.latitude == rhs.coordiate.latitude
+        let lonMatch = lhs.coordiate.longitude == rhs.coordiate.longitude
+        
+        return latMatch && lonMatch
+    }
+}
+
 @Observable
 final class LocationManagerViewModel {
     static let shared = LocationManagerViewModel()
@@ -22,6 +32,10 @@ final class LocationManagerViewModel {
     
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: .init(location.lat), longitude: .init(location.lon))
+    }
+    
+    var eqCoord: EquatableCoord {
+        EquatableCoord(coordiate: CLLocationCoordinate2D(latitude: .init(location.lat), longitude: .init(location.lon)))
     }
     
     @ObservationIgnored

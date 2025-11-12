@@ -14,8 +14,14 @@ struct DirectionsView: View {
     @State private var currentLeg: RouteLeg?
     @State private var routeFinished: Bool = false
     @State private var position: MapCameraPosition = .userLocation(followsHeading: true, fallback: .automatic)
-    @State var waypoints: [Waypoint]
+    @Binding var waypoints: [Waypoint]
     @State private var showSteps = false
+    
+    private var nearWaypoint: Bool {
+        return withinThreeMeters(LocationManagerViewModel.shared.coordinate, waypoints[0].coordinate)
+    }
+    
+    @State private var userToWaypointLine: MKPolyline?
 
     var body: some View {
         VStack {
@@ -27,7 +33,7 @@ struct DirectionsView: View {
                 if let appRoute = routeVM.appRoute {
                     let legs = appRoute.legs
                     ForEach(legs) { leg in
-                        if let line = leg.polyline {
+                        if let line = leg.polyline, appRoute.legs.firstIndex(of: leg) != 0{
                             MapPolyline(line)
                                 .stroke(.blue, lineWidth: 3)
                         }
@@ -35,6 +41,12 @@ struct DirectionsView: View {
                 }
 
                 Marker("You", systemImage: "location.circle.fill", coordinate: LocationManagerViewModel.shared.coordinate)
+                
+                // Draw a polyline from your location to the first waypoint
+                if let line = userToWaypointLine {
+                    MapPolyline(line)
+                        .stroke(.blue, lineWidth: 3)
+                }
             }
             .mapControls {
                 MapCompass()
@@ -56,10 +68,15 @@ struct DirectionsView: View {
                 .padding(.horizontal)
             }
         }
+        .onAppear {
+            fetchCurrentPoly()
+        }
+        .onChange(of: LocationManagerViewModel.shared.eqCoord) {
+            fetchCurrentPoly()
+        }
     }
     
     struct StepView: View {
-        @Environment(\.dismiss) private var dismiss
         @Environment(RouteViewModel.self) private var routeVM
         let currentLeg: RouteLeg?
         
@@ -116,5 +133,30 @@ struct DirectionsView: View {
         let meterVal = Measurement(value: meters, unit: UnitLength.meters)
         let yardVal = Measurement(value: meters, unit: UnitLength.yards)
         return formatter.string(from: userLocale.measurementSystem == .metric ? meterVal : yardVal)
+    }
+    
+    private func withinThreeMeters(_ a: CLLocationCoordinate2D, _ b: CLLocationCoordinate2D) -> Bool {
+        let loc1 = CLLocation(latitude: a.latitude, longitude: a.longitude)
+        let loc2 = CLLocation(latitude: b.latitude, longitude: b.longitude)
+        
+        return loc1.distance(from: loc2) <= 3
+    }
+    
+    func fetchCurrentPoly() {
+        let request = MKDirections.Request()
+        request.source = MKMapItem(placemark: MKPlacemark(coordinate: LocationManagerViewModel.shared.coordinate))
+        guard let first = waypoints.first else { return }
+        request.destination = MKMapItem(placemark: MKPlacemark(coordinate: first.coordinate))
+        request.transportType = .walking
+        
+        Task {
+            do {
+                let response = try await MKDirections(request: request).calculate()
+                if let r = response.routes.first {
+                    userToWaypointLine = r.polyline
+                }
+            }
+        }
+
     }
 }

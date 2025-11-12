@@ -4,7 +4,7 @@ import MapKit
 struct RouteStackView: View {
     @Environment(RouteViewModel.self) private var routeVM
     @Environment(SightingMapViewModel.self) private var vm
-    let waypoints: [Waypoint]
+    @State var waypoints: [Waypoint]
     var body: some View {
         NavigationStack {
             VStack(spacing: 12) {
@@ -49,7 +49,7 @@ struct RouteStackView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink("Start Directions") {
-                        DirectionsView(waypoints: waypoints)
+                        DirectionsView(waypoints: $waypoints)
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
