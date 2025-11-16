@@ -34,6 +34,26 @@ final class SightingMapViewModel: SightingsLoadable {
     // Loading and error states
     var isLoading = false
     var errorMessage: String?
+    
+    // For loading HVAs
+    let numSightingsRequired = 3
+    let radius = 0.1  // roughly the radius of the diag in miles
+    let daysAgo = 30.0    // how far back to get sightings from
+    var deltaLat: Double {
+        radius / 69
+    }
+    var deltaLon: Double {
+        getLongDegrees(miles: radius)
+    }
+    var HvaStartISO: String {
+        let now = Date()
+        let ago = now.addingTimeInterval(-1 * daysAgo * 3600)
+        return Self.isoNoFrac.string(from: ago)
+    }
+    var endISO: String {
+        Self.isoNoFrac.string(from: Date())
+    }
+    
 
     var canGenerateRoute: Bool { !selectedWaypoints.isEmpty }
     private static let isoNoFrac: ISO8601DateFormatter = {
@@ -69,8 +89,6 @@ final class SightingMapViewModel: SightingsLoadable {
         }
         // Fallback: keep default Ann Arbor center, but still load pins for the 24h window
         await call_loadSightings()
-        // make a call to load hva here
-        
     }
 
 
@@ -79,7 +97,6 @@ final class SightingMapViewModel: SightingsLoadable {
         let now = Date()
         let start = now.addingTimeInterval(-24 * 60 * 60)
         let startISO = Self.isoNoFrac.string(from: start)
-        let endISO = Self.isoNoFrac.string(from: now)
 
         let clamped = clampedSpan(for: mapRegion.span)
         let area = APIService.shared.createBoundingBox(center: mapRegion.center, span: clamped)
@@ -95,29 +112,16 @@ final class SightingMapViewModel: SightingsLoadable {
     }
     
     func loadHVA() async {
-        let numSightingsRequired = 3
-        let radius = 0.1  // roughly the radius of the diag in miles
-        let daysAgo = 30.0    // how far back to get sightings from
-        var deltaLat: Double {
-            radius / 69
-        }
-        
         // get sightings in the map
         let clamped = clampedSpan(for: mapRegion.span)
-        let span = MKCoordinateSpan(latitudeDelta: clamped.latitudeDelta + deltaLat, longitudeDelta: clamped.longitudeDelta + getLongDegrees(miles: radius)) // adding the radius of the HVA to the borders so it doesn't exclude possible pins around the border
+        let span = MKCoordinateSpan(latitudeDelta: clamped.latitudeDelta + deltaLat, longitudeDelta: clamped.longitudeDelta + deltaLon) // adding the radius of the HVA to the borders so it doesn't exclude possible pins around the border
         let area = APIService.shared.createBoundingBox(center: mapRegion.center, span: span)
-        
-        // time boundaries
-        let now = Date()
-        let start = now.addingTimeInterval(daysAgo * -1 * 3600)
-        let startISO = Self.isoNoFrac.string(from: start)
-        let endISO = Self.isoNoFrac.string(from: now)
         
         // create filter object
         let filter = APISightingFilter(
             area: area,
             species_id: nil,
-            start_time: startISO,
+            start_time: HvaStartISO,
             end_time: endISO,
             username: nil
         )
@@ -126,7 +130,7 @@ final class SightingMapViewModel: SightingsLoadable {
             let sightings = try await APIService.shared.getSightings(filter: filter)
             
             // create a KDTree that we can then do range searches on
-            var tree: KDTree<APISighting> = KDTree(values: sightings)
+            let tree: KDTree<APISighting> = KDTree(values: sightings)
             
             // for each sighting, do a range search for coordinates that are withing 0.1 miles
             var usedSightings = Set<APISighting> ()

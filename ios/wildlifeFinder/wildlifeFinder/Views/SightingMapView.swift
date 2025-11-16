@@ -62,6 +62,7 @@ struct SightingMapView: View {
                         Button { 
                             Task {
                                 await model.call_loadSightings()
+                                await model.loadHVA()
                             }
                         } label: { 
                             Image(systemName: "arrow.clockwise")

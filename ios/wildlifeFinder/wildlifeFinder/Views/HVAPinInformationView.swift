@@ -119,14 +119,14 @@ struct HVAPinInformationView: View {
             let span = 0.01 // Small area around the hotspot
             let boundingBox = APIService.shared.createBoundingBox(
                 center: center, 
-                span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span)
+                span: MKCoordinateSpan(latitudeDelta: vm.deltaLat, longitudeDelta: vm.deltaLon)
             )
             
             let filter = APISightingFilter(
                 area: boundingBox,
                 species_id: nil,
-                start_time: nil,
-                end_time: nil,
+                start_time: vm.HvaStartISO,
+                end_time: vm.endISO,
                 username: nil,
             )
             

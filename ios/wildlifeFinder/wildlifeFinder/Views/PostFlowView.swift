@@ -276,7 +276,6 @@ struct IdentifyView: View {
                     print("Identify error: \(error)")
                 }
             }
-            
         }
     }
 }
