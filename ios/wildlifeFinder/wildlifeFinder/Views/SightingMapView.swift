@@ -102,6 +102,7 @@ struct SightingMapView: View {
             Task {
                 // Wait briefly for GPS; then center & load last-24h sightings
                 await model.centerOnFirstValidLocationAndLoad()
+                await model.loadHVA()
                 cameraPosition = .region(model.mapRegion)
             }
         }

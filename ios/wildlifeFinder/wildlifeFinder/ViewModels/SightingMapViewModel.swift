@@ -2,6 +2,7 @@ import Foundation
 import MapKit
 import SwiftUI
 import Observation
+import KDTree
 
 @MainActor
 @Observable
@@ -68,6 +69,7 @@ final class SightingMapViewModel: SightingsLoadable {
         }
         // Fallback: keep default Ann Arbor center, but still load pins for the 24h window
         await call_loadSightings()
+        // make a call to load hva here
         
     }
 
@@ -91,8 +93,80 @@ final class SightingMapViewModel: SightingsLoadable {
         )
         await loadSightings(filter: filter)
     }
-
-
+    
+    func loadHVA() async {
+        let numSightingsRequired = 3
+        let radius = 0.1  // roughly the radius of the diag in miles
+        let daysAgo = 30.0    // how far back to get sightings from
+        var deltaLat: Double {
+            radius / 69
+        }
+        
+        // get sightings in the map
+        let clamped = clampedSpan(for: mapRegion.span)
+        let span = MKCoordinateSpan(latitudeDelta: clamped.latitudeDelta + deltaLat, longitudeDelta: clamped.longitudeDelta + getLongDegrees(miles: radius)) // adding the radius of the HVA to the borders so it doesn't exclude possible pins around the border
+        let area = APIService.shared.createBoundingBox(center: mapRegion.center, span: span)
+        
+        // time boundaries
+        let now = Date()
+        let start = now.addingTimeInterval(daysAgo * -1 * 3600)
+        let startISO = Self.isoNoFrac.string(from: start)
+        let endISO = Self.isoNoFrac.string(from: now)
+        
+        // create filter object
+        let filter = APISightingFilter(
+            area: area,
+            species_id: nil,
+            start_time: startISO,
+            end_time: endISO,
+            username: nil
+        )
+        
+        do {
+            let sightings = try await APIService.shared.getSightings(filter: filter)
+            
+            // create a KDTree that we can then do range searches on
+            var tree: KDTree<APISighting> = KDTree(values: sightings)
+            
+            // for each sighting, do a range search for coordinates that are withing 0.1 miles
+            var usedSightings = Set<APISighting> ()
+            tree.forEach { sighting in
+                let latRange = (sighting.lat - deltaLat, sighting.lat + deltaLat)
+                let deltaLon = getLongDegrees(miles: radius)
+                let lonRange = (sighting.lon - deltaLon, sighting.lon + deltaLon)
+                
+                let closeSightings = tree.elementsIn([latRange, lonRange]).filter { !usedSightings.contains($0) }
+                if closeSightings.count >= numSightingsRequired {
+                    // create a hotspot and mark the values
+                    hotspots.append(
+                        Hotspot(
+                            name: "HVA at (\(sighting.lat), \(sighting.lon)",
+                            coordinate: CLLocationCoordinate2D(latitude: sighting.lat, longitude: sighting.lon),
+                            densityScore: 1.0
+                        )
+                    )
+                    closeSightings.forEach { usedSightings.insert($0) }
+                    usedSightings.insert(sighting)
+                }
+            }
+        } catch {
+            errorMessage = "Failed to calculate High Volume Areas: \(error.localizedDescription)"
+            print("Error calculating HVAs:", error)
+        }
+    }
+    
+    // calculates the number of degrees that miles is in longitude for the camera's latitude
+    func getLongDegrees(miles: Double) -> CLLocationDegrees {
+        let lat = mapRegion.center.latitude
+        let milesPerDegree = 69.17 * cos(radians(lat))
+        
+        return CLLocationDegrees(miles / milesPerDegree)
+    }
+    
+    func radians(_ degree: Double) -> Double {
+        return degree * (Double.pi / 180.0)
+    }
+    
     func searchSpecies(query: String) async {
         guard !query.isEmpty else {
             suggestions = []

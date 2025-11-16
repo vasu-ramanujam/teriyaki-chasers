@@ -2,6 +2,7 @@ import Foundation
 import CoreLocation
 import MapKit
 import Alamofire
+import KDTree
 
 
 // MARK: - API Models
@@ -19,7 +20,7 @@ public struct APISpecies: Codable, Identifiable {
 
 }
 
-public struct APISighting: Codable, Identifiable {
+public struct APISighting: Codable, Identifiable, Hashable {
     public let id: String
     public let username: String?
     public let species_id: Int
@@ -31,6 +32,31 @@ public struct APISighting: Codable, Identifiable {
     public let audio_url: String?
     public let caption: String?
     public let created_at: String
+}
+
+func radians(_ degree: Double) -> Double {
+    return degree * (Double.pi / 180.0)
+}
+
+// get the distance in miles between two [latitude, longitude] pairings
+func getDistanceBetweenDegrees(_ x: [Double], _ y: [Double]) -> Double {
+    let meanLat = (x[0] + y[0]) / 2
+    let deltaY = (y[0] - x[0]) * 69.17
+    let deltaX = (y[1] - x[1]) * cos(radians(meanLat)) * 69.17
+    
+    return pow(pow(deltaY, 2) + pow(deltaX, 2), 0.5)
+}
+
+extension APISighting: KDTreePoint {
+    static public var dimensions = 2
+    
+    public func kdDimension(_ dimension: Int) -> Double {
+        return dimension == 0 ? lat : lon
+    }
+    
+    public func squaredDistance(to otherPoint: APISighting) -> Double {
+        return getDistanceBetweenDegrees([self.lat, self.lon], [otherPoint.lat, otherPoint.lon])
+    }
 }
 
 public struct APIRoute: Codable, Identifiable {
