@@ -146,7 +146,8 @@ final class SightingMapViewModel: SightingsLoadable {
                         Hotspot(
                             name: "HVA at (\(sighting.lat), \(sighting.lon)",
                             coordinate: CLLocationCoordinate2D(latitude: sighting.lat, longitude: sighting.lon),
-                            densityScore: Double(closeSightings.count)
+                            densityScore: Double(closeSightings.count),
+                            sightings: closeSightings
                         )
                     )
                     closeSightings.forEach { usedSightings.insert($0) }

@@ -114,27 +114,9 @@ struct HVAPinInformationView: View {
                 return
             }
             
-            // Create a small bounding box around the hotspot
-            let center = hotspot.coordinate
-            let span = 0.01 // Small area around the hotspot
-            let boundingBox = APIService.shared.createBoundingBox(
-                center: center, 
-                span: MKCoordinateSpan(latitudeDelta: vm.deltaLat, longitudeDelta: vm.deltaLon)
-            )
-            
-            let filter = APISightingFilter(
-                area: boundingBox,
-                species_id: nil,
-                start_time: vm.HvaStartISO,
-                end_time: vm.endISO,
-                username: nil,
-            )
-            
-            let apiSightings = try await APIService.shared.getSightings(filter: filter)
-            
             // Convert API sightings to app models
             var convertedSightings: [Sighting] = []
-            for apiSighting in apiSightings {
+            for apiSighting in hotspot.sightings {
                 // Fetch species details for each sighting
                 let apiSpecies = try await APIService.shared.getSpecies(id: apiSighting.species_id)
                 let species = Species(from: apiSpecies)
