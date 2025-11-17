@@ -56,6 +56,19 @@ final class LocationManagerViewModel {
     func setHeading(_ newHeading: CLLocationDirection?) {
         heading = newHeading
     }
+    
+    public func getLocalizedString(_ from: CLLocation, completion: @escaping (String?) -> Void) {
+        let geocoder = CLGeocoder()
+        geocoder.reverseGeocodeLocation(from) { (placemarks, error) in
+            guard error == nil else { completion(nil); return }
+            
+            if let placemarks, let firstPlacemark = placemarks.first {
+                completion("\(firstPlacemark.name ?? "N/A"), \(firstPlacemark.thoroughfare ?? "N/A"), \(firstPlacemark.locality ?? "N/A")")
+            } else {
+                completion(nil)
+            }
+        }
+    }
 }
 
 final class LocManager: NSObject, CLLocationManagerDelegate {

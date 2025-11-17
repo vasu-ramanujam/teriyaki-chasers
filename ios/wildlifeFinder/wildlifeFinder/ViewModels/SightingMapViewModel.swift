@@ -141,17 +141,18 @@ final class SightingMapViewModel: SightingsLoadable {
                 
                 let closeSightings = tree.elementsIn([latRange, lonRange]).filter { !usedSightings.contains($0) }
                 if closeSightings.count >= numSightingsRequired {
-                    // create a hotspot and mark the values
-                    hotspots.append(
-                        Hotspot(
-                            name: "HVA at (\(sighting.lat), \(sighting.lon)",
-                            coordinate: CLLocationCoordinate2D(latitude: sighting.lat, longitude: sighting.lon),
-                            densityScore: Double(closeSightings.count),
-                            sightings: closeSightings
+                    LocationManagerViewModel.shared.getLocalizedString(.init(latitude: sighting.lat, longitude: sighting.lon)) { localStr in
+                        // create a hotspot and mark the values
+                        self.hotspots.append(
+                            Hotspot(
+                                name: localStr ?? "HVA at (\(sighting.lat), \(sighting.lon)",
+                                coordinate: CLLocationCoordinate2D(latitude: sighting.lat, longitude: sighting.lon),
+                                densityScore: Double(closeSightings.count),
+                                sightings: closeSightings
+                            )
                         )
-                    )
+                    }
                     closeSightings.forEach { usedSightings.insert($0) }
-                    usedSightings.insert(sighting)
                 }
             }
         } catch {
