@@ -186,6 +186,9 @@ struct SightingMapView: View {
                 }
             }
         }
+        .onMapCameraChange { context in
+            model.mapRegion.center = context.camera.centerCoordinate
+        }
         .ignoresSafeArea()
     }
 }

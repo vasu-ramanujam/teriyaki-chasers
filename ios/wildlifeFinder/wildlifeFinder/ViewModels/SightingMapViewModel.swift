@@ -117,6 +117,16 @@ final class SightingMapViewModel: SightingsLoadable {
         let span = MKCoordinateSpan(latitudeDelta: clamped.latitudeDelta + deltaLat, longitudeDelta: clamped.longitudeDelta + deltaLon) // adding the radius of the HVA to the borders so it doesn't exclude possible pins around the border
         let area = APIService.shared.createBoundingBox(center: mapRegion.center, span: span)
         
+        // remove old hotspots that are in our search area
+        hotspots = hotspots.filter {
+            let insideLeftBorder = $0.coordinate.latitude >= mapRegion.center.latitude - (span.latitudeDelta + deltaLat)
+            let insideRightBorder = $0.coordinate.latitude <= mapRegion.center.latitude + (span.latitudeDelta + deltaLat)
+            let insideTopBorder = $0.coordinate.longitude >= mapRegion.center.longitude - (span.longitudeDelta + deltaLon)
+            let insideBottomBorder = $0.coordinate.longitude <= mapRegion.center.longitude + (span.longitudeDelta + deltaLon)
+            
+            return !(insideTopBorder && insideBottomBorder && insideLeftBorder && insideRightBorder)
+        }
+        
         // create filter object
         let filter = APISightingFilter(
             area: area,

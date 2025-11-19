@@ -38,24 +38,24 @@ struct HVAPinInformationView: View {
             
             List {
                 ForEach(sightings) { sighting in
-                    Button {
-                        sheetEntry = sighting
-                        showSightingSheet = true
+                    NavigationLink {
+                        SightingPinInformationView(
+                            sighting: sighting,
+                            origin: .hva,
+                            waypointObj: .sighting(sighting)
+                        )
                     } label: {
                         HStack {
                             Image(systemName: "mappin")
                             VStack(alignment: .leading) {
                                 Text(sighting.species.name)
                                     .font(.headline)
-                                Text("Posted by \(sighting.username)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                if let note = sighting.note {
-                                    Text(note)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(1)
-                                }
+                                Text(sighting.createdAt.formatted(
+                                    Date.FormatStyle()
+                                        .year(.twoDigits)
+                                        .month(.twoDigits)
+                                        .day(.defaultDigits)
+                                ))
                             }
                             Spacer()
                         }
@@ -68,6 +68,7 @@ struct HVAPinInformationView: View {
                 dismiss()
             }
             .padding([.top])
+            .buttonStyle(OrangeButtonStyle())
             .buttonStyle(.borderedProminent)
             .font(.headline)
 
@@ -78,6 +79,7 @@ struct HVAPinInformationView: View {
                     dismiss()
                 }
                 .padding([.leading])
+                .buttonStyle(GreenButtonStyle())
                 Spacer()
             }
         }
@@ -86,14 +88,6 @@ struct HVAPinInformationView: View {
             Task {
                 await loadSightingsInArea()
             }
-        }
-        .sheet(item: $sheetEntry) { sighting in
-            SightingPinInformationView(
-                sighting: sighting, 
-                origin: .hva, 
-                waypointObj: .sighting(sighting)
-            )
-            .presentationBackground(.regularMaterial)
         }
         .alert("Error", isPresented: .constant(errorMessage != nil)) {
             Button("OK") { errorMessage = nil }
