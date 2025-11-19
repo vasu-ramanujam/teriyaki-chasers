@@ -47,7 +47,7 @@ final class SightingMapViewModel: SightingsLoadable {
     }
     var HvaStartISO: String {
         let now = Date()
-        let ago = now.addingTimeInterval(-1 * daysAgo * 3600)
+        let ago = now.addingTimeInterval(-1 * 24 * daysAgo * 3600)
         return Self.isoNoFrac.string(from: ago)
     }
     var endISO: String {
