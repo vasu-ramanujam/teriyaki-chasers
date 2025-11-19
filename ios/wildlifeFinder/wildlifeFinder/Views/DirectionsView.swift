@@ -15,6 +15,7 @@ struct DirectionsView: View {
     @State private var showSteps = false
     @State private var nearWaypoint: Bool = false
     @State private var userToWaypointLine: MKPolyline?
+    @State private var routePolyline: MKPolyline?
 
     var body: some View {
         VStack {
@@ -65,6 +66,15 @@ struct DirectionsView: View {
                         nextWaypoint()
                     }
                     .padding(.horizontal)
+                }
+                
+                NavigationLink(destination: ARViewScreen(routePolyline: routePolyline)) {
+                    Text("AR Mode")
+                        .padding(.horizontal)
+                        .padding(.vertical, 6)
+                        .background(Color.blue.opacity(0.9))
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
                 }
             }
         }
@@ -147,6 +157,14 @@ struct DirectionsView: View {
             dismiss()
         }
         
+        if let nextCoord = vm.selectedWaypoints.first?.coordinate {
+            fetchCurrentPoly(to: nextCoord)
+        } else {
+            routeVM.appRoute = nil
+            userToWaypointLine = nil
+            dismiss()
+        }
+        
         nearWaypoint = false
     }
    
@@ -164,7 +182,7 @@ struct DirectionsView: View {
     }
     
     private func withinRange(_ a: CLLocationCoordinate2D, _ b: CLLocationCoordinate2D) -> Bool {
-        let threshold: Double = 10
+        let threshold: Double = 3
         
         let loc1 = CLLocation(latitude: a.latitude, longitude: a.longitude)
         let loc2 = CLLocation(latitude: b.latitude, longitude: b.longitude)
@@ -172,7 +190,9 @@ struct DirectionsView: View {
         return loc1.distance(from: loc2) <= threshold
     }
     
-    func fetchCurrentPoly() {
+    func fetchCurrentPoly(to destination: CLLocationCoordinate2D? = nil) {
+        guard let dest = destination ?? vm.selectedWaypoints.first?.coordinate else { return }
+        
         let request = MKDirections.Request()
         request.source = MKMapItem(placemark: MKPlacemark(coordinate: LocationManagerViewModel.shared.coordinate))
         guard let first = vm.selectedWaypoints.first else { return }
@@ -184,6 +204,7 @@ struct DirectionsView: View {
                 let response = try await MKDirections(request: request).calculate()
                 if let r = response.routes.first {
                     userToWaypointLine = r.polyline
+                    routePolyline = r.polyline
                 }
             }
         }
