@@ -122,6 +122,7 @@ func MediaView() -> some View {
                 Spacer()
             }
             MediaView()
+                .navigationBarBackButtonHidden(true)
             
             HStack{
                 Text("Posted by: \(pinvm.currentSighting.isPrivate ? "Anonymous" : pinvm.currentSighting.username ?? "Anonymous")")

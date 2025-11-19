@@ -20,6 +20,7 @@ struct HVAPinInformationView: View {
                     .font(.title)
                 Text("High Volume Area")
                     .font(.title)
+                    .navigationBarBackButtonHidden(true)
                 Spacer()
             }
             
@@ -36,28 +37,30 @@ struct HVAPinInformationView: View {
                 Text("Found \(sightings.count) sightings in this area!")
             }
             
-            List {
-                ForEach(sightings) { sighting in
-                    NavigationLink {
-                        SightingPinInformationView(
-                            sighting: sighting,
-                            origin: .hva,
-                            waypointObj: .sighting(sighting)
-                        )
-                    } label: {
-                        HStack {
-                            Image(systemName: "mappin")
-                            VStack(alignment: .leading) {
-                                Text(sighting.species.name)
-                                    .font(.headline)
-                                Text(sighting.createdAt.formatted(
-                                    Date.FormatStyle()
-                                        .year(.twoDigits)
-                                        .month(.twoDigits)
-                                        .day(.defaultDigits)
-                                ))
+            NavigationStack {
+                List {
+                    ForEach(sightings) { sighting in
+                        NavigationLink {
+                            SightingPinInformationView(
+                                sighting: sighting,
+                                origin: .hva,
+                                waypointObj: .sighting(sighting)
+                            )
+                        } label: {
+                            HStack {
+                                Image(systemName: "mappin")
+                                VStack(alignment: .leading) {
+                                    Text(sighting.species.name)
+                                        .font(.headline)
+                                    Text(sighting.createdAt.formatted(
+                                        Date.FormatStyle()
+                                            .year(.twoDigits)
+                                            .month(.twoDigits)
+                                            .day(.defaultDigits)
+                                    ))
+                                }
+                                Spacer()
                             }
-                            Spacer()
                         }
                     }
                 }
