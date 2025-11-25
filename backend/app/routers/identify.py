@@ -150,72 +150,20 @@ async def _identify_species_from_image_and_audio(
     audio_bytes: bytes,
     fmt_hint: str = "wav",
 ) -> str:
-    _require_api_key()
+    # 1. Try Image Identification (Visual Expert) using gpt-4o
+    print("Multimodal: Prioritizing Image Identification...")
+    try:
+        label = await _identify_species_from_image(image_bytes)
+        if label != FAIL_LABEL:
+            print(f"Multimodal: Image Identified -> {label}")
+            return label
+        print("Multimodal: Image returned FAIL_LABEL, falling back to Audio.")
+    except Exception as e:
+        print(f"Multimodal: Image Identification failed with error: {e}. Falling back to Audio.")
 
-    img_b64 = base64.b64encode(image_bytes).decode("utf-8")
-    aud_b64 = base64.b64encode(audio_bytes).decode("utf-8")
-
-    url = f"{OPENAI_BASE_URL}/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {OPENAI_API_KEY}",
-        "Content-Type": "application/json",
-        "User-Agent": DEFAULT_UA,
-    }
-
-    messages = [{
-        "role": "user",
-        "content": [
-            {
-                "type": "text",
-                "text": (
-                    "You are a wildlife identification expert.\n"
-                    "You will be given both a photo and an audio recording of the same scene.\n"
-                    "Identify the wildlife species using BOTH the image and the audio together.\n"
-                    "You MUST return exactly one of the following two options:\n"
-                    "1) A short English common name, like: American Robin\n"
-                    "2) The string: IDENTIFICATION FAILED\n"
-                    "Do NOT include quotes or any other words before or after.\n"
-                    "If you cannot identify, or the media does not come from wildlife, "
-                    "return IDENTIFICATION FAILED."
-                ),
-            },
-            {
-                "type": "image_url",
-                "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"},
-            },
-            {
-                "type": "input_audio",
-                "input_audio": {"data": aud_b64, "format": fmt_hint},
-            },
-        ],
-    }]
-
-    payload = {
-        "model": OPENAI_AUDIO_MODEL,
-        "messages": messages,
-        "temperature": 0,
-        "modalities": ["text"]
-    }
-
-    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT, headers=headers) as client:
-        r = await client.post(url, json=payload)
-    if r.status_code != 200:
-        raise HTTPException(
-            status_code=502,
-            detail=f"OpenAI multimodal identify error: {r.text}",
-        )
-
-    data = r.json()
-    print(f"OpenAI Response: {data}")
-    label = (data["choices"][0]["message"]["content"] or "").strip()
-    print(f"Identified Label: {label}")
-    if not label:
-        raise HTTPException(
-            status_code=502,
-            detail="Empty label from OpenAI (multimodal).",
-        )
-
-    return label
+    # 2. Fallback to Audio Identification (Audio Expert) using gpt-4o-audio-preview
+    print("Multimodal: Attempting Audio Identification...")
+    return await _identify_species_from_audio(audio_bytes, fmt_hint=fmt_hint)
 
 
 
@@ -242,6 +190,7 @@ async def identify_photo(
     except HTTPException:
         raise
     except Exception as e:
+        print(f"Photo Identify Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -275,6 +224,7 @@ async def identify_audio(
     except HTTPException:
         raise
     except Exception as e:
+        print(f"Photo Identify Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -323,4 +273,5 @@ async def identify_photo_and_audio(
     except HTTPException:
         raise
     except Exception as e:
+        print(f"Multimodal Identify Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
