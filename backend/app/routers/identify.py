@@ -79,18 +79,16 @@ async def _identify_species_from_image(image_bytes: bytes) -> str:
         "role": "user",
         "content": [
             {"type": "text",
-             "text": "Identify the wildlife species shown in this image. "
-                     "You MUST return exactly one of the following two options:\n"
-                     "1) A short English common name like: American Robin\n"
-                     "2) The string: IDENTIFICATION FAILED\n"
-                     "Do NOT include quotes or any other words before or after. "
-                     "If you cannot identify, or the image does not come from wildlife, "
-                     "return IDENTIFICATION FAILED."},
+             "text": "Identify the animal in this image. "
+                     "Return the English common name (e.g. 'Red Fox'). "
+                     "If you are unsure, provide your best guess. "
+                     "If the image definitely does not contain an animal, return 'IDENTIFICATION FAILED'. "
+                     "Do not include any other text or punctuation."},
             {"type": "image_url",
              "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
         ]
     }]
-    payload = {"model": OPENAI_IMAGE_MODEL, "messages": messages, "temperature": 0}
+    payload = {"model": OPENAI_IMAGE_MODEL, "messages": messages, "temperature": 0, "modalities": ["text"]}
 
     async with httpx.AsyncClient(timeout=HTTP_TIMEOUT, headers=headers) as client:
         r = await client.post(url, json=payload)
@@ -232,6 +230,7 @@ async def identify_photo(
 ):
     try:
         img = await photo.read()
+        print(f"Received Photo Size: {len(img)} bytes, Content-Type: {photo.content_type}")
         label = await _identify_species_from_image(img)
 
         if label == FAIL_LABEL:
