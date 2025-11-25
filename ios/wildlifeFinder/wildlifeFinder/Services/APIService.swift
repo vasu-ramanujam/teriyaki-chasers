@@ -94,7 +94,7 @@ public struct ImageLink: Codable {
 public struct IdentifyResponse: Codable {
     public let label: String
     public let species_id: Int?
-    public let wikiData: WikiData
+    public let wikiData: WikiData?
     
     enum CodingKeys: String, CodingKey {
             case label
@@ -104,10 +104,10 @@ public struct IdentifyResponse: Codable {
 }
 
 public struct WikiData: Codable {
-    let englishName: String
-    let description: String
-    let otherSources: [String]
-    let mainImage: String
+    let englishName: String?
+    let description: String?
+    let otherSources: [String]?
+    let mainImage: String?
 
     enum CodingKeys: String, CodingKey {
         case englishName = "english_name"
