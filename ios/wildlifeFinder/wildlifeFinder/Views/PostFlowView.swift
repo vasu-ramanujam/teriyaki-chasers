@@ -1,9 +1,3 @@
-//
-//  PostFlowView.swift
-//  wildlifeFinder
-//
-//  Created by Owen Davis on 10/28/25.
-//
 import SwiftUI
 import Observation
 
@@ -243,27 +237,27 @@ struct IdentifyView: View {
                 isLoading = true
                 defer { isLoading = false }
                 do {
-                    if let image = postVM.image, let data = image.jpegData(compressionQuality: 0.85) {
-                        let result = try await APIService.shared.identifyPhoto(imageData: data)
+                    let jpegData = postVM.image?.jpegData(compressionQuality: 0.85)
+                    let audioData = (postVM.audioURL != nil) ? try? Data(contentsOf: postVM.audioURL!) : nil
+                    
+                    var result: IdentifyResponse?
+                    
+                    if let jpegData, let audioData {
+                        result = try await APIService.shared.identifyPhotoAndAudio(imageData: jpegData, audioData: audioData)
+                    } else if let jpegData {
+                        result = try await APIService.shared.identifyPhoto(imageData: jpegData)
+                    } else if let audioData {
+                        result = try await APIService.shared.identifyAudio(audioData: audioData)
+                    }
+                    
+                    if let result {
                         if let speciesId = result.species_id {
                             let species = try await APIService.shared.getSpecies(id: speciesId)
                             postVM.animal = Species(from: species)
                             postVM.speciesId = speciesId
-                            postVM.animalImgUrl = URL(string: result.wikiData.mainImage)
-                        } else {
-                            let matches = try await APIService.shared.searchSpecies(query: result.label, limit: 1)
-                            if let s = matches.first {
-                                postVM.animal = Species(from: s)
-                                postVM.speciesId = s.id
+                            if let mainImage = result.wikiData?.mainImage {
+                                postVM.animalImgUrl = URL(string: mainImage)
                             }
-                        }
-                    } else if let audioURL = postVM.audioURL {
-                        let data = try Data(contentsOf: audioURL)
-                        let result = try await APIService.shared.identifyAudio(audioData: data)
-                        if let speciesId = result.species_id {
-                            let species = try await APIService.shared.getSpecies(id: speciesId)
-                            postVM.animal = Species(from: species)
-                            postVM.speciesId = speciesId
                         } else {
                             let matches = try await APIService.shared.searchSpecies(query: result.label, limit: 1)
                             if let s = matches.first {
