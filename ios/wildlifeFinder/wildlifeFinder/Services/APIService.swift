@@ -273,8 +273,8 @@ public class APIService {
                 form.append(
                     audioData,
                     withName: "audio",
-                    fileName: "audio.m4a",
-                    mimeType: "audio/m4a"
+                    fileName: "audio.wav",
+                    mimeType: "audio/wav"
                 )
             },
             to: url,
@@ -299,8 +299,8 @@ public class APIService {
                 form.append(
                     audioData,
                     withName: "audio",
-                    fileName: "audio.m4a",
-                    mimeType: "audio/m4a"
+                    fileName: "audio.wav",
+                    mimeType: "audio/wav"
                 )
             },
             to: url,

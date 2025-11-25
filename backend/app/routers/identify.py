@@ -15,7 +15,7 @@ OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 OPENAI_IMAGE_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "gpt-4o")
-OPENAI_AUDIO_MODEL = os.getenv("OPENAI_AUDIO_MODEL", "gpt-4o")
+OPENAI_AUDIO_MODEL = os.getenv("OPENAI_AUDIO_MODEL", "gpt-4o-audio-preview")
 OPENAI_TEXT_MODEL  = os.getenv("OPENAI_TEXT_MODEL", "gpt-4o-mini")
 
 HTTP_TIMEOUT = float(os.getenv("HTTP_TIMEOUT", "30"))
@@ -98,7 +98,9 @@ async def _identify_species_from_image(image_bytes: bytes) -> str:
         raise HTTPException(status_code=502, detail=f"OpenAI image identify error: {r.text}")
 
     data = r.json()
+    print(f"OpenAI Response: {data}")
     label = (data["choices"][0]["message"]["content"] or "").strip()
+    print(f"Identified Label: {label}")
     if not label:
         raise HTTPException(status_code=502, detail="Empty label from OpenAI (image).")
     return label
@@ -118,18 +120,18 @@ async def _identify_species_from_audio(audio_bytes: bytes, fmt_hint: str = "wav"
         "role": "user",
         "content": [
             {"type": "text",
-             "text": "Identify the wildlife species shown from this audio. "
+             "text": "Identify the wildlife species heard in this audio. "
                      "You MUST return exactly one of the following two options:\n"
                      "1) A short English common name like: American Robin\n"
                      "2) The string: IDENTIFICATION FAILED\n"
                      "Do NOT include quotes or any other words before or after. "
-                     "If you cannot identify, or the image does not come from wildlife, "
-                     "return IDENTIFICATION FAILED."},
+                     "If you are unsure but it sounds like wildlife, provide your best guess. "
+                     "Only return IDENTIFICATION FAILED if it is clearly not wildlife (e.g. human speech, silence)."},
             {"type": "input_audio",
              "input_audio": {"data": b64, "format": fmt_hint}}
         ]
     }]
-    payload = {"model": OPENAI_AUDIO_MODEL, "messages": messages, "temperature": 0}
+    payload = {"model": OPENAI_AUDIO_MODEL, "messages": messages, "temperature": 0, "modalities": ["text"]}
 
     async with httpx.AsyncClient(timeout=HTTP_TIMEOUT, headers=headers) as client:
         r = await client.post(url, json=payload)
@@ -137,7 +139,9 @@ async def _identify_species_from_audio(audio_bytes: bytes, fmt_hint: str = "wav"
         raise HTTPException(status_code=502, detail=f"OpenAI audio identify error: {r.text}")
 
     data = r.json()
+    print(f"OpenAI Response: {data}")
     label = (data["choices"][0]["message"]["content"] or "").strip()
+    print(f"Identified Label: {label}")
     if not label:
         raise HTTPException(status_code=502, detail="Empty label from OpenAI (audio).")
     return label
@@ -189,9 +193,10 @@ async def _identify_species_from_image_and_audio(
     }]
 
     payload = {
-        "model": OPENAI_IMAGE_MODEL,
+        "model": OPENAI_AUDIO_MODEL,
         "messages": messages,
         "temperature": 0,
+        "modalities": ["text"]
     }
 
     async with httpx.AsyncClient(timeout=HTTP_TIMEOUT, headers=headers) as client:
@@ -203,7 +208,9 @@ async def _identify_species_from_image_and_audio(
         )
 
     data = r.json()
+    print(f"OpenAI Response: {data}")
     label = (data["choices"][0]["message"]["content"] or "").strip()
+    print(f"Identified Label: {label}")
     if not label:
         raise HTTPException(
             status_code=502,
@@ -258,6 +265,7 @@ async def identify_audio(
 
         buf = await audio.read()
         label = await _identify_species_from_audio(buf, fmt_hint=fmt_hint)
+        print(f"Received Audio Size: {len(buf)} bytes, Format Hint: {fmt_hint}")
 
         if label == FAIL_LABEL:
             return {"label": label, "species_id": None, "wiki_data": None}
@@ -295,6 +303,7 @@ async def identify_photo_and_audio(
         final_label = await _identify_species_from_image_and_audio(
             img_bytes, audio_bytes, fmt_hint=fmt_hint
         )
+        print(f"Received Audio Size: {len(audio_bytes)} bytes, Format Hint: {fmt_hint}")
 
         if final_label == FAIL_LABEL:
             return {

@@ -8,28 +8,37 @@ import SwiftUI
 
 struct SpeciesView: View {
     var species: Species
-    var imgUrl: URL
+    var imgUrl: URL?
     
     var body: some View {
         LazyVStack {
-            AsyncImage(url: imgUrl) { phase in
-                switch phase {
-                case .empty:
-                    // Placeholder while the image is loading
-                    ProgressView()
-                case .success(let image):
-                    // Display the loaded image
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                case .failure:
-                    // Display an error or placeholder if loading fails
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.red)
-                @unknown default:
-                    // Handle future cases
-                    EmptyView()
+            if let imgUrl {
+                AsyncImage(url: imgUrl) { phase in
+                    switch phase {
+                    case .empty:
+                        // Placeholder while the image is loading
+                        ProgressView()
+                    case .success(let image):
+                        // Display the loaded image
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    case .failure:
+                        // Display an error or placeholder if loading fails
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.red)
+                    @unknown default:
+                        // Handle future cases
+                        EmptyView()
+                    }
                 }
+            } else {
+                Image(systemName: "photo")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .foregroundStyle(.gray)
+                    .padding()
+                    .frame(height: 200)
             }
 //            .scaledToFit()
 //            .padding(.bottom)

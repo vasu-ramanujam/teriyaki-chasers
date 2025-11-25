@@ -183,6 +183,7 @@ struct buttonBackground: View {
 struct IdentifyView: View {
     @Environment(\.dismiss) var dismiss
     @State private var isLoading: Bool = false
+    @State private var errorMessage: String?
     @Bindable var postVM: PostViewModel
     @Binding var path: NavigationPath
 
@@ -207,7 +208,7 @@ struct IdentifyView: View {
                 ProgressView("Identifying...")
                     .navigationBarBackButtonHidden(true)
             } else {
-                if let animal = postVM.animal, let imgUrl = postVM.animalImgUrl {
+                if let animal = postVM.animal {
                     Text("You found: \(animal.common_name)!")
                         .font(.largeTitle) // Start with a large font size
                         .lineLimit(1) // Ensure the text stays on a single line
@@ -217,7 +218,7 @@ struct IdentifyView: View {
                         .padding(.trailing)
                         .navigationBarBackButtonHidden(true)
 
-                    SpeciesView(species: animal, imgUrl: imgUrl)
+                    SpeciesView(species: animal, imgUrl: postVM.animalImgUrl)
                     
                     NavigationLink("Post Sighting", value: "post")
                     .foregroundStyle(.black)
@@ -227,7 +228,14 @@ struct IdentifyView: View {
                         alignment: .center
                     )
                 } else {
-                    Text("There should be an animal lol")
+                    if let errorMessage {
+                        Text("Error: \(errorMessage)")
+                            .foregroundStyle(.red)
+                            .multilineTextAlignment(.center)
+                            .padding()
+                    } else {
+                        Text("There should be an animal lol")
+                    }
                 }
                 
             }
@@ -251,7 +259,9 @@ struct IdentifyView: View {
                     }
                     
                     if let result {
-                        if let speciesId = result.species_id {
+                        if result.label == "IDENTIFICATION FAILED" {
+                             errorMessage = "Could not identify species."
+                        } else if let speciesId = result.species_id {
                             let species = try await APIService.shared.getSpecies(id: speciesId)
                             postVM.animal = Species(from: species)
                             postVM.speciesId = speciesId
@@ -263,11 +273,14 @@ struct IdentifyView: View {
                             if let s = matches.first {
                                 postVM.animal = Species(from: s)
                                 postVM.speciesId = s.id
+                            } else {
+                                errorMessage = "No species found for: \(result.label)"
                             }
                         }
                     }
                 } catch {
                     print("Identify error: \(error)")
+                    errorMessage = error.localizedDescription
                 }
             }
             
