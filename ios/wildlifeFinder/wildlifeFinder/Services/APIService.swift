@@ -285,6 +285,32 @@ public class APIService {
         .value
     }
 
+    public func identifyPhotoAndAudio(imageData: Data, audioData: Data) async throws -> IdentifyResponse {
+        let url = "\(baseURL)/identify/photo-audio"
+        
+        return try await AF.upload(
+            multipartFormData: { form in
+                form.append(
+                    imageData,
+                    withName: "photo",
+                    fileName: "photo.jpg",
+                    mimeType: "image/jpeg"
+                )
+                form.append(
+                    audioData,
+                    withName: "audio",
+                    fileName: "audio.m4a",
+                    mimeType: "audio/m4a"
+                )
+            },
+            to: url,
+            method: .post
+        )
+        .validate()
+        .serializingDecodable(IdentifyResponse.self)
+        .value
+    }
+
     // MARK: - Create Sighting (multipart/form-data)
     public func createSighting(
         speciesId: Int,
