@@ -5,9 +5,9 @@
 //  Created by Alvin Jiang on 11/19/25.
 //
 import MapKit
+import CoreLocation
 
 
-// TODO: move extension to a separate file
 extension MKPolyline {
     
     var coords: [CLLocationCoordinate2D] {
