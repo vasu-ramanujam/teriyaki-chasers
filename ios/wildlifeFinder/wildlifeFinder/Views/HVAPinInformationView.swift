@@ -14,30 +14,30 @@ struct HVAPinInformationView: View {
     @State private var errorMessage: String?
     
     var body: some View {
-        VStack{
-            HStack{
-                Image(systemName: "mappin")
-                    .font(.title)
-                Text("High Volume Area")
-                    .font(.title)
-                    .navigationBarBackButtonHidden(true)
-                Spacer()
-            }
-            
-            if isLoading {
-                HStack {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                    Text("Loading sightings...")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+        NavigationStack {
+            VStack{
+                HStack{
+                    Image(systemName: "mappin")
+                        .font(.title)
+                    Text("High Volume Area")
+                        .font(.title)
+                        .navigationBarBackButtonHidden(true)
+                    Spacer()
                 }
-                .padding()
-            } else {
-                Text("Found \(sightings.count) sightings in this area!")
-            }
-            
-            NavigationStack {
+                
+                if isLoading {
+                    HStack {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text("Loading sightings...")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding()
+                } else {
+                    Text("Found \(sightings.count) sightings in this area!")
+                }
+                
                 List {
                     ForEach(sightings) { sighting in
                         NavigationLink {
@@ -64,26 +64,26 @@ struct HVAPinInformationView: View {
                         }
                     }
                 }
-            }
-            
-            Button(vm.selectedWaypoints.contains(hotspotObj) ? "Remove High-Volume Area from Route" : "Add High-Volume Area to Route"){
-                vm.toggleWaypoint(hotspotObj)
-                dismiss()
-            }
-            .padding([.top])
-            .buttonStyle(OrangeButtonStyle())
-            .buttonStyle(.borderedProminent)
-            .font(.headline)
-
-            Spacer()
-            
-            HStack{
-                Button("< Back"){
+                
+                Button(vm.selectedWaypoints.contains(hotspotObj) ? "Remove High-Volume Area from Route" : "Add High-Volume Area to Route"){
+                    vm.toggleWaypoint(hotspotObj)
                     dismiss()
                 }
-                .padding([.leading])
-                .buttonStyle(GreenButtonStyle())
+                .padding([.top])
+                .buttonStyle(OrangeButtonStyle())
+                .buttonStyle(.borderedProminent)
+                .font(.headline)
+                
                 Spacer()
+                
+                HStack{
+                    Button("< Back"){
+                        dismiss()
+                    }
+                    .padding([.leading])
+                    .buttonStyle(GreenButtonStyle())
+                    Spacer()
+                }
             }
         }
         .padding()
