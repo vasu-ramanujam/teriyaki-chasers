@@ -155,3 +155,12 @@ class UserStats(BaseModel):
 
 class ImageLink(BaseModel):
     link: str
+
+
+# Animal search schemas
+class AnimalSearchRequest(BaseModel):
+    name: str
+
+class AnimalSearchResponse(BaseModel):
+    name: str
+    is_valid: bool
