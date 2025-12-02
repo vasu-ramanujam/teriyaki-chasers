@@ -1,5 +1,16 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
+from typing import Optional, List
+
+from pathlib import Path
+
+def store_animal_names():
+    animals = []
+    file_path = Path(__file__).parent.parent / 'animals.txt'
+    with open(file_path, "r") as infile:
+        for line in infile:
+            animals.append(line.strip())
+
+    return animals
 
 class Settings(BaseSettings):
     # Database Configuration
@@ -34,6 +45,9 @@ class Settings(BaseSettings):
     aws_secret_access_key: Optional[str] = None
     aws_region: str = "us-east-2"
     aws_s3_bucket_name: Optional[str] = None
+
+    # names of animals
+    animal_names: List[str] = store_animal_names()
     
     def get_database_url(self) -> str:
         """Build database URL, preferring RDS if configured"""

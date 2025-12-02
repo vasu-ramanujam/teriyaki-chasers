@@ -5,7 +5,16 @@ import Alamofire
 
 
 // MARK: - API Models
-public struct APISpecies: Codable, Identifiable {
+public struct AnimalSearchRequest: Codable {
+    public let name: String
+}
+
+public struct AnimalSearchResponse: Codable {
+    public let name: String
+    public let is_valid: Bool
+}
+
+public struct APISpecies: Codable, Identifiable, Hashable {
     public let id: Int
     public let common_name: String
     public let scientific_name: String
@@ -141,7 +150,7 @@ public class APIService {
         #if targetEnvironment(simulator)
             return "http://127.0.0.1:8000/v1"
         #else
-            return "http://catherinezs-macbook-pro-65.local:8000/v1"
+            return "http://Owens-MacBook-Air-10.local:8000/v1"
         #endif
     }()
 
@@ -348,6 +357,15 @@ public class APIService {
         .validate()
         .serializingDecodable(APISighting.self)
         .value
+    }
+    
+    // MARK: - Animal Search
+    public func getSearchSuggestions(query: String) async throws -> [String] {
+        guard let url = URL(string: "\(baseURL)/animal-search/\(query)") else { return [] }
+        let (data, _) = try await session.data(from: url)
+        
+        let resp = try JSONDecoder().decode([String].self, from: data)
+        return resp
     }
     
     // MARK: - Helper Methods

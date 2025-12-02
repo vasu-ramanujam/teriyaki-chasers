@@ -1,9 +1,11 @@
 import os
+import difflib
 from typing import Tuple
 
 import httpx
 from fastapi import APIRouter, HTTPException
 from app.schemas import AnimalSearchRequest, AnimalSearchResponse
+from app.config import settings
 
 router = APIRouter()
 
@@ -78,6 +80,9 @@ async def _validate_animal_name_with_llm(name: str) -> Tuple[bool, str]:
     is_valid = upper == "YES"
     return is_valid
 
+def _return_suggestions(search: str, limit: int = 5):
+    return difflib.get_close_matches(search, settings.animal_names, limit, 0.25)
+
 
 @router.post("/validate-name", response_model=AnimalSearchResponse)
 async def validate_animal_name(body: AnimalSearchRequest) -> AnimalSearchResponse:
@@ -92,3 +97,7 @@ async def validate_animal_name(body: AnimalSearchRequest) -> AnimalSearchRespons
     except Exception as e:
         print(f"Animal name validation error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/{query}")
+def get_suggestions(query: str):
+    return _return_suggestions(query)

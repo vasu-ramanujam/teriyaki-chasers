@@ -32,7 +32,7 @@ struct ContentView: View {
                     Tab(value: 3) {
                         // animal search
                         NavigationStack {
-                            Text("Animal Search (stub)")
+                            AnimalSearchView()
                         }
                     }
                     
