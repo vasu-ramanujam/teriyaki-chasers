@@ -27,7 +27,7 @@ class Coordinator: NSObject, ARSessionDelegate {
     var waypointAnchors: [String: AnchorEntity] = [:]
     // For performance: "cache" the last synced waypoints
     private var lastSyncedWaypointIDs: Set<String> = []
-    
+    var currentPolyline: MKPolyline?
     
     init(parent: ARViewContainer) {
         self.parent = parent
@@ -185,6 +185,8 @@ class Coordinator: NSObject, ARSessionDelegate {
         guard let arView = arView,
               let startCoord = polyline.coords.first else { return }
         
+        // debug("✅ Spawning breadcrumbs...")
+        
         // Cleanup existing crumbs if any
         removeBreadcrumbs()
         
@@ -198,55 +200,61 @@ class Coordinator: NSObject, ARSessionDelegate {
         self.breadcrumbAnchorEntity = rootEntity
         
         // Calculate Points relative to that start anchor
-        // We use a Task to avoid freezing the UI during math calculations
-        Task {
-            // Get points every 1.5 meters (adjust as needed for density)
-            // 0.5m might be too dense visually; 1.5m to 2.0m is usually better for walking
-            let breadcrumbCoords = polyline.evenlySpacedCoordinates(every: 1.5)
+        // DEPRECATED: We use a Task to avoid freezing the UI during math calculations
+        //Task { @MainActor in
+        // Get points every 1.5 meters (adjust as needed for density)
+        let breadcrumbCoords = polyline.evenlySpacedCoordinates(every: 1.5)
+        
+        var sphereEntities: [ModelEntity] = []
+        var debugLog = ""
+        
+        // Create reusable assets (Optimization)
+        let mesh = MeshResource.generateSphere(radius: 0.15)
+        let material = SimpleMaterial(color: .cyan.withAlphaComponent(0.8), isMetallic: false)
+        
+        for (index, coord) in breadcrumbCoords.enumerated() {
+            // Calculate distance and bearing from the Start Anchor
+            let distance = startCoord.distance(to: coord)
+            let bearing = startCoord.bearing(to: coord)
             
-            var sphereEntities: [ModelEntity] = []
+            // Convert Polar coordinates (Dist/Angle) to Cartesian (X/Z)
+            // ARKit Coordinate System:
+            // +X = East
+            // -Z = North
+            // +Y = Up
+            let bearingRadians = bearing.degreesToRadians
+            let x = Float(distance * sin(bearingRadians))
+            let z = Float(-1 * distance * cos(bearingRadians))
             
-            // Create reusable assets (Optimization)
-            let mesh = MeshResource.generateSphere(radius: 0.15)
-            let material = SimpleMaterial(color: .cyan.withAlphaComponent(0.8), isMetallic: false)
-            
-            for coord in breadcrumbCoords {
-                // Calculate distance and bearing from the Start Anchor
-                let distance = startCoord.distance(to: coord)
-                let bearing = startCoord.bearing(to: coord)
-                
-                // Convert Polar coordinates (Dist/Angle) to Cartesian (X/Z)
-                // ARKit Coordinate System:
-                // +X = East
-                // -Z = North
-                // +Y = Up
-                let bearingRadians = bearing.degreesToRadians
-                let x = Float(distance * sin(bearingRadians))
-                let z = Float(-1 * distance * cos(bearingRadians))
-                
-                let sphere = ModelEntity(mesh: mesh, materials: [material])
-                
-                // Position relative to the root anchor
-                sphere.position = [x, 0.5, z]
-                
-                // Optional: Make it non-collidable to save physics calculation
-                sphere.collision = nil
-                
-                sphereEntities.append(sphere)
+            if index < 3 {
+                debugLog += "P\(index): dist=\(Int(distance))m, x=\(String(format: "%.1f", x)), z=\(String(format: "%.1f", z))\n"
             }
             
-            // Add to Scene on Main Actor
-            await MainActor.run {
-                // Double check root still exists (user might have quit while calculating)
-                guard let root = self.breadcrumbAnchorEntity else { return }
-                
-                for sphere in sphereEntities {
-                    root.addChild(sphere)
-                }
-                
-                arView.scene.addAnchor(root)
-                print("Added \(sphereEntities.count) breadcrumbs to AR Scene.")
+            let sphere = ModelEntity(mesh: mesh, materials: [material])
+            
+            // Position relative to the root anchor
+            sphere.position = [x, 0.5, z]
+            
+            // Optional: Make it non-collidable to save physics calculation
+            sphere.collision = nil
+            
+            sphereEntities.append(sphere)
+            // }
+            
+            // debug("Added breadcrumb coords:")
+            // self.debug("Breadcrumbs: \(sphereEntities.count) points.\n" + debugLog)
+            // DEPRECATED: Add to Scene on Main Actor
+            // await MainActor.run {
+            // Double check root still exists (user might have quit while calculating)
+            guard let root = self.breadcrumbAnchorEntity else { return }
+            
+            for sphere in sphereEntities {
+                root.addChild(sphere)
             }
+            
+            arView.scene.addAnchor(root)
+            print("Added \(sphereEntities.count) breadcrumbs to AR Scene.")
+            // }
         }
     }
     
@@ -310,9 +318,9 @@ class Coordinator: NSObject, ARSessionDelegate {
     
     
     // uncomment to print debug messages
-    func debug(_ message: String) {
-        Task { @MainActor in
-            self.parent.onDebugMessage?(message)
-        }
-    }
+//    func debug(_ message: String) {
+//        Task { @MainActor in
+//            self.parent.onDebugMessage?(message)
+//        }
+//    }
 }

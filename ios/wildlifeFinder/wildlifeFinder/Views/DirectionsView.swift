@@ -15,8 +15,7 @@ struct DirectionsView: View {
     @State private var showSteps = false
     @State private var nearWaypoint: Bool = false
     @State private var userToWaypointLine: MKPolyline?
-    @State private var routePolyline: MKPolyline?
-
+    
     var body: some View {
         VStack {
             Map(position: $position) {
@@ -68,7 +67,7 @@ struct DirectionsView: View {
                     .padding(.horizontal)
                 }
                 
-                NavigationLink(destination: ARViewScreen(routePolyline: routePolyline)) {
+                NavigationLink(destination: ARViewScreen()) {
                     Text("AR Mode")
                         .padding(.horizontal)
                         .padding(.vertical, 6)
@@ -191,7 +190,7 @@ struct DirectionsView: View {
     }
     
     func fetchCurrentPoly(to destination: CLLocationCoordinate2D? = nil) {
-        guard let dest = destination ?? vm.selectedWaypoints.first?.coordinate else { return }
+        guard (destination ?? vm.selectedWaypoints.first?.coordinate) != nil else { return }
         
         let request = MKDirections.Request()
         request.source = MKMapItem(placemark: MKPlacemark(coordinate: LocationManagerViewModel.shared.coordinate))
@@ -204,7 +203,6 @@ struct DirectionsView: View {
                 let response = try await MKDirections(request: request).calculate()
                 if let r = response.routes.first {
                     userToWaypointLine = r.polyline
-                    routePolyline = r.polyline
                 }
             }
         }

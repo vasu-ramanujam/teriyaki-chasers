@@ -71,14 +71,21 @@ struct ARViewContainer: UIViewRepresentable {
         
         // adds breadcrumbs that guides users to the next waypoint
         if let polyline = routePolyline,
-           context.coordinator.anchorsAdded,
-           context.coordinator.breadcrumbAnchorEntity == nil {
-            context.coordinator.spawnBreadcrumbs(along: polyline)
+           context.coordinator.anchorsAdded {
+            
+            // Check our cache in the coordinator, if polyline changed, set currentPolyline to it
+            if context.coordinator.currentPolyline != polyline {
+                
+                // Update cache
+                context.coordinator.currentPolyline = polyline
+                context.coordinator.spawnBreadcrumbs(along: polyline)
+            }
         }
         
         // Cleanup if polyline is removed
         if routePolyline == nil && context.coordinator.breadcrumbAnchorEntity != nil {
             context.coordinator.removeBreadcrumbs()
+            context.coordinator.currentPolyline = nil
         }
     }
     
@@ -122,7 +129,8 @@ struct ARViewContainer: UIViewRepresentable {
 // MARK: - ARView Screen
 struct ARViewScreen: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(SightingMapViewModel.self) private var vm
+    @Environment(SightingMapViewModel.self) private var sightingVM
+    @Environment(RouteViewModel.self) private var routeVM
     
     @State private var selectedWaypoint: Waypoint? = nil
     @State private var currentWaypoint: Waypoint? = nil
@@ -132,10 +140,26 @@ struct ARViewScreen: View {
     @State private var arrowRotation: Double = 0.0
     @State private var trackingMessage: String = "Initializing AR…"
     @State private var anchorsPlaced: Bool = false
-    // @State private var debugMessage = "Starting..."
+    @State private var debugMessage = "Debug message..."
     @State private var showDirections = false
     
-    var routePolyline: MKPolyline?
+//    var routePolyline: MKPolyline?
+    
+    // computed property to retrieve leg to next waypoint
+    private var activeLegPolyline: MKPolyline? {
+        guard let appRoute = routeVM.appRoute else { return nil }
+        
+        let totalLegs = appRoute.legs.count
+        let remainingWaypoints = sightingVM.selectedWaypoints.count
+        
+        // Retrieves the index of current waypoint
+        let currentIndex = totalLegs - remainingWaypoints
+        if currentIndex >= 0 && currentIndex < totalLegs {
+            return appRoute.legs[currentIndex].polyline
+        }
+        
+        return nil
+    }
     
     var body: some View {
         ZStack {
@@ -171,7 +195,7 @@ struct ARViewScreen: View {
             if showPopup, let waypoint = reachedWaypoint {
                 WaypointArrivalPopup(
                     waypoint: waypoint,
-                    isLastWaypoint: vm.selectedWaypoints.last?.id == waypoint.id,
+                    isLastWaypoint: sightingVM.selectedWaypoints.last?.id == waypoint.id,
                     onNext: advanceToNextWaypoint,
                     onDismiss: dismissPopup
                 )
@@ -192,8 +216,8 @@ private extension ARViewScreen {
     
     var arLayer: some View {
         ARViewContainer(
-            waypoints: Binding(get: { vm.selectedWaypoints }, set: { vm.selectedWaypoints = $0 }),
-            routePolyline: routePolyline,
+            waypoints: Binding(get: { sightingVM.selectedWaypoints }, set: { sightingVM.selectedWaypoints = $0 }),
+            routePolyline: activeLegPolyline,
             onReachedWaypoint: { waypoint in
                 reachedWaypoint = waypoint
                 showPopup = true
@@ -211,25 +235,25 @@ private extension ARViewScreen {
     
     func setupInitialState() {
         if currentWaypoint == nil {
-            currentWaypoint = vm.selectedWaypoints.first
+            currentWaypoint = sightingVM.selectedWaypoints.first
         }
     }
     
     
     func skipCurrentWaypoint() {
         guard let current = currentWaypoint,
-              let index = vm.selectedWaypoints.firstIndex(of: current) else { return }
+              let index = sightingVM.selectedWaypoints.firstIndex(of: current) else { return }
         
-        vm.selectedWaypoints.remove(at: index)
+        sightingVM.selectedWaypoints.remove(at: index)
         updateCurrentWaypoint(from: index)
     }
     
     
     func advanceToNextWaypoint() {
         guard let reached = reachedWaypoint,
-              let index = vm.selectedWaypoints.firstIndex(of: reached) else { return }
+              let index = sightingVM.selectedWaypoints.firstIndex(of: reached) else { return }
         
-        vm.selectedWaypoints.remove(at: index)
+        sightingVM.selectedWaypoints.remove(at: index)
         updateCurrentWaypoint(from: index)
         
         reachedWaypoint = nil
@@ -239,8 +263,8 @@ private extension ARViewScreen {
     
     func dismissPopup() {
         // If we just dismissed, remove the reached point from list
-        if let reached = reachedWaypoint, let index = vm.selectedWaypoints.firstIndex(of: reached) {
-             vm.selectedWaypoints.remove(at: index)
+        if let reached = reachedWaypoint, let index = sightingVM.selectedWaypoints.firstIndex(of: reached) {
+            sightingVM.selectedWaypoints.remove(at: index)
              updateCurrentWaypoint(from: index)
         }
         reachedWaypoint = nil
@@ -249,8 +273,8 @@ private extension ARViewScreen {
     
     
     func updateCurrentWaypoint(from index: Int) {
-        if index < vm.selectedWaypoints.count {
-            self.currentWaypoint = vm.selectedWaypoints[index]
+        if index < sightingVM.selectedWaypoints.count {
+            self.currentWaypoint = sightingVM.selectedWaypoints[index]
         } else {
             self.currentWaypoint = nil
         }
