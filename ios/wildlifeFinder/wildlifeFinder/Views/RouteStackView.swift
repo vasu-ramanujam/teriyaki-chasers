@@ -4,12 +4,11 @@ import MapKit
 struct RouteStackView: View {
     @Environment(RouteViewModel.self) private var routeVM
     @Environment(SightingMapViewModel.self) private var vm
-    let waypoints: [Waypoint]
     var body: some View {
         NavigationStack {
             VStack(spacing: 12) {
                 Map {
-                    ForEach(waypoints) { wp in
+                    ForEach(vm.selectedWaypoints) { wp in
                         Marker(wp.title, coordinate: wp.coordinate)
                     }
                     
@@ -30,7 +29,7 @@ struct RouteStackView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .padding(.horizontal)
 
-                List(waypoints) { wp in
+                List(vm.selectedWaypoints) { wp in
                     VStack(alignment: .leading) {
                         Text(wp.title).bold()
                         Text("\(wp.coordinate.latitude), \(wp.coordinate.longitude)")
@@ -48,11 +47,15 @@ struct RouteStackView: View {
             .navigationTitle("Current Route")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Start") { /* hook to Directions later */ }
+                    if routeVM.appRoute != nil {
+                        NavigationLink("Start Directions") {
+                            DirectionsView()
+                        }
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
-                        ARViewScreen(waypoints: waypoints)
+                        ARViewScreen()
                             .edgesIgnoringSafeArea(.all)
                     } label: {
                         Image(systemName: "arkit")

@@ -18,7 +18,7 @@ struct ContentView: View {
                     Tab(value: 1) {
                         // route view or wtv
                         NavigationStack {
-                            RouteStackView(waypoints: Array(vm.selectedWaypoints))
+                            RouteStackView()
                         }
                     }
                     

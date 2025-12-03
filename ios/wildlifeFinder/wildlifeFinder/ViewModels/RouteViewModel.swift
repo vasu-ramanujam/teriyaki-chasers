@@ -71,6 +71,7 @@ final class RouteViewModel {
                     legs[idx].distance = r.distance
                     legs[idx].expectedTravelTime = r.expectedTravelTime
                     legs[idx].polyline = r.polyline
+                    legs[idx].steps = r.steps
                 }
             } catch {
                 errorMessage = "Failed to fetch route: \(error.localizedDescription)"
