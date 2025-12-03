@@ -170,6 +170,34 @@ extension APIService {
 // MARK: - API Service
 public class APIService {
     public static let shared = APIService()
+
+     // ============================================================
+            // SETUP INSTRUCTIONS: Finding Your Mac's Address
+            // ============================================================
+            // 
+            // Option 1: Get your Mac's hostname (.local domain):
+            //   Run in Terminal: hostname
+            //   **Formula:** `http://[hostname output]:8000/v1`
+            //   get hostname, run this in terminal:
+            //   **
+            //   echo "Hostname: $(hostname)" && echo "IP: $(ipconfig getifaddr en0)"
+            //   **
+            //   Output example: "CatherineZs-MacBook-Pro-132.local"
+            //   Then use: http://[HOSTNAME]:8000/v1
+            //   (Note: hostname already includes .local, just add http:// and :8000/v1)
+            //
+            // Option 2: Get your Mac's IP address (more reliable):
+            //   Run in Terminal: ipconfig getifaddr en0
+            //   (or try en1 if en0 doesn't work)
+            //   Output example: "192.168.1.100"
+            //   Then use: http://[IP]:8000/v1
+
+
+            //  
+            // ============================================================
+            
+            // UPDATE THIS with your Mac's hostname or IP address:
+
     
     // APIService.swift
     private let baseURL: String = {
