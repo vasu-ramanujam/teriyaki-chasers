@@ -8,6 +8,8 @@ struct SearchBarView: View {
     var onClear: () -> Void
     var suggestions: [String]
     var onPickSuggestion: (String) -> Void
+    
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         VStack(spacing: 6) {
@@ -16,6 +18,7 @@ struct SearchBarView: View {
 
                 TextField(placeholder, text: $text)
                     .textInputAutocapitalization(.never)
+                    .focused($isFocused)
                     .autocorrectionDisabled(true)
                     .submitLabel(.search)
                     .onChange(of: text) { _, newValue in
@@ -51,6 +54,9 @@ struct SearchBarView: View {
                 }
                 .background(RoundedRectangle(cornerRadius: 12).fill(.thinMaterial))
             }
+        }
+        .onTapGesture {
+            isFocused.toggle()
         }
     }
 }
