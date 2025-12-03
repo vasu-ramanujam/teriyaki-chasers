@@ -62,6 +62,7 @@ struct SightingMapView: View {
                         Button { 
                             Task {
                                 await model.call_loadSightings()
+                                await model.loadHVA()
                             }
                         } label: { 
                             Image(systemName: "arrow.clockwise")
@@ -102,6 +103,7 @@ struct SightingMapView: View {
             Task {
                 // Wait briefly for GPS; then center & load last-24h sightings
                 await model.centerOnFirstValidLocationAndLoad()
+                await model.loadHVA()
                 cameraPosition = .region(model.mapRegion)
             }
         }
@@ -183,6 +185,9 @@ struct SightingMapView: View {
                     }
                 }
             }
+        }
+        .onMapCameraChange { context in
+            model.mapRegion.center = context.camera.centerCoordinate
         }
         .ignoresSafeArea()
     }

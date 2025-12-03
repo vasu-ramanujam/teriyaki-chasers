@@ -283,7 +283,6 @@ struct IdentifyView: View {
                     errorMessage = error.localizedDescription
                 }
             }
-            
         }
     }
 }

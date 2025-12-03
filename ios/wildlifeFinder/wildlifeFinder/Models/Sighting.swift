@@ -126,6 +126,7 @@ public struct Hotspot: Identifiable, Hashable {
     public let name: String
     public let coordinate: CLLocationCoordinate2D
     public let densityScore: Double
+    public let sightings: [APISighting]
 }
 
 public enum Waypoint: Identifiable, Hashable {

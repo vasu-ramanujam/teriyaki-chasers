@@ -14,71 +14,76 @@ struct HVAPinInformationView: View {
     @State private var errorMessage: String?
     
     var body: some View {
-        VStack{
-            HStack{
-                Image(systemName: "mappin")
-                    .font(.title)
-                Text("High Volume Area")
-                    .font(.title)
-                Spacer()
-            }
-            
-            if isLoading {
-                HStack {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                    Text("Loading sightings...")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+        NavigationStack {
+            VStack{
+                HStack{
+                    Image(systemName: "mappin")
+                        .font(.title)
+                    Text("High Volume Area")
+                        .font(.title)
+                        .navigationBarBackButtonHidden(true)
+                    Spacer()
                 }
-                .padding()
-            } else {
-                Text("Found \(sightings.count) sightings in this area!")
-            }
-            
-            List {
-                ForEach(sightings) { sighting in
-                    Button {
-                        sheetEntry = sighting
-                        showSightingSheet = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "mappin")
-                            VStack(alignment: .leading) {
-                                Text(sighting.species.name)
-                                    .font(.headline)
-                                Text("Posted by \(sighting.username)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                if let note = sighting.note {
-                                    Text(note)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(1)
+                
+                if isLoading {
+                    HStack {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text("Loading sightings...")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding()
+                } else {
+                    Text("Found \(sightings.count) sightings in this area!")
+                }
+                
+                List {
+                    ForEach(sightings) { sighting in
+                        NavigationLink {
+                            SightingPinInformationView(
+                                sighting: sighting,
+                                origin: .hva,
+                                waypointObj: .sighting(sighting)
+                            )
+                        } label: {
+                            HStack {
+                                Image(systemName: "mappin")
+                                VStack(alignment: .leading) {
+                                    Text(sighting.species.name)
+                                        .font(.headline)
+                                    Text(sighting.createdAt.formatted(
+                                        Date.FormatStyle()
+                                            .year(.twoDigits)
+                                            .month(.twoDigits)
+                                            .day(.defaultDigits)
+                                    ))
                                 }
+                                Spacer()
                             }
-                            Spacer()
                         }
                     }
                 }
-            }
-            
-            Button(vm.selectedWaypoints.contains(hotspotObj) ? "Remove High-Volume Area from Route" : "Add High-Volume Area to Route"){
-                vm.toggleWaypoint(hotspotObj)
-                dismiss()
-            }
-            .padding([.top])
-            .buttonStyle(.borderedProminent)
-            .font(.headline)
-
-            Spacer()
-            
-            HStack{
-                Button("< Back"){
+                
+                Button(vm.selectedWaypoints.contains(hotspotObj) ? "Remove High-Volume Area from Route" : "Add High-Volume Area to Route"){
+                    vm.toggleWaypoint(hotspotObj)
                     dismiss()
                 }
-                .padding([.leading])
+                .padding([.top])
+                .buttonStyle(OrangeButtonStyle())
+                .buttonStyle(.borderedProminent)
+                .font(.headline)
+                
                 Spacer()
+                
+                HStack{
+                    Button("< Back"){
+                        dismiss()
+                    }
+                    .padding([.leading])
+                    .buttonStyle(GreenButtonStyle())
+                    Spacer()
+                }
             }
         }
         .padding()
@@ -86,14 +91,6 @@ struct HVAPinInformationView: View {
             Task {
                 await loadSightingsInArea()
             }
-        }
-        .sheet(item: $sheetEntry) { sighting in
-            SightingPinInformationView(
-                sighting: sighting, 
-                origin: .hva, 
-                waypointObj: .sighting(sighting)
-            )
-            .presentationBackground(.regularMaterial)
         }
         .alert("Error", isPresented: .constant(errorMessage != nil)) {
             Button("OK") { errorMessage = nil }
@@ -114,27 +111,9 @@ struct HVAPinInformationView: View {
                 return
             }
             
-            // Create a small bounding box around the hotspot
-            let center = hotspot.coordinate
-            let span = 0.01 // Small area around the hotspot
-            let boundingBox = APIService.shared.createBoundingBox(
-                center: center, 
-                span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span)
-            )
-            
-            let filter = APISightingFilter(
-                area: boundingBox,
-                species_id: nil,
-                start_time: nil,
-                end_time: nil,
-                username: nil,
-            )
-            
-            let apiSightings = try await APIService.shared.getSightings(filter: filter)
-            
             // Convert API sightings to app models
             var convertedSightings: [Sighting] = []
-            for apiSighting in apiSightings {
+            for apiSighting in hotspot.sightings {
                 // Fetch species details for each sighting
                 let apiSpecies = try await APIService.shared.getSpecies(id: apiSighting.species_id)
                 let species = Species(from: apiSpecies)
