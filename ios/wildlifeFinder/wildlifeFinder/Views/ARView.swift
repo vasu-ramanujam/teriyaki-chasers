@@ -286,8 +286,8 @@ private extension ARViewScreen {
         switch waypoint {
         case .sighting(let sighting):
             SightingPinInformationView(sighting: sighting, origin: .map, waypointObj: waypoint)
-        case .hotspot(let hotspot):
-            HVAPinInformationView(hotspotObj: hotspot)
+        case .hotspot( _):
+            HVAPinInformationView(hotspotObj: waypoint)
         }
     }
 }
