@@ -83,6 +83,18 @@ struct SearchResultView: View {
             if isLoading {
                 ProgressView()
             } else {
+                HStack {
+                    Button {
+                        path = NavigationPath()
+                    } label: {
+                        Text("Back")
+                    }
+                    .buttonStyle(GreenButtonStyle())
+                    
+                    Spacer()
+                }
+                .padding(.leading)
+                
                 if isValid{
                     if let speciesObj {
                         SpeciesView(species: speciesObj, imgUrl: URL(string: speciesObj.main_image!))
@@ -93,13 +105,6 @@ struct SearchResultView: View {
                     Text("\"\(species)\" is not a valid animal!")
                         .font(.title)
                 }
-                
-                Button {
-                    path = NavigationPath()
-                } label: {
-                    Text("Back")
-                }
-                .buttonStyle(GreenButtonStyle())
             }
         }
         .navigationBarBackButtonHidden(true)
