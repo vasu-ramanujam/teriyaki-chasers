@@ -44,6 +44,19 @@ public struct Species: Identifiable, Hashable {
         self.created_at = Date()
         self.main_image = ""
     }
+    
+    public init(from apiSpeciesDetails: APISpeciesDetails) {
+        self.id = 0  // this won't be necessary
+        self.common_name = apiSpeciesDetails.english_name!
+        self.scientific_name = apiSpeciesDetails.species
+        self.other_sources = apiSpeciesDetails.other_sources ?? []
+        self.main_image = apiSpeciesDetails.main_image ?? ""
+        self.habitat = nil
+        self.diet = nil
+        self.behavior = nil
+        self.description = apiSpeciesDetails.description
+        self.created_at = Date()
+    }
 }
 
 public struct Sighting: Identifiable, Hashable {

@@ -29,34 +29,103 @@ struct AnimalSearchView: View {
     
     var body: some View {
         NavigationStack(path: $path) {
-            SearchBarView(
-                text: $text, placeholder: "Search for an animal...", onSubmit: {
-                    path.append(text)
-                },
-                onChange: {_ in updateSuggestions() },
-                onClear: { text = ""; suggestions = [] },
-                suggestions: suggestions,
-                onPickSuggestion: { pick in
-                    path.append(pick)
-                    suggestions = []
-                }
-            )
-            
-            Text("Search for an animal here!")
-                .font(.title)
-            
-            Image(systemName: "magnifyingglass")
-                .foregroundColor(.gray)
-                .font(.title)
-                .scaledToFill()
+            VStack {
+                SearchBarView(
+                    text: $text, placeholder: "Search for an animal...",
+                    onSubmit: {
+                        path.append(text)
+                        suggestions = []
+                    },
+                    onChange: {_ in updateSuggestions() },
+                    onClear: { text = ""; suggestions = []; path = NavigationPath() },
+                    suggestions: suggestions,
+                    onPickSuggestion: { pick in
+                        text = ""
+                        suggestions = []
+                        path.append(pick)
+                    }
+                )
+                
+                Text("Search for an animal here!")
+                    .font(.title)
+                
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.gray)
+                    .font(.title)
+                    .scaledToFill()
+                
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .navigationDestination(for: String.self) { species in
-            
+            SearchResultView(species: species, path: $path)
         }
         .alert("Error", isPresented: .constant(errorMessage != nil)) {
             Button("OK") { errorMessage = nil }
         } message: {
             Text(errorMessage ?? "")
+        }
+    }
+}
+
+struct SearchResultView: View {
+    var species: String
+    @State private var isLoading = false
+    @State private var isValid: Bool = false
+    @Binding var path: NavigationPath
+    @State private var errorMessage: String?
+
+    @State private var speciesObj: Species?
+    
+    var body: some View {
+        VStack {
+            if isLoading {
+                ProgressView()
+            } else {
+                if isValid{
+                    if let speciesObj {
+                        SpeciesView(species: speciesObj, imgUrl: URL(string: speciesObj.main_image!))
+                    } else {
+                        Text("Error getting species to display")
+                    }
+                } else {
+                    Text("\"\(species)\" is not a valid animal!")
+                        .font(.title)
+                }
+                
+                Button {
+                    path = NavigationPath()
+                } label: {
+                    Text("Back")
+                }
+                .buttonStyle(GreenButtonStyle())
+            }
+        }
+        .navigationBarBackButtonHidden(true)
+        .alert("Error", isPresented: .constant(errorMessage != nil)) {
+            Button("OK") { errorMessage = nil }
+        } message: {
+            Text(errorMessage ?? "")
+        }
+        .onAppear {
+            isLoading = true
+            
+            Task {
+                defer { isLoading = false }
+                do {
+                    let validateName = try await APIService.shared.validateName(species)
+                    
+                    isValid = validateName.is_valid
+                    
+                    if isValid {
+                        let details = try await APIService.shared.searchName(species)
+                        speciesObj = Species(from: details)
+                    }
+                } catch {
+                    errorMessage = error.localizedDescription
+                }
+            }
         }
     }
 }

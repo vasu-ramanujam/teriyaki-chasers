@@ -47,6 +47,11 @@ struct SpeciesView: View {
                 .padding(.bottom)
                 .padding(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
+            
+            Text("**Common Name**: \(species.common_name)")
+                .padding(.bottom)
+                .padding(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             if let hab = species.habitat {
                 Text("**Habitat**: \(hab)")

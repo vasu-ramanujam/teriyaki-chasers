@@ -4,8 +4,9 @@ from typing import Tuple
 
 import httpx
 from fastapi import APIRouter, HTTPException
-from app.schemas import AnimalSearchRequest, AnimalSearchResponse
+from app.schemas import AnimalSearchRequest, AnimalSearchResponse, SpeciesDetails
 from app.config import settings
+from app.routers.species import _enrich_with_wikipedia_with_image
 
 router = APIRouter()
 
@@ -101,3 +102,15 @@ async def validate_animal_name(body: AnimalSearchRequest) -> AnimalSearchRespons
 @router.get("/{query}")
 def get_suggestions(query: str):
     return _return_suggestions(query)
+
+@router.get("/wiki/{name}", response_model=SpeciesDetails)
+async def search_animal(name: str) -> SpeciesDetails:
+    wiki = await _enrich_with_wikipedia_with_image(name)
+
+    return SpeciesDetails(
+        species=name,
+        english_name=wiki["english_name"],
+        description=wiki["description"],
+        other_sources=wiki["other_sources"],
+        main_image=wiki["main_image"]
+    )

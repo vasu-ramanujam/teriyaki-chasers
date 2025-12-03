@@ -364,8 +364,30 @@ public class APIService {
         guard let url = URL(string: "\(baseURL)/animal-search/\(query)") else { return [] }
         let (data, _) = try await session.data(from: url)
         
-        let resp = try JSONDecoder().decode([String].self, from: data)
-        return resp
+        return try JSONDecoder().decode([String].self, from: data)
+    }
+    
+    public func validateName(_ name: String) async throws -> AnimalSearchResponse {
+        guard let url = URL(string: "\(baseURL)/animal-search/validate-name") else { return AnimalSearchResponse(name: "dur", is_valid: false) }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let objData = AnimalSearchRequest(name: name)
+        let jsonData = try JSONEncoder().encode(objData)
+        
+        request.httpBody = jsonData
+        
+        let (data, _) = try await session.data(for: request)
+        return try JSONDecoder().decode(AnimalSearchResponse.self, from: data)
+    }
+    
+    public func searchName(_ name: String) async throws -> APISpeciesDetails {
+        guard let url = URL(string: "\(baseURL)/animal-search/wiki/\(name)") else { return APISpeciesDetails(species: "invalid", english_name: nil, description: nil, other_sources: nil, main_image: nil) }
+        
+        let (data, _) = try await session.data(from: url)
+        
+        return try JSONDecoder().decode(APISpeciesDetails.self, from: data)
     }
     
     // MARK: - Helper Methods
