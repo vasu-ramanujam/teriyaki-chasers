@@ -45,6 +45,7 @@ struct AnimalSearchView: View {
                         path.append(pick)
                     }
                 )
+                .padding(.horizontal)
                 
                 Text("Search for an animal here!")
                     .font(.title)
@@ -104,9 +105,12 @@ struct SearchResultView: View {
                 } else {
                     Text("\"\(species)\" is not a valid animal!")
                         .font(.title)
+                    
+                    Spacer()
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .navigationBarBackButtonHidden(true)
         .alert("Error", isPresented: .constant(errorMessage != nil)) {
             Button("OK") { errorMessage = nil }

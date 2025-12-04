@@ -346,9 +346,6 @@ struct PostView: View {
                             }
                         )
                 }
-//                Text("Audio bar here")
-//                    .padding(.trailing)
-//                
                 Button {
                     postVM.audioURL = nil
                 } label: {
