@@ -324,9 +324,31 @@ struct PostView: View {
             .padding()
             
             ZStack(alignment: .topTrailing) {
-                Text("Audio bar here")
-                    .padding(.trailing)
-                
+                if let audioURL = postVM.audioURL {
+                    AudioPlaybackView(url: audioURL)
+                        .id(audioURL)
+                        .padding()
+                        .background(Color.gray.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 6)
+                        .padding(.horizontal, 4)
+                } else {
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.gray.opacity(0.1))
+                        .frame(height: 120)
+                        .overlay(
+                            VStack(spacing: 8) {
+                                Image(systemName: "waveform")
+                                    .font(.system(size: 36))
+                                    .foregroundStyle(.secondary)
+                                Text("No audio recorded")
+                                    .foregroundStyle(.secondary)
+                            }
+                        )
+                }
+//                Text("Audio bar here")
+//                    .padding(.trailing)
+//                
                 Button {
                     postVM.audioURL = nil
                 } label: {
