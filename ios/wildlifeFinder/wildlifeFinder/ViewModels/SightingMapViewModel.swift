@@ -235,14 +235,14 @@ final class SightingMapViewModel: SightingsLoadable {
 //         let swan = Species(id: 3, common_name: "mute swan", scientific_name: "Cygnus olor", habitat: nil, diet: nil, behavior: nil, description: nil, other_sources: nil, created_at: Date(), main_image: nil)
 //
 //         self.sightings = [
-//            Sighting(id: "1", species: flamingo, coordinate: .init(latitude: 42.2808, longitude: -83.7430), createdAt: Date(), note: "near marsh", username: "Named Teriyaki", isPrivate: false, media_url: nil, audio_url: nil),
-//            Sighting(id: "2", species: turkey, coordinate: .init(latitude: 42.2766759, longitude: -83.7380297), createdAt: Date(), note: "trail edge", username: "Named Turkey", isPrivate: false, media_url: nil, audio_url: nil),
+//            Sighting(id: "1", species: flamingo, coordinate: .init(latitude: 42.274985, longitude: -83.735580), createdAt: Date(), note: "near marsh", username: "Named Teriyaki", isPrivate: false, media_url: nil, audio_url: nil),
+//            Sighting(id: "2", species: turkey, coordinate: .init(latitude: 42.274830, longitude: -83.735772), createdAt: Date(), note: "trail edge", username: "Named Turkey", isPrivate: false, media_url: nil, audio_url: nil),
 //            Sighting(id: "3", species: turkey, coordinate: .init(latitude: 42.2802932, longitude: -83.7331333), createdAt: Date(), note: nil, username: "Teriyaki", isPrivate: false, media_url: nil, audio_url: nil),
 //            Sighting(id: "4", species: swan, coordinate: .init(latitude: 42.2836233, longitude: -83.7424111), createdAt: Date(), note: "lake", username: "Tester", isPrivate: true, media_url: nil, audio_url: nil)
 //         ]
-//         self.hotspots = [
-//             Hotspot(name: "Wetlands", coordinate: .init(latitude: 37.332, longitude: -122.004), densityScore: 0.82),
-//             Hotspot(name: "North Meadow", coordinate: .init(latitude: 37.337, longitude: -122.012), densityScore: 0.65)
-//         ]
+////         self.hotspots = [
+////             Hotspot(name: "Wetlands", coordinate: .init(latitude: 37.332, longitude: -122.004), densityScore: 0.82),
+////             Hotspot(name: "North Meadow", coordinate: .init(latitude: 37.337, longitude: -122.012), densityScore: 0.65)
+////         ]
 //     }
 }

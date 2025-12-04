@@ -19,33 +19,7 @@ final class RouteViewModel {
         isLoading = true
         defer { isLoading = false }
 
-        do {
-            // Try backend API first
-            let start = waypoints[0].coordinate
-            let end = waypoints[waypoints.count - 1].coordinate
-            
-            let apiRoute = try await APIService.shared.createRoute(start: start, end: end)
-            
-            // Convert API route to app route
-            // For now, create a simple route with the polyline
-            var legs: [RouteLeg] = []
-            
-            // Create legs between waypoints
-            for i in 0..<(waypoints.count - 1) {
-                var leg = RouteLeg(from: waypoints[i].coordinate, to: waypoints[i + 1].coordinate)
-                leg.distance = apiRoute.distance_m
-                leg.expectedTravelTime = apiRoute.duration_s
-                // Note: You'd need to decode the polyline here for the actual route
-                legs.append(leg)
-            }
-
-            
-            self.appRoute = AppRoute(legs: legs)
-            
-        } catch {
-            // Fallback to local MKDirections
-            await buildRouteLocally(from: waypoints)
-        }
+        await buildRouteLocally(from: waypoints)
     }
     
     private func buildRouteLocally(from waypoints: [Waypoint]) async {
