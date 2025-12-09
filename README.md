@@ -18,7 +18,7 @@ A comprehensive iOS wildlife tracking and identification app with AI-powered spe
 ## Quick Start
 (added justRun.py to the backend, just run this file to run backend at once)
 
-#Before running the backend, you need to configure API keys and credentials:
+# Before running the backend, you need to configure API keys and credentials:
 
 If you obtained the api keys from us, just put them in the terminal directly and run the part 1);
 Otherwise, Edit the .env file with your credentials:
