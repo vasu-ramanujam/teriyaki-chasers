@@ -5,7 +5,7 @@
 |[<img src="https://eecs441.eecs.umich.edu/img/admin/video.png">][video]|[<img src="https://eecs441.eecs.umich.edu/img/admin/wiki.png">][wiki]|[<img src="https://eecs441.eecs.umich.edu/img/admin/trello.png">][agile]|
 <!-- reusing the icons from eecs441 -->
 
-![Elevator Pitch] (https://raw.githubusercontent.com/vasu-ramanujam/teriyaki-chasers/master/.github/images/elevator_pitch.png)
+![Elevator Pitch](https://raw.githubusercontent.com/vasu-ramanujam/teriyaki-chasers/master/.github/images/elevator_pitch.png)
 ![Team](https://raw.githubusercontent.com/vasu-ramanujam/teriyaki-chasers/master/.github/images/team_members.png)
 
 [video]: https://www.youtube.com/watch?v=ilITc6ndsQg
