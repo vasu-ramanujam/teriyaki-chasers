@@ -27,11 +27,16 @@ Otherwise, Edit the .env file with your credentials:
    
    (Optional: AWS S3 for media storage)
    AWS_ACCESS_KEY_ID=your_aws_access_key
+   
    AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+   
    AWS_S3_BUCKET_NAME=your_bucket_name
+   
    AWS_REGION=us-east-2
+   
    (Optional: RDS PostgreSQL (for production))
    DATABASE_URL=postgresql+psycopg2://user:password@host:port/database
+   
    (Default: SQLite for local development)
    DATABASE_URL=sqlite:///./animal_explorer.db
    
