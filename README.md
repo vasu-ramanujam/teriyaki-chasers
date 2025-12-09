@@ -65,7 +65,7 @@ Wildlife Finder is a native iOS application that helps users identify, track, an
 - **Sighting Map**: View wildlife sightings on an interactive map with filtering capabilities
 - **High Volume Areas (HVAs)**: Discover hotspots where multiple sightings have been recorded
 - **Species Filtering**: Filter sightings by species name with autocomplete suggestions
-- **Time-based Filtering**: View sightings from the last 24 hours or custom time ranges
+- **Time-based Filtering**: View sightings from the last 24 hours
 
 ### 🧭 AR Navigation & Routing
 - **Augmented Reality Waypoints**: Navigate to wildlife sightings using AR directions
