@@ -6,7 +6,7 @@
 <!-- reusing the icons from eecs441 -->
 
 ![Elevator Pitch] (https://raw.githubusercontent.com/vasu-ramanujam/teriyaki-chasers/master/.github/images/elevator_pitch.png)
-![Team](/assets/team.png)
+![Team](https://raw.githubusercontent.com/vasu-ramanujam/teriyaki-chasers/master/.github/images/team_members.png)
 
 [video]: https://www.youtube.com/watch?v=ilITc6ndsQg
 [wiki]: https://github.com/vasu-ramanujam/teriyaki-chasers/wiki
