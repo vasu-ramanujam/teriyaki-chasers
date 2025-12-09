@@ -8,9 +8,9 @@
 ![Elevator Pitch](https://raw.githubusercontent.com/58456051/133131373-e909da64-93cb-449f-b9f0-3a58dcb1b9db.png) <!-- MUST be placed in publicly accessible github -->
 ![Team](/assets/team.png)
 
-[video]: https://youtu.be/sample](https://youtu.be/ahn3mXMOfn4
+[video]: https://www.youtube.com/watch?v=ilITc6ndsQg
 [wiki]: https://github.com/member/team/wiki
-[agile]: https://trello.com/b/sample/general <!-- MUST be made public –>
+[agile]: https://trello.com/b/bBXVHwP2
 
 # 🦅 Wildlife Finder 
 A comprehensive iOS wildlife tracking and identification app with AI-powered species recognition, interactive maps, AR navigation, and community sighting sharing.
