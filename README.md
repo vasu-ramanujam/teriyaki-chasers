@@ -9,7 +9,7 @@
 ![Team](/assets/team.png)
 
 [video]: https://www.youtube.com/watch?v=ilITc6ndsQg
-[wiki]: https://github.com/member/team/wiki
+[wiki]: https://github.com/vasu-ramanujam/teriyaki-chasers/wiki
 [agile]: https://trello.com/b/bBXVHwP2
 
 # 🦅 Wildlife Finder 
