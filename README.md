@@ -15,7 +15,7 @@
 # 🦅 Wildlife Finder 
 A comprehensive iOS wildlife tracking and identification app with AI-powered species recognition, interactive maps, AR navigation, and community sighting sharing.
 
-## Quick Start
+# Quick Start
 (added justRun.py to the backend, just run this file to run backend at once)
 
 ## Before running the backend, you need to configure API keys and credentials:
