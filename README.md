@@ -16,7 +16,27 @@
 A comprehensive iOS wildlife tracking and identification app with AI-powered species recognition, interactive maps, AR navigation, and community sighting sharing.
 
 ## Quick Start
-added justRun.py to the backend, just run this file to run backend at once
+(added justRun.py to the backend, just run this file to run backend at once)
+
+Before running the backend, you need to configure API keys and credentials:
+
+If you obtained the api keys from us, just put them in the terminal directly and run the part 1);
+Otherwise, Edit the .env file with your credentials:
+   # Required for AI identification
+   OPENAI_API_KEY=your_openai_api_key_here
+   
+   # Optional: AWS S3 for media storage
+   AWS_ACCESS_KEY_ID=your_aws_access_key
+   AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+   AWS_S3_BUCKET_NAME=your_bucket_name
+   AWS_REGION=us-east-2
+   
+   # Optional: RDS PostgreSQL (for production)
+   # DATABASE_URL=postgresql+psycopg2://user:password@host:port/database
+   
+   # Default: SQLite for local development
+   DATABASE_URL=sqlite:///./animal_explorer.db
+   
 ### 1) Run the code
 
 ```bash
